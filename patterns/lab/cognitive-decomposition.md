@@ -48,11 +48,13 @@ Provide at least 2 real-use examples.
 
 ---
 
-### Example 1: 
+### Examples
+
+Example 1: 
 Input:
 Output:
 
-### Example 2: 
+Example 2: 
 Input:
 Output:
 
