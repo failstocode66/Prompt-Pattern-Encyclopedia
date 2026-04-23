@@ -56,8 +56,6 @@ Provide at least 2 real-use examples.
 Input:
 Output:
 
---
-
 ### Example 2: 
 Input:
 Output:
