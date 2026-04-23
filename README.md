@@ -51,7 +51,7 @@ All new patterns added to /patterns/lab must follow the standardized template.
 
 The canonical template is located at:
 
-[Pattern Template](/docs/pattern-template.md)
+[/docs/pattern-template.md](/docs/pattern-template.md)
 
 
 ### Requirements
