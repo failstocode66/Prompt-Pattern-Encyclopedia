@@ -33,6 +33,18 @@ A pattern must:
 * Document known failure modes
 * Meet scoring threshold (≥ 12/15)
 
+## Validation Principle: Basline Comparison
+
+All patterns must demonstrate a measureable or observable improvement over a baseline(no-pattern) prompt.
+
+This means:
+
+* A patternshould produce notably better results than a raw prompt
+* Improvements may include accuracy, structure, consistency, or clarity
+* Patterns that do not show a clear delta should remain in /lab or be rejected
+
+Whenever possible, patterns should include a baseline vs. pattern comparison to make this improvement explicit 
+
 ## Scoring System
 
 Each pattern is evaluated on:
