@@ -51,7 +51,7 @@ All new patterns added to /patterns/lab must follow the standardized template.
 
 The canonical template is located at:
 
-/docs/pattern-template.md
+[Pattern Template](/docs/pattern-template.md)
 
 
 ### Requirements
@@ -64,7 +64,7 @@ Submissions must include:
 * Defined **Failure Modes**
 * At least **2 real-use Examples**
 
-Patterns that do not demonstrate a clear improvement over baseline should remain in `/lab` and will not be promoted to `/core`.
+Patterns that do not demonstrate a clear improvement over baseline should remain in /lab and will not be promoted to /core.
 
 
 ### Quick Example (Abbreviated)
