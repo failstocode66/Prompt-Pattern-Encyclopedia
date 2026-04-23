@@ -45,6 +45,48 @@ This means:
 
 Whenever possible, patterns should include a baseline vs pattern comparison to make this improvement explicit 
 
+## Pattern Submission Format
+
+All new patterns added to /patterns/lab must follow the standardized template.
+
+The canonical template is located at:
+
+/docs/pattern-template.md
+
+
+### Requirements
+
+Submissions must include:
+
+* A clear **Intent** and **Mechanism**
+* A reusable **Template**
+* A **Baseline Comparison (Required)** demonstrating improvement over a raw prompt
+* Defined **Failure Modes**
+* At least **2 real-use Examples**
+
+Patterns that do not demonstrate a clear improvement over baseline should remain in `/lab` and will not be promoted to `/core`.
+
+
+### Quick Example (Abbreviated)
+
+## Pattern: cognitive-decomposition
+
+### Intent
+Break complex tasks into smaller steps
+
+### Template
+"Break this problem into steps: {task}"
+
+### Baseline Comparison
+(WITH vs WITHOUT pattern)
+
+### Failure Modes
+- Overly verbose for simple tasks
+
+
+For the full required structure, refer to:
+/docs/pattern-template.md
+
 ## Scoring System
 
 Each pattern is evaluated on:
