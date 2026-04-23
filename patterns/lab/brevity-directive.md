@@ -65,9 +65,11 @@ Output
 
 ### Examples
 Example 1: Input: "Answer in 1 sentence. No preamble. What does the ACID acronym mean in databases?"
+
 Output: [placeholder — to be filled after testing]
 
 Example 2: Input: "Answer in 20 words or fewer. No preamble. What's the recommended action for a customer whose card was declined at checkout?"
+
 Output: [placeholder — to be filled after testing]
 
 Evaluation (Optional in Lab, Required for Core)
