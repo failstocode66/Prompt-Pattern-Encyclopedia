@@ -21,17 +21,13 @@ Encourages the model to externalize intermediate reasoning rather than attemptin
 ---
 
 ### Baseline Comparison (Required)
-Input (WITHOUT pattern)
-same task without pattern
+Input (WITHOUT pattern):
 
-Output
-model output
+Output:
 
-Input (WITH pattern)
-same task using the pattern
+Input (WITH pattern):
 
-Output
-model output
+Output:
 
 ---
 
