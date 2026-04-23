@@ -8,7 +8,7 @@ Improve performance on complex or multi-step problems by explicitly forcing step
 --
 ### Mechanism
 Encourages the model to externalize intermediate reasoning rather than attempting a direct answer, reducing errors in complex tasks
---
+---
 ### Template
 "Break this problem into smaller steps. Solve each step sequentially before giving the final answer: {task}"
 --
