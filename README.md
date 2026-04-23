@@ -43,7 +43,7 @@ This means:
 * Improvements may include accuracy, structure, consistency, or clarity
 * Patterns that do not show a clear delta should remain in /lab or be rejected
 
-Whenever possible, patterns should include a <baseline vs pattern comparison> to make this improvement explicit 
+Whenever possible, patterns should include a baseline vs pattern comparison to make this improvement explicit 
 
 ## Scoring System
 
