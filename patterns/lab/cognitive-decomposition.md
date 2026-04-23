@@ -5,7 +5,9 @@ Last Updated: 04-23-2026
 
 ### Intent
 Improve performance on complex or multi-step problems by explicitly forcing stepwise breakdown before solving
---
+
+---
+
 ### Mechanism
 Encourages the model to externalize intermediate reasoning rather than attempting a direct answer, reducing errors in complex tasks
 ---
