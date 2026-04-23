@@ -92,7 +92,7 @@ Conflicts with:
 - self-verification
 - creative-flow (length often serves form)
 
-Notes (Optional)
+### Notes (Optional)
 Specify the unit (sentences, words, lines) — "be brief" is interpreted inconsistently. Pair with "no preamble" to kill throat-clearing phrases like "Great question!" For critical outputs, validate length programmatically; models drift over the ceiling on hard inputs.
 
 Version History
