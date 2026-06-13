@@ -1,0 +1,21 @@
+{
+  "models": ["gpt-5.4-mini", "claude-sonnet-4-6", "gemini-2.5-flash"],
+  "runs": 2,
+  "judge": "claude-opus-4-8",
+  "evals": [
+    {
+      "pattern": "role-persona+strict-output-format+audience-calibration",
+      "prompt_file": "role-persona-strict-output.txt",
+      "expected": "A child-appropriate explanation that an API is a way for computer programs to talk to each other and ask for things",
+      "format_spec": "Exactly three numbered points (one sentence each) plus a final line starting with 'Remember:' containing an analogy",
+      "tone": "Warm, patient teacher voice aimed at a 10-year-old; no unexplained jargon"
+    },
+    {
+      "pattern": "few-shot-examples",
+      "prompt_file": "few-shot-examples.txt",
+      "expected": "NEUTRAL (mixed signal: confusing interface but quickly resolved by support)",
+      "format_spec": "A single uppercase label, one of POSITIVE/NEGATIVE/NEUTRAL, with no other text",
+      "tone": "Terse classifier output; no prose"
+    }
+  ]
+}

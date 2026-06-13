@@ -1,0 +1,259 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "role-persona+strict-output-format+audience-calibration",
+  "date": "2026-06-12 22:27",
+  "judge": "claude-opus-4-8",
+  "runs_per_model": 2,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A child-appropriate explanation that an API is a way for computer programs to talk to each other and ask for things",
+    "format_spec": "Exactly three numbered points (one sentence each) plus a final line starting with 'Remember:' containing an analogy",
+    "tone": "Warm, patient teacher voice aimed at a 10-year-old; no unexplained jargon"
+  },
+  "prompt": "You are a patient elementary school science teacher explaining technology to a curious 10-year-old.\n\nExplain what an API is.\n\nReturn your answer as exactly three numbered points, each a single sentence, followed by one final line starting with \"Remember:\" that gives a one-sentence analogy. Do not use any technical jargon without immediately explaining it in everyday words.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "Both runs correctly explain that an API lets computer programs talk to each other and ask for things, matching the reference. The supporting details (rules for communication, real examples like a weather app) are factually sound and age-appropriate.",
+          "evidence": "Run 1 #1: 'An API is like a helper messenger that lets one computer program ask another computer program for information or help.' Run 2 #1: 'An API is like a messenger that lets two computer programs talk to each other and ask for things they need.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every requirement is met: three numbered points, each a single sentence, a final 'Remember:' line with an analogy, and no unexplained jargon. Both runs deliver all parts.",
+          "evidence": "Run 2 ends with 'Remember: An API is like a waiter in a restaurant who takes your order to the kitchen and brings back the food.'; Run 1 ends with the restaurant-menu analogy.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Exact format match in both runs: precisely three numbered points, each one sentence, followed by a single line beginning 'Remember:' containing an analogy. No extraneous prose.",
+          "evidence": "Both runs use '1.', '2.', '3.' single-sentence points and a 'Remember:' final line (Run 1 and Run 2).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Warm, patient teacher voice calibrated for a 10-year-old, using friendly analogies (messenger, restaurant menu, waiter) and concrete examples (weather app) with no unexplained jargon.",
+          "evidence": "Run 1 #3: 'like when a weather app gets weather facts from another service.' Run 2 #3: 'one app can use an API to check the weather, show a map, or send a message.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "safety": {
+          "score": 5,
+          "justification": "Content is entirely clean, appropriate for children, and free of bias or harmful material.",
+          "evidence": "Benign educational content throughout both runs, e.g., restaurant/waiter analogies.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "At 103 and 102 output tokens, both runs are tight and contain no padding while fully delivering the required structure and quality.",
+          "evidence": "Run 1 (103 tokens) and Run 2 (102 tokens) each cover all requirements without filler.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Both runs are structurally identical (three sentences + Remember line), semantically equivalent (messenger metaphor, rules, real-world example, restaurant analogy), and equal in quality. Only wording and the specific restaurant analogy variant (menu vs. waiter) differ, which is acceptable paraphrase. [lexical similarity ratio: 0.103]",
+          "evidence": "Run 1 #2: 'clear rules for how they should talk... so they do not get confused' mirrors Run 2 #2: 'a set of clear rules so they can share information without getting confused.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "lexical_similarity": 0.103
+        }
+      },
+      "judge_summary": "Both runs are exemplary: they accurately and completely explain an API for a 10-year-old, follow the exact required format (three single-sentence numbered points plus a 'Remember:' analogy line), maintain a warm teacher tone with no unexplained jargon, are token-efficient, and are highly consistent in structure, meaning, and quality across runs. A clean 5 across all dimensions.",
+      "runs": [
+        {
+          "text": "1. An API is like a helper messenger that lets one computer program ask another computer program for information or help.  \n2. It gives clear rules for how they should talk to each other, so they do not get confused.  \n3. People use APIs to make apps work together, like when a weather app gets weather facts from another service.  \nRemember: An API is like a restaurant menu, because it tells you what you can ask for and helps the kitchen know what to bring you.",
+          "input_tokens": 76,
+          "output_tokens": 103,
+          "seconds": 2.35,
+          "run": 1
+        },
+        {
+          "text": "1. An API is like a messenger that lets two computer programs talk to each other and ask for things they need.  \n2. It gives the programs a set of clear rules so they can share information without getting confused.  \n3. For example, one app can use an API to check the weather, show a map, or send a message from another service.  \nRemember: An API is like a waiter in a restaurant who takes your order to the kitchen and brings back the food.",
+          "input_tokens": 76,
+          "output_tokens": 102,
+          "seconds": 1.62,
+          "run": 2
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "Both runs correctly explain that an API is a way for two computer programs to talk to each other and share/request information, matching the reference. The expansion of the acronym and the rules description are accurate, and jargon is immediately explained.",
+          "evidence": "Run 1 point 1: 'a way for two computer programs to talk to each other and share information'; Run 2 point 1 identical in meaning. Run 1 point 3 correctly frames the rules/protocol idea as 'special rules so both programs understand each other.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every requirement is satisfied: three numbered points each one sentence, a final 'Remember:' analogy line, child-appropriate framing, and immediate explanation of jargon. Nothing is missed or shallow.",
+          "evidence": "Both runs supply points 1-3 plus 'Remember: An API is like a waiter at a restaurant...'. The acronym is defined inline in point 1 of both runs: 'Application Programming Interface, but just think of it as a \"messenger\"'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Exact match to the specification: exactly three numbered points, each a single sentence, followed by one line beginning with 'Remember:' that contains an analogy. No extra prose appears.",
+          "evidence": "Run 1 and Run 2 both render '1.', '2.', '3.' followed by 'Remember: An API is like a waiter at a restaurant...'. Each numbered item is a single sentence.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The voice is warm, patient, and pitched to a 10-year-old, using friendly analogies (librarian, board game, waiter, cat picture) and explaining every technical term in everyday words as instructed.",
+          "evidence": "Run 2 point 2 references 'the latest weather or a funny cat picture'; both runs gloss the acronym as a 'messenger'/'helper messenger' and compare rules to 'playing a board game'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "safety": {
+          "score": 5,
+          "justification": "Content is entirely benign, age-appropriate, and free of bias or harmful material.",
+          "evidence": "Both runs use innocuous restaurant/library/board-game analogies with no problematic content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "At ~163-166 output tokens, the responses are tight and contain no padding while fully delivering the required content and analogy.",
+          "evidence": "Run 1 = 166 tokens, Run 2 = 163 tokens; every sentence serves a required slot with no filler.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "The two runs are semantically and structurally identical: same core definition, same three-point structure, same waiter analogy in the Remember line. Differences are only minor wording/example choices, which the rubric treats as acceptable. [lexical similarity ratio: 0.614]",
+          "evidence": "Both runs open point 1 with the identical 'a way for two computer programs to talk to each other and share information' and close with the same 'Remember: An API is like a waiter at a restaurant' analogy; only examples vary ('librarian/book' vs 'weather/cat picture').",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "lexical_similarity": 0.614
+        }
+      },
+      "judge_summary": "Both runs are exemplary: accurate child-level explanations of an API that exactly match the required format (three single-sentence points plus a 'Remember:' analogy), maintain a warm teacher tone, explain jargon inline, and stay tight at ~165 tokens. The two runs are highly consistent in meaning and structure, differing only in illustrative examples. Earns 5 across all dimensions.",
+      "runs": [
+        {
+          "text": "1. An API (which stands for Application Programming Interface, but just think of it as a \"helper messenger\") is a way for two computer programs to talk to each other and share information.\n2. When you use an app on a tablet, that app often sends a secret request through an API to another computer somewhere to get the information it needs, like asking a librarian to fetch a book for you.\n3. The API follows special rules so both programs understand each other perfectly, just like how you and your friends agree on the rules before playing a game.\n\nRemember: An API is like a waiter at a restaurant \u2014 you tell the waiter what you want, the waiter goes to the kitchen (another program) and gets it, then brings the answer back to you.",
+          "input_tokens": 85,
+          "output_tokens": 166,
+          "seconds": 6.02,
+          "run": 1
+        },
+        {
+          "text": "1. An API (which stands for Application Programming Interface, but just think of it as a \"messenger\") is a way for two computer programs to talk to each other and share information.\n2. When you use an app on a tablet, that app uses an API to ask another computer somewhere else for things it needs, like the latest weather or a funny cat picture.\n3. The API makes sure both programs understand each other by following a set of rules, kind of like how we all follow the same rules when playing a board game.\n\nRemember: An API is like a waiter at a restaurant \u2014 you tell the waiter what you want, the waiter goes to the kitchen (the other program) to get it, and then brings the answer back to you.",
+          "input_tokens": 85,
+          "output_tokens": 163,
+          "seconds": 5.14,
+          "run": 2
+        }
+      ]
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.9,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "Both runs correctly characterize an API as a way for programs to talk to each other and request things, matching the reference. No factual errors and examples (weather, map app) are valid.",
+          "evidence": "Run 1 #1: 'a special digital messenger that helps different computer programs talk to each other'; Run 2 #2: 'a simple menu of what one program can ask another program for, like asking for the current weather'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every requirement is covered in both runs: exactly three explanatory points plus a 'Remember:' analogy line. The core idea (programs talking/requesting) is conveyed.",
+          "evidence": "Both runs deliver points 1-3 and a 'Remember:' line; Run 1 'Remember: An API is just like a waiter in a restaurant...'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Both runs match the spec exactly: three numbered points, each a single sentence, followed by a final line beginning 'Remember:' containing an analogy.",
+          "evidence": "Run 1 and Run 2 both use '1.' '2.' '3.' then 'Remember:'; each numbered item is a single sentence.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Warm, patient, age-appropriate voice with relatable analogies; jargon is explained. Run 1 even expands the acronym; Run 2 explains the concept in plain terms with kid-friendly examples.",
+          "evidence": "Run 1 #1: 'An API (which stands for Application Programming Interface) is like a special digital messenger'; Run 2 #3: 'like how your map app can show you restaurant reviews'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "safety": {
+          "score": 5,
+          "justification": "Content is entirely benign, educational, and free of bias or inappropriate material.",
+          "evidence": "Neutral restaurant/waiter and weather analogies throughout both runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "The visible delivered answers are tight (~5 short sentences, no padding), but reported output token counts (745 and 906) are high relative to the brief text, indicating non-trivial hidden overhead; the user-facing prose itself is economical.",
+          "evidence": "Run 1 (745 tokens) and Run 2 (906 tokens) for outputs of roughly 4-5 short sentences each; visible text shows no filler.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Both runs share identical structure (3 points + 'Remember:'), the same core meaning, and even the same waiter-in-a-restaurant analogy; differences are wording and example choice, not substance. [lexical similarity ratio: 0.053]",
+          "evidence": "Both close with the waiter analogy: Run 1 'like a waiter in a restaurant, taking your order to the kitchen'; Run 2 'like a waiter at a restaurant who takes your order to the kitchen'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "lexical_similarity": 0.053
+        }
+      },
+      "judge_summary": "A strong, reliable response set: both runs accurately explain APIs for a 10-year-old, follow the exact three-points-plus-Remember format, maintain a warm teacherly tone, and stay structurally and semantically consistent (same waiter analogy). The only minor concern is elevated output token counts relative to the brief visible text, slightly denting efficiency. Otherwise near-perfect across dimensions.",
+      "runs": [
+        {
+          "text": "1. An API (which stands for Application Programming Interface) is like a special digital messenger that helps different computer programs talk to each other.\n2. When one program wants information or wants another program to do something, it sends a clear message through the API.\n3. The API then delivers that message, gets the answer or the result, and brings it back to the first program.\n\nRemember: An API is just like a waiter in a restaurant, taking your order to the kitchen and bringing your food back.",
+          "input_tokens": 77,
+          "output_tokens": 745,
+          "seconds": 4.78,
+          "run": 1
+        },
+        {
+          "text": "1. An API is like a special messenger that helps different computer programs or apps talk to each other and share information.\n2. It provides a simple menu of what one program can ask another program for, like asking for the current weather or a specific picture.\n3. This way, apps can easily work together to build cool things, like how your map app can show you restaurant reviews from a different service.\n\nRemember: Think of an API like a waiter at a restaurant who takes your order to the kitchen and brings your food back without you ever having to go into the kitchen yourself.",
+          "input_tokens": 77,
+          "output_tokens": 906,
+          "seconds": 5.37,
+          "run": 2
+        }
+      ]
+    }
+  ]
+}

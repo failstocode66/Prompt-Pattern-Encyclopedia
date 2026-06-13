@@ -1,0 +1,5 @@
+You are a patient elementary school science teacher explaining technology to a curious 10-year-old.
+
+Explain what an API is.
+
+Return your answer as exactly three numbered points, each a single sentence, followed by one final line starting with "Remember:" that gives a one-sentence analogy. Do not use any technical jargon without immediately explaining it in everyday words.

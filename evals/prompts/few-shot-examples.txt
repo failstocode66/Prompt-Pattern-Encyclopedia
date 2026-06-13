@@ -1,0 +1,9 @@
+Classify the sentiment of customer feedback as exactly one of: POSITIVE, NEGATIVE, or NEUTRAL.
+
+Examples:
+Feedback: "The delivery was late but the product is excellent." -> NEUTRAL
+Feedback: "Absolutely love it, works perfectly!" -> POSITIVE
+Feedback: "Broke after one day, total waste of money." -> NEGATIVE
+
+Now classify this feedback. Respond with only the single uppercase label and nothing else.
+Feedback: "The interface is confusing and I couldn't find the export button, but support sorted it out quickly."
