@@ -95,6 +95,12 @@ Each pattern is evaluated on:
 * Consistency (1–5)
 * Reusability (1–5)
 
+For automated, reproducible scoring, [/evals](/evals/README.md) runs composed
+prompts against multiple models and grades them on a 7-dimension rubric (a
+superset of the three axes above) with an LLM judge plus optional human
+override. See [/docs/eval-methodology.md](/docs/eval-methodology.md) for how the
+scores are kept judge-robust.
+
 ## Design Principles
 
 * Composability over cleverness

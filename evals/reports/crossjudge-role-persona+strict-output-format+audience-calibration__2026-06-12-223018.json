@@ -1,0 +1,160 @@
+{
+  "tool": "CrossJudge v1.0",
+  "date": "2026-06-12 22:30",
+  "pattern": "role-persona+strict-output-format+audience-calibration",
+  "target": "claude-sonnet-4-6",
+  "runs": 2,
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-opus-4-8",
+    "gemini-2.5-flash"
+  ],
+  "lexical_similarity": 0.668,
+  "analysis": {
+    "per_dim": {
+      "accuracy": {
+        "scores": {
+          "gpt-5.4-mini": 5,
+          "claude-opus-4-8": 5,
+          "gemini-2.5-flash": 5
+        },
+        "min": 5,
+        "max": 5,
+        "spread": 0,
+        "stdev": 0.0
+      },
+      "completeness": {
+        "scores": {
+          "gpt-5.4-mini": 4,
+          "claude-opus-4-8": 5,
+          "gemini-2.5-flash": 5
+        },
+        "min": 4,
+        "max": 5,
+        "spread": 1,
+        "stdev": 0.47
+      },
+      "format_compliance": {
+        "scores": {
+          "gpt-5.4-mini": 5,
+          "claude-opus-4-8": 5,
+          "gemini-2.5-flash": 5
+        },
+        "min": 5,
+        "max": 5,
+        "spread": 0,
+        "stdev": 0.0
+      },
+      "tone_style": {
+        "scores": {
+          "gpt-5.4-mini": 5,
+          "claude-opus-4-8": 5,
+          "gemini-2.5-flash": 5
+        },
+        "min": 5,
+        "max": 5,
+        "spread": 0,
+        "stdev": 0.0
+      },
+      "safety": {
+        "scores": {
+          "gpt-5.4-mini": 5,
+          "claude-opus-4-8": 5,
+          "gemini-2.5-flash": 5
+        },
+        "min": 5,
+        "max": 5,
+        "spread": 0,
+        "stdev": 0.0
+      },
+      "efficiency": {
+        "scores": {
+          "gpt-5.4-mini": 4,
+          "claude-opus-4-8": 5,
+          "gemini-2.5-flash": 5
+        },
+        "min": 4,
+        "max": 5,
+        "spread": 1,
+        "stdev": 0.47
+      },
+      "consistency": {
+        "scores": {
+          "gpt-5.4-mini": 5,
+          "claude-opus-4-8": 5,
+          "gemini-2.5-flash": 5
+        },
+        "min": 5,
+        "max": 5,
+        "spread": 0,
+        "stdev": 0.0
+      }
+    },
+    "mean_spread": 0.29,
+    "max_spread": 1,
+    "contested_dims": [],
+    "same_provider_mean_total": 35,
+    "cross_provider_mean_total": 34,
+    "self_preference_delta": 1
+  },
+  "panel": [
+    {
+      "judge": "gpt-5.4-mini",
+      "provider": "openai",
+      "same_provider_as_target": false,
+      "scores": {
+        "accuracy": 5,
+        "completeness": 4,
+        "format_compliance": 5,
+        "tone_style": 5,
+        "safety": 5,
+        "efficiency": 4,
+        "consistency": 5
+      },
+      "summary": "Strong, prompt-compliant responses: accurate, audience-appropriate, and structurally correct, with only slight verbosity beyond the minimal needed."
+    },
+    {
+      "judge": "claude-opus-4-8",
+      "provider": "anthropic",
+      "same_provider_as_target": true,
+      "scores": {
+        "accuracy": 5,
+        "completeness": 5,
+        "format_compliance": 5,
+        "tone_style": 5,
+        "safety": 5,
+        "efficiency": 5,
+        "consistency": 5
+      },
+      "summary": "An exemplary response set that nails all seven dimensions. Both runs accurately and accessibly explain APIs for a 10-year-old, follow the exact three-points-plus-Remember format, maintain a warm teacher tone, explain the only jargon, and stay tight on tokens. The two runs are structurally and semantically consistent, with variation limited to harmless illustrative examples. No meaningful weaknesses identified."
+    },
+    {
+      "judge": "gemini-2.5-flash",
+      "provider": "gemini",
+      "same_provider_as_target": false,
+      "scores": {
+        "accuracy": 5,
+        "completeness": 5,
+        "format_compliance": 5,
+        "tone_style": 5,
+        "safety": 5,
+        "efficiency": 5,
+        "consistency": 5
+      },
+      "summary": "The `claude-sonnet-4-6` model performed exceptionally well against the rubric. It delivered a highly accurate, complete, and format-compliant explanation of an API, perfectly tailored to a 10-year-old audience with a warm, patient teacher tone. The output was highly efficient and demonstrated strong consistency across both runs, with only minor, acceptable variations in specific examples or analogy elaboration. All rubric dimensions received the highest possible score."
+    }
+  ],
+  "prompt": "You are a patient elementary school science teacher explaining technology to a curious 10-year-old.\n\nExplain what an API is.\n\nReturn your answer as exactly three numbered points, each a single sentence, followed by one final line starting with \"Remember:\" that gives a one-sentence analogy. Do not use any technical jargon without immediately explaining it in everyday words.\n",
+  "outputs": [
+    {
+      "run": 1,
+      "text": "1. An API (which stands for \"Application Programming Interface,\" but just think of it as a \"messenger\") is a way for two computer programs to talk to each other and share information.\n2. When you use an app on a tablet, that app sends a request through an API to another computer somewhere else, asking for the information it needs, like asking a friend to grab something from another room.\n3. The API takes that request, delivers it to the right place, and brings the answer back to your app, all in just a split second.\n\nRemember: An API is like a waiter at a restaurant \u2014 you tell the waiter what you want, the waiter carries your order to the kitchen, and then brings your food back to you without you ever needing to go into the kitchen yourself.",
+      "output_tokens": 172
+    },
+    {
+      "run": 2,
+      "text": "1. An API (which stands for \"Application Programming Interface,\" but just think of it as a messenger) is a way for two computer programs to talk to each other and share information.\n2. When you use an app on a tablet, that app sends a request through an API to another computer somewhere else, asking for things like the weather forecast or your favorite videos.\n3. The API takes that request, goes and gets the right information, and brings it back to your app, just like a helper running errands.\n\nRemember: An API is like a waiter at a restaurant \u2014 you tell the waiter what you want, the waiter goes to the kitchen (the other computer), and then brings your food (the information) back to your table.",
+      "output_tokens": 161
+    }
+  ]
+}

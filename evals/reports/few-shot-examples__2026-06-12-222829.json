@@ -1,0 +1,259 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "few-shot-examples",
+  "date": "2026-06-12 22:28",
+  "judge": "claude-opus-4-8",
+  "runs_per_model": 2,
+  "review_mode": "automated",
+  "context": {
+    "expected": "NEUTRAL (mixed signal: confusing interface but quickly resolved by support)",
+    "format_spec": "A single uppercase label, one of POSITIVE/NEGATIVE/NEUTRAL, with no other text",
+    "tone": "Terse classifier output; no prose"
+  },
+  "prompt": "Classify the sentiment of customer feedback as exactly one of: POSITIVE, NEGATIVE, or NEUTRAL.\n\nExamples:\nFeedback: \"The delivery was late but the product is excellent.\" -> NEUTRAL\nFeedback: \"Absolutely love it, works perfectly!\" -> POSITIVE\nFeedback: \"Broke after one day, total waste of money.\" -> NEGATIVE\n\nNow classify this feedback. Respond with only the single uppercase label and nothing else.\nFeedback: \"The interface is confusing and I couldn't find the export button, but support sorted it out quickly.\"\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "Both runs output NEUTRAL, exactly matching the expected reference label for the mixed-signal feedback (confusing interface but resolved quickly by support).",
+          "evidence": "Run 1: 'NEUTRAL'; Run 2: 'NEUTRAL' -- matches reference 'NEUTRAL (mixed signal...)'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The task requires a single classification label; both runs deliver exactly that with no missing component.",
+          "evidence": "Both runs return the single required label 'NEUTRAL'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Format spec demanded a single uppercase label from {POSITIVE/NEGATIVE/NEUTRAL} with no other text. Both runs comply exactly.",
+          "evidence": "Run 1 and Run 2 both output only 'NEUTRAL' with no extra prose.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Requested register is terse classifier output with no prose. Both runs are pure label output, pitch-perfect for the stated audience.",
+          "evidence": "Outputs contain only 'NEUTRAL', no prose.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "safety": {
+          "score": 5,
+          "justification": "A single sentiment label is wholly benign with no harmful, biased, or inappropriate content.",
+          "evidence": "Output is just 'NEUTRAL'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "6 output tokens per run delivers the exact required answer with zero waste.",
+          "evidence": "Run 1: 6 output tokens; Run 2: 6 output tokens, both producing only the label.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Both runs produce identical content, structure, and correct label; perfectly stable. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1: 'NEUTRAL'; Run 2: 'NEUTRAL' -- identical.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "The few-shot prompt elicited a flawless terse classifier response. Both runs returned exactly 'NEUTRAL', matching the expected reference for the mixed-signal feedback, in correct format, minimal tokens, and with perfect run-to-run stability. Earns top marks across all dimensions.",
+      "runs": [
+        {
+          "text": "NEUTRAL",
+          "input_tokens": 119,
+          "output_tokens": 6,
+          "seconds": 1.78,
+          "run": 1
+        },
+        {
+          "text": "NEUTRAL",
+          "input_tokens": 119,
+          "output_tokens": 6,
+          "seconds": 0.89,
+          "run": 2
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "Both runs output NEUTRAL, which exactly matches the reference expectation for this mixed-signal feedback (confusing interface but quickly resolved by support). The classification is correct and on-task.",
+          "evidence": "Run 1: 'NEUTRAL'; Run 2: 'NEUTRAL' \u2014 matches reference NEUTRAL (mixed signal).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The prompt requested a single classification label and nothing else. Both runs delivered exactly that, fully satisfying the only requirement.",
+          "evidence": "Both Run 1 and Run 2 return the single label 'NEUTRAL' with no omissions.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Format spec required a single uppercase label from POSITIVE/NEGATIVE/NEUTRAL with no other text. Both runs produced exactly 'NEUTRAL' uppercase with no extra prose, punctuation, or labels.",
+          "evidence": "Run 1 and Run 2 each output 'NEUTRAL' alone \u2014 exact format match.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Requested tone was terse classifier output with no prose. Both runs delivered a bare label, perfectly matching the register for a classifier.",
+          "evidence": "Outputs are just 'NEUTRAL' with zero prose in both runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The output is a neutral sentiment label with no harmful, biased, or inappropriate content whatsoever.",
+          "evidence": "Output is simply 'NEUTRAL' in both runs \u2014 nothing objectionable.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "Each run used only 5 output tokens to deliver the exact required label with no padding or waste. Maximally tight for the quality delivered.",
+          "evidence": "Run 1: 5 output tokens; Run 2: 5 output tokens \u2014 single word 'NEUTRAL'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Both runs produced identical content, structure, and correct classification. Perfect stability across runs. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1 = 'NEUTRAL', Run 2 = 'NEUTRAL' \u2014 identical output.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "The few-shot prompt elicited a flawless terse classifier response. Both runs returned 'NEUTRAL', matching the reference expectation for this mixed-signal feedback, in exact format, with minimal tokens (5 each) and perfect run-to-run consistency. This is a textbook example of a well-functioning few-shot classification prompt; all dimensions earn a 5.",
+      "runs": [
+        {
+          "text": "NEUTRAL",
+          "input_tokens": 129,
+          "output_tokens": 5,
+          "seconds": 1.29,
+          "run": 1
+        },
+        {
+          "text": "NEUTRAL",
+          "input_tokens": 129,
+          "output_tokens": 5,
+          "seconds": 1.72,
+          "run": 2
+        }
+      ]
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.7,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "Both runs output NEUTRAL, which exactly matches the reference expected label for this mixed-signal feedback (confusing interface but quickly resolved by support).",
+          "evidence": "Run 1 and Run 2 both return 'NEUTRAL'; reference expected output is NEUTRAL.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The request asked for a single classification label, and both runs delivered exactly that with no omissions.",
+          "evidence": "Both runs provide the complete required deliverable: 'NEUTRAL'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Format spec required a single uppercase label from POSITIVE/NEGATIVE/NEUTRAL with no other text. Both runs comply exactly.",
+          "evidence": "Run 1: 'NEUTRAL'; Run 2: 'NEUTRAL' -- uppercase, single word, no surrounding prose.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Intended tone is terse classifier output with no prose. Both runs are bare labels, perfectly matching the register.",
+          "evidence": "Output is solely 'NEUTRAL' in both runs, no explanatory prose.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "safety": {
+          "score": 5,
+          "justification": "A single sentiment label contains no harmful, biased, or inappropriate content.",
+          "evidence": "Output 'NEUTRAL' is benign.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The visible output is maximally tight (one word), but the reported output token counts (306 and 318) are extremely high for a single-word label, indicating substantial hidden/reasoning token expenditure relative to the trivial deliverable. The quality is fine, but the token-to-value ratio shows notable waste.",
+          "evidence": "Run 1: 306 output tokens for 'NEUTRAL'; Run 2: 318 output tokens for 'NEUTRAL' -- ~300+ tokens to emit one label.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Both runs produced identical content, structure, and correct quality. No divergence in answer or format. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1 = 'NEUTRAL', Run 2 = 'NEUTRAL'; identical results and token counts within ~12 tokens.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "The few-shot prompt reliably elicited the correct NEUTRAL classification in both runs, with perfect format, tone, safety, and consistency. The only weakness is efficiency: despite a one-word visible output, the reported 306/318 output tokens suggest considerable hidden reasoning overhead disproportionate to the trivial task, which is the sole reason it falls short of a perfect score on that dimension.",
+      "runs": [
+        {
+          "text": "NEUTRAL",
+          "input_tokens": 118,
+          "output_tokens": 306,
+          "seconds": 2.56,
+          "run": 1
+        },
+        {
+          "text": "NEUTRAL",
+          "input_tokens": 118,
+          "output_tokens": 318,
+          "seconds": 2.74,
+          "run": 2
+        }
+      ]
+    }
+  ]
+}

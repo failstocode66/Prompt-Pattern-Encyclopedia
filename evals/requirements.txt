@@ -1,0 +1,10 @@
+# Prompt-Pattern-Encyclopedia eval harness dependencies.
+# Verified against Python 3.14 (Windows) 2026-06-12.
+#
+# Install:  py -m pip install --user -r evals/requirements.txt
+# Run (keys materialized from 1Password op:// refs in .env):
+#   op run --env-file=.env -- py evals/PromptEval.py ...
+anthropic==0.105.2
+openai==2.38.0
+google-genai==2.7.0
+python-dotenv==1.2.2
