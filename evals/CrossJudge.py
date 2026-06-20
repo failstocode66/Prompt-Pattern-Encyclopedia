@@ -25,6 +25,7 @@ from datetime import datetime
 from pathlib import Path
 
 import PromptEval as pe
+import panel as pnl  # [A1] shared per-dimension stats (spread/stdev), single source of truth
 
 DEFAULT_TARGET = "claude-sonnet-4-6"
 DEFAULT_JUDGES = ["gpt-5.4-mini", "claude-opus-4-8", "gemini-2.5-flash"]
@@ -61,12 +62,13 @@ def analyze(result):
     per_dim = {}
     for k in dims:
         scores = [p["scores"][k] for p in panel]
+        stats = pnl.summarize_scores(scores)  # shared spread/stdev/min/max ([A1])
         per_dim[k] = {
             "scores": {p["judge"]: p["scores"][k] for p in panel},
-            "min": min(scores),
-            "max": max(scores),
-            "spread": max(scores) - min(scores),
-            "stdev": round(statistics.pstdev(scores), 2) if len(scores) > 1 else 0.0,
+            "min": stats["min"],
+            "max": stats["max"],
+            "spread": stats["spread"],
+            "stdev": stats["stdev"],
         }
     same = [p for p in panel if p["same_provider_as_target"]]
     cross = [p for p in panel if not p["same_provider_as_target"]]

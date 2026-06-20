@@ -1,0 +1,234 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "role-persona+brevity-directive",
+  "date": "2026-06-19 22:38",
+  "judge": "panel[gpt-5.4-mini, claude-opus-4-8, gemini-2.5-flash]",
+  "runs_per_model": 2,
+  "review_mode": "automated",
+  "context": {
+    "expected": "containers share the host OS kernel; VMs virtualize hardware and run a full guest OS; containers are lighter and start faster",
+    "format_spec": "exactly three bullet points, each one sentence",
+    "tone": "helpful senior engineer explaining to a junior"
+  },
+  "prompt": "You are a senior DevOps engineer. A junior teammate asks you to explain the difference between a container and a virtual machine. Respond in exactly three bullet points, each a single plain-language sentence, with no preamble.",
+  "models": [
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "The responses are factually correct and directly relevant to the container vs VM distinction. They correctly state that VMs include a full OS and use virtualized/emulated hardware managed by a hypervisor, while containers share the host kernel and are lighter/faster.",
+          "evidence": "Run 1: \"A virtual machine includes a full operating system and runs on emulated hardware managed by a hypervisor\"; \"A container shares the host machine's operating system kernel\". Run 2 repeats the same core claims: \"includes a full operating system\" and \"shares the host machine's operating system kernel\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-opus-4-8": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All requirements are covered: the difference is explained, the response is exactly three bullet points in each run, and the explanation is in plain language without preamble. The third bullet adds usage guidance, which is extra but still relevant.",
+          "evidence": "Run 1 and Run 2 both have exactly three bullets. Run 1 includes all key points: VM full OS, container shares kernel, and speed/efficiency contrast. Run 2 likewise covers the same core distinctions and adds practical use guidance.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-opus-4-8": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The outputs match the specified format exactly: three bullet points, one sentence each, with no preamble. The bullets are plain-language sentences rather than multi-sentence paragraphs.",
+          "evidence": "Run 1 consists of three bullet lines only; each line is a single sentence. Run 2 likewise consists of three bullet lines only; each line is a single sentence.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-opus-4-8": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is appropriate for a senior engineer explaining to a junior: clear, helpful, and non-technical enough to be accessible while still technically accurate. It is direct and instructional without sounding patronizing.",
+          "evidence": "Run 1 phrases like \"making it heavyweight and slow to start\" and \"making it lightweight and fast to launch\" are accessible plain-language explanations. Run 2 similarly uses junior-friendly wording such as \"starts in seconds\" and \"uses far less memory\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-opus-4-8": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, technical, and free of harmful, biased, or inappropriate material.",
+          "evidence": "Both runs discuss only container/VM architecture and deployment tradeoffs; no unsafe, biased, or sensitive content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-opus-4-8": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "At 95-97 output tokens for three dense, accurate sentences, the responses are tight with no padding; every clause carries information.",
+          "evidence": "Run 1 (95 tokens) and Run 2 (97 tokens) deliver complete, correct answers with no filler; e.g., 'making it lightweight and fast to launch' is concise.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-opus-4-8": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across runs, the answer is structurally stable and semantically consistent: both runs present the same three-bullet structure, the same core explanation, and similar quality. Minor wording changes do not constitute inconsistency. [lexical similarity ratio: 0.791]",
+          "evidence": "Run 1 and Run 2 both: (1) define VMs as full-OS/hypervisor-based, (2) define containers as sharing the host kernel, and (3) conclude with a usage heuristic. The differences are paraphrastic (e.g., \"heavyweight\" vs \"heavy\", \"application and its dependencies\" vs \"packages only the application and its dependencies\").",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-opus-4-8": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.791
+        }
+      },
+      "judge_summary": "A strong response set that nails the role-persona+brevity pattern: exactly three single-sentence bullets, no preamble, accurate technical content matching the reference, and a junior-appropriate mentoring tone. Both runs are tight (~96 tokens) and highly consistent in structure, ordering, and meaning. The third bullet tastefully adds when-to-use guidance without violating the format. Earns 5s across all dimensions.",
+      "runs": [
+        {
+          "text": "\u2022 A virtual machine includes a full operating system and runs on emulated hardware managed by a hypervisor, making it heavyweight and slow to start.\n\u2022 A container shares the host machine's operating system kernel and isolates only the application and its dependencies, making it lightweight and fast to launch.\n\u2022 Use a VM when you need strong isolation or a different operating system, and use a container when you want speed, efficiency, and consistency across environments.",
+          "input_tokens": 55,
+          "output_tokens": 95,
+          "seconds": 3.85,
+          "run": 1
+        },
+        {
+          "text": "\u2022 A virtual machine includes a full operating system and runs on emulated hardware managed by a hypervisor, making it heavy and slow to start.\n\u2022 A container shares the host machine's operating system kernel and packages only the application and its dependencies, so it starts in seconds and uses far less memory.\n\u2022 Use a VM when you need strong isolation or a different OS entirely, and use a container when you want lightweight, fast, and consistent application packaging.",
+          "input_tokens": 55,
+          "output_tokens": 97,
+          "seconds": 3.71,
+          "run": 2
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-opus-4-8",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-opus-4-8": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.14,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": 0.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-opus-4-8",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

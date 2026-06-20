@@ -87,11 +87,46 @@ self-preference would produce.
 - **Don't judge a model's output with its own family** when you can avoid it.
   For pattern evals where the target is a Claude model, prefer a non-Claude
   judge, or —
-- **Use a multi-judge mean.** Averaging across providers cancels per-provider
-  bias and surfaces the genuinely contested dimensions (here, Efficiency).
-- **The default judge** (`claude-opus-4-8`) is fine for cross-model batches
-  where no single provider is the subject; switch to a cross-provider judge when
-  scoring a single provider's pattern output in isolation.
+- **Use a cross-provider judge panel** (now built in — see §3a). Averaging across
+  providers cancels per-provider bias and surfaces the genuinely contested
+  dimensions (here, Efficiency).
+- **The single default judge** (`claude-opus-4-8`) is fine for cross-model
+  batches where no single provider is the subject; **switch to a panel when
+  scoring a single provider's pattern output in isolation.**
+
+---
+
+## 3a. Panel mode — the multi-judge mean, built into PromptEval (2026-06-19)
+
+The multi-judge mean is no longer a separate experiment. `PromptEval.py` takes
+`--judges j1,j2,j3` (a cross-provider panel) alongside the single `--judge`.
+Every dimension is scored by each judge; the aggregate — **mean by default**, or
+`--aggregate median` for outlier-robustness — becomes the score, and each report
+carries a per-judge breakdown with the spread, stdev, and a ⚠ self-preference
+flag on any dimension where a same-provider judge scored above the cross-provider
+judges. The shared aggregator lives in [`panel.py`](../evals/panel.py) (imported
+by both PromptEval and CrossJudge); a single `--judge` is the degenerate N=1 case
+and is scored and rendered exactly as before.
+
+**Recommended default for single-provider grading.** When the target is one
+provider's model — the Phase-B campaign case, where a Claude target in the trio
+is graded in isolation — grade with a cross-provider panel rather than one
+same-family judge, so the score is bias-resistant and defensible as Lab→Core
+promotion evidence:
+
+```sh
+op run --env-file=.env -- py evals/PromptEval.py prompt.txt \
+  --pattern role-persona --models claude-sonnet-4-6 \
+  --judges gpt-5.4-mini,claude-opus-4-8,gemini-2.5-flash --runs 2 --no-review
+```
+
+**Live confirmation (2026-06-19).** On a role-persona+brevity composition
+(`claude-sonnet-4-6` target, the three-judge panel above), the judges agreed on
+6 of 7 dimensions (5/5) and split only on **Efficiency** — `gpt-5.4-mini` gave 4,
+the other two gave 5 (spread 1). The same-provider `claude-opus-4-8` judge sat on
+the higher side, so the report flagged Efficiency ⚠ with a self-preference delta
+of **+0.5** total points: a small, correctly-surfaced instance of the exact bias
+the panel exists to catch — on an otherwise unanimous result.
 
 ---
 
@@ -122,7 +157,7 @@ tokens so the number is read correctly.
 
 | Risk | Safeguard |
 |---|---|
-| Judge favors its own family | CrossJudge self-preference delta; prefer cross-provider judge / multi-judge mean |
+| Judge favors its own family | Built-in `--judges` cross-provider panel (mean/median aggregate, per-dimension ⚠ self-preference flag); CrossJudge for a standalone disagreement probe |
 | Wrong instrument for a dimension | Consistency judged semantically; lexical ratio is evidence only |
 | Unfair model comparison | Equitable mid-tier default trio |
 | Hidden-token miscount | Token counts summed and labeled; judge weighs against visible quality |

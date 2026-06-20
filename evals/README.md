@@ -60,11 +60,21 @@ op run --env-file=.env -- py evals/PromptEval.py prompts/my-prompt.txt \
 # Batch — one matrix over many prompts (default automated; drop --no-review to score by hand)
 op run --env-file=.env -- py evals/PromptEval.py \
   --batch prompts/batch-manifest.json --no-review --out-dir evals/reports
+
+# Panel — score every dimension with a CROSS-PROVIDER judge panel (bias-resistant;
+# recommended when grading a single provider's output). Aggregate = mean, or --aggregate median.
+op run --env-file=.env -- py evals/PromptEval.py prompts/my-prompt.txt \
+  --pattern role-persona --models claude-sonnet-4-6 \
+  --judges gpt-5.4-mini,claude-opus-4-8,gemini-2.5-flash --runs 2 --no-review
 ```
 
 Default target trio is one equitable mid-tier model per provider:
 `gpt-5.4-mini`, `claude-sonnet-4-6`, `gemini-2.5-flash` (override with `--models`).
 Default judge is `claude-opus-4-8` (override with `--judge`; any provider works).
+For a multi-judge panel use `--judges j1,j2,j3` (every dimension is scored by each
+judge; the aggregate becomes the score, with a per-judge breakdown + spread + a
+self-preference flag in the report). See
+[docs/eval-methodology.md §3a](../docs/eval-methodology.md) for when to use it.
 
 ### Hybrid scoring
 
@@ -88,7 +98,8 @@ and human scores are recorded. Pass `--no-review` for fully automated batch runs
 
 `prompt_file` paths are resolved relative to the manifest. The batch writes one
 report per eval plus an aggregate **matrix** (pattern × model) and a
-per-dimension means table.
+per-dimension means table. A manifest may also carry an optional `"judges": [...]`
+panel (and `"aggregate": "mean"|"median"`) instead of a single `"judge"`.
 
 ## CrossJudge — is the score judge-robust?
 
