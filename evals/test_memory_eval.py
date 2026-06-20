@@ -73,6 +73,21 @@ class EvaluateCase(unittest.TestCase):
         self.assertEqual(r["with_overall"], 5.0)
 
 
+class LeakageWarning(unittest.TestCase):
+    PANEL = ["gpt-5.4-mini", "claude-opus-4-8", "gemini-2.5-flash"]
+
+    def test_warns_when_target_is_a_judge(self):
+        # opus target + opus in panel = the non-cancelling hint-leakage config
+        self.assertIsNotNone(me.leakage_warning("claude-opus-4-8", self.PANEL))
+
+    def test_silent_for_default_sonnet_target(self):
+        # default: sonnet target, opus/gpt/gemini judges -> sonnet not a judge -> clean (no leakage path)
+        self.assertIsNone(me.leakage_warning("claude-sonnet-4-6", self.PANEL))
+
+    def test_silent_for_cross_provider_only_panel(self):
+        self.assertIsNone(me.leakage_warning("claude-opus-4-8", ["gpt-5.4-mini", "gemini-2.5-flash"]))
+
+
 class Summarize(unittest.TestCase):
     def test_win_rate_and_lift(self):
         s = me.summarize([{"outcome": "win", "delta": 2.0},

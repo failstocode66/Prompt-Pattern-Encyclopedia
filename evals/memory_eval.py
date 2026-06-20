@@ -25,10 +25,37 @@ import yaml
 import PromptEval as pe
 import panel
 
+# TARGET tier (default): claude-sonnet-4-6 — kept MID-tier deliberately. This is a WITHIN-model
+# A/B (delta = WITH - WITHOUT), so the equitable-tier rule does not bind; sonnet is cheaper and more
+# SENSITIVE to the small (≈1-point) lifts near the ±0.5 tie band, and keeps the historical lift series
+# comparable. To benchmark the system Tyler actually runs (Claude Code on Opus) as an ECOLOGICAL-VALIDITY
+# question, pass --model claude-opus-4-8 — but that measures a different, harder-to-move quantity (a
+# stronger base may already know the lesson → WITH≈WITHOUT), so record it as a dated, separate series.
 DEFAULT_MODEL = "claude-sonnet-4-6"
+# JUDGE panel: opus is RETAINED here (unlike the public PromptEval campaign, which uses an equitable
+# mid-tier panel). Rationale is opposite: the same panel scores both arms so judge bias CANCELS in the
+# delta — fairness stops being the constraint and DISCRIMINATION power is all that's left, which points
+# UP-tier. (See docs/eval-methodology.md §3a.) GUARD: never set --model to a judge in this panel — see
+# leakage_warning().
 DEFAULT_JUDGES = ["gpt-5.4-mini", "claude-opus-4-8", "gemini-2.5-flash"]
 DEFAULT_LESSONS_DIR = r"C:\Projects\claude-brain\Interactions\lessons"
 WIN_THRESHOLD = 0.5   # |overall delta| >= this => win/lose; within => tie (judge-noise band)
+
+
+def leakage_warning(model, judges):
+    """Return a warning if the TARGET model is also one of the JUDGES, else None.
+
+    Self-preference (a judge favoring its own provider) CANCELS in the WITH-WITHOUT delta. But a judge
+    that is the SAME MODEL as the target can RECOGNIZE its own injected-lesson reasoning in the WITH arm
+    and over-credit it — a hint-leakage effect CORRELATED WITH the WITH condition, so it does NOT cancel.
+    Resolve by construction: use a cross-provider-only panel for that run, not the same model as a judge.
+    """
+    if model in judges:
+        return (f"WARNING: target '{model}' is also a judge in the panel. A model judging its own "
+                f"WITH/WITHOUT answers can recognize its own injected-lesson reasoning and over-credit "
+                f"the WITH arm (a non-cancelling hint-leakage confound). Use a cross-provider-only judge "
+                f"panel for this run (e.g. --judges gpt-5.4-mini,gemini-2.5-flash).")
+    return None
 
 
 # --- lesson + case loading --------------------------------------------------
@@ -175,7 +202,9 @@ def _render_markdown(results, summary, model, judges):
     add("> Positive lift ⇒ the lesson measurably improves the answer (earns its place). "
         "≈0 or negative ⇒ the model already knew it, or the lesson doesn't help → a "
         "reject/merge candidate for lesson-synthesis. The same panel scores both conditions, "
-        "so judge self-preference cancels in the delta.")
+        "so judge self-preference cancels in the delta — the panel's per-dimension self-preference "
+        "flag is therefore intentionally omitted here (it's a campaign-only, absolute-score signal; "
+        "for this within-model delta it fires structurally and would mislead).")
     add("")
     add("---")
     add("")
@@ -251,6 +280,9 @@ def main():
     cases = load_cases(args.cases)
     if not cases:
         sys.exit(f"No cases found at {args.cases}")
+    warn = leakage_warning(args.model, judges)
+    if warn:
+        print(f"  ⚠ {warn}\n")
     print(f"memory_eval v1.0 — {len(cases)} case(s) | target {args.model} | "
           f"panel {', '.join(judges)} | runs {args.runs}\n")
 

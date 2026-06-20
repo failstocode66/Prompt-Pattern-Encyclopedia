@@ -108,25 +108,62 @@ judges. The shared aggregator lives in [`panel.py`](../evals/panel.py) (imported
 by both PromptEval and CrossJudge); a single `--judge` is the degenerate N=1 case
 and is scored and rendered exactly as before.
 
-**Recommended default for single-provider grading.** When the target is one
-provider's model — the Phase-B campaign case, where a Claude target in the trio
-is graded in isolation — grade with a cross-provider panel rather than one
-same-family judge, so the score is bias-resistant and defensible as Lab→Core
-promotion evidence:
+**The campaign judge panel is an equitable *mid-tier* cross-provider trio.** For the
+public Phase-B campaign, the judges are **one mid-tier model per provider** —
+`gpt-5.4-mini` + `claude-sonnet-4-6` + `gemini-2.5-flash` — the same equitable tier as
+the targets (§4). No flagship judge from any single provider: a heavier judge from one
+vendor is harder to defend in public promotion evidence than it is valuable, and the
+panel mean + the self-preference flag already control bias. This also removes the
+opus-dominated cost term (judging cost falls ~⅓).
 
 ```sh
 op run --env-file=.env -- py evals/PromptEval.py prompt.txt \
   --pattern role-persona --models claude-sonnet-4-6 \
-  --judges gpt-5.4-mini,claude-opus-4-8,gemini-2.5-flash --runs 2 --no-review
+  --judges gpt-5.4-mini,claude-sonnet-4-6,gemini-2.5-flash --runs 2 --no-review
 ```
 
+**Validated, not assumed — the calibration gate.** Mid-tier judges are *adopted*, not
+*declared equivalent*. The cross-judge agreement measured so far (per-dim spread
+0.14–0.29, below) is **ceiling-bound**: it comes from a role-persona composition that
+scored 34–35/35, where agreement is the cheapest, least-informative kind. It says
+little about the **contested 2.5–4.0 band where Lab→Core promotion is actually decided**
+— exactly where a mid-tier judge might under-discriminate (awarding a 5 to a
+confidently-wrong answer it lacks the capability to falsify). So **before the full
+40-pattern run, calibrate on a pattern expected to land in that band, scored both ways
+(all-mid panel vs an opus-inclusive panel).** If per-dimension scores agree within ~0.3
+and rounded overalls match, mid-tier judging is empirically vindicated; if they diverge,
+keep a flagship in the panel or upgrade the Anthropic seat. ~18 calls, <$1.
+
+**Aggregation stays mean + flag-and-dilute** (full trio judges every target; mean
+aggregate; per-dim ⚠ flag). Do **not** switch the headline to median (median-of-3
+collapses the panel to its single middle judge on any split) and do **not** switch the
+campaign to leave-one-out judging (it would null the self-preference probe and break the
+single panel contract for a sub-3% effect). Where a dimension's mean sits within ~0.17
+of a rounding boundary, treat it as rounding-fragile and read the spread/stdev.
+
 **Live confirmation (2026-06-19).** On a role-persona+brevity composition
-(`claude-sonnet-4-6` target, the three-judge panel above), the judges agreed on
-6 of 7 dimensions (5/5) and split only on **Efficiency** — `gpt-5.4-mini` gave 4,
-the other two gave 5 (spread 1). The same-provider `claude-opus-4-8` judge sat on
-the higher side, so the report flagged Efficiency ⚠ with a self-preference delta
-of **+0.5** total points: a small, correctly-surfaced instance of the exact bias
-the panel exists to catch — on an otherwise unanimous result.
+(`claude-sonnet-4-6` target), a three-provider panel agreed on 6 of 7 dimensions (5/5)
+and split only on **Efficiency** (spread 1), correctly flagging it ⚠ with a +0.5
+self-preference delta — the exact bias the panel exists to catch. (This run included a
+flagship judge and scored at the ceiling; it demonstrates the *mechanism*, not the
+mid-tier panel's discrimination on hard patterns — that's what the calibration gate
+above tests.)
+
+### Public campaign vs personal memory-eval: the same fact, opposite tier call
+
+The memory-effectiveness eval ([`memory_eval.py`](../evals/memory_eval.py)) deliberately
+**keeps a higher-tier (opus-inclusive) judge panel** — the opposite of the campaign — and
+it's the *same* "bias cancels" fact that drives both. memory_eval is a **within-model A/B**
+(`delta = WITH − WITHOUT`, the same panel scoring both arms), so any judge bias is a
+constant that subtracts out. That **removes the fairness reason** to constrain the judge
+down-tier — and what does *not* cancel is judge **discrimination power**, the ability to
+resolve the small (≈1-point) lift near the ±0.5 tie band. So for the personal metric,
+sensitivity is the only criterion, which points **up**-tier. Fairness governs the public
+campaign judges (→ mid-tier); sensitivity governs the personal-eval judges (→ keep opus).
+One caveat there: never make the target the *same model* as a judge (e.g. opus target +
+opus judge) — a model can recognize its own injected-lesson reasoning in the WITH arm, a
+leakage effect that's correlated with the condition and does **not** cancel; use a
+cross-provider-only panel for any opus-target run (`memory_eval.leakage_warning` guards this).
 
 ---
 
