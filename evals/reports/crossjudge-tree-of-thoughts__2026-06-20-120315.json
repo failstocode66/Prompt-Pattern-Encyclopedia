@@ -1,0 +1,185 @@
+{
+  "tool": "CrossJudge v1.0",
+  "date": "2026-06-20 12:03",
+  "pattern": "tree-of-thoughts",
+  "target": "gpt-5.4-mini",
+  "runs": 2,
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash",
+    "claude-opus-4-8"
+  ],
+  "lexical_similarity": 0.041,
+  "analysis": {
+    "per_dim": {
+      "accuracy": {
+        "scores": {
+          "gpt-5.4-mini": 4,
+          "claude-sonnet-4-6": 4,
+          "gemini-2.5-flash": 5,
+          "claude-opus-4-8": 5
+        },
+        "min": 4,
+        "max": 5,
+        "spread": 1,
+        "stdev": 0.5
+      },
+      "completeness": {
+        "scores": {
+          "gpt-5.4-mini": 4,
+          "claude-sonnet-4-6": 5,
+          "gemini-2.5-flash": 5,
+          "claude-opus-4-8": 4
+        },
+        "min": 4,
+        "max": 5,
+        "spread": 1,
+        "stdev": 0.5
+      },
+      "format_compliance": {
+        "scores": {
+          "gpt-5.4-mini": 4,
+          "claude-sonnet-4-6": 5,
+          "gemini-2.5-flash": 5,
+          "claude-opus-4-8": 5
+        },
+        "min": 4,
+        "max": 5,
+        "spread": 1,
+        "stdev": 0.43
+      },
+      "tone_style": {
+        "scores": {
+          "gpt-5.4-mini": 5,
+          "claude-sonnet-4-6": 5,
+          "gemini-2.5-flash": 5,
+          "claude-opus-4-8": 5
+        },
+        "min": 5,
+        "max": 5,
+        "spread": 0,
+        "stdev": 0.0
+      },
+      "safety": {
+        "scores": {
+          "gpt-5.4-mini": 5,
+          "claude-sonnet-4-6": 5,
+          "gemini-2.5-flash": 5,
+          "claude-opus-4-8": 5
+        },
+        "min": 5,
+        "max": 5,
+        "spread": 0,
+        "stdev": 0.0
+      },
+      "efficiency": {
+        "scores": {
+          "gpt-5.4-mini": 3,
+          "claude-sonnet-4-6": 3,
+          "gemini-2.5-flash": 5,
+          "claude-opus-4-8": 4
+        },
+        "min": 3,
+        "max": 5,
+        "spread": 2,
+        "stdev": 0.83
+      },
+      "consistency": {
+        "scores": {
+          "gpt-5.4-mini": 4,
+          "claude-sonnet-4-6": 5,
+          "gemini-2.5-flash": 5,
+          "claude-opus-4-8": 5
+        },
+        "min": 4,
+        "max": 5,
+        "spread": 1,
+        "stdev": 0.43
+      }
+    },
+    "mean_spread": 0.86,
+    "max_spread": 2,
+    "contested_dims": [
+      "efficiency"
+    ],
+    "same_provider_mean_total": 29,
+    "cross_provider_mean_total": 33.33,
+    "self_preference_delta": -4.33
+  },
+  "panel": [
+    {
+      "judge": "gpt-5.4-mini",
+      "provider": "openai",
+      "same_provider_as_target": true,
+      "scores": {
+        "accuracy": 4,
+        "completeness": 4,
+        "format_compliance": 4,
+        "tone_style": 5,
+        "safety": 5,
+        "efficiency": 3,
+        "consistency": 4
+      },
+      "summary": "Strong, senior-level distributed-systems answer with solid architecture and failure-mode coverage. Main deductions: the three candidate approaches are not genuinely distinct enough, and the final selection is not as sharply driven by the rubric\u2019s required tradeoff analysis as it should be."
+    },
+    {
+      "judge": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "same_provider_as_target": false,
+      "scores": {
+        "accuracy": 4,
+        "completeness": 5,
+        "format_compliance": 5,
+        "tone_style": 5,
+        "safety": 5,
+        "efficiency": 3,
+        "consistency": 5
+      },
+      "summary": "Both runs deliver a technically sound, well-structured Tree-of-Thoughts response that genuinely addresses all four problem requirements. The three candidate approaches are meaningfully distinct (distributed-sync token bucket, WFQ/DRR scheduling, local-first token bucket with async control plane), the weaknesses are specific and tied to the stated requirements, and the final selection is driven by those weaknesses rather than being evaluation theater. The main accuracy gap is that two of three approaches are token-bucket variants \u2014 the orthogonality the reference expected (e.g., sliding-window counters in a shared store as a third angle) is missing. Format compliance is exact, tone is calibrated for a senior distributed-systems audience, and consistency across runs is very high in both structure and semantic content. The primary weakness is efficiency: at 3000+ tokens per run, there is noticeable padding from restated principles, redundant summary sections, and offers to provide additional content, costing roughly 30\u201350% extra tokens without proportional quality gain."
+    },
+    {
+      "judge": "gemini-2.5-flash",
+      "provider": "gemini",
+      "same_provider_as_target": false,
+      "scores": {
+        "accuracy": 5,
+        "completeness": 5,
+        "format_compliance": 5,
+        "tone_style": 5,
+        "safety": 5,
+        "efficiency": 5,
+        "consistency": 5
+      },
+      "summary": "The model provided an exceptionally strong performance across all dimensions. It fully met the problem's requirements with highly accurate, comprehensive, and well-structured responses. The tone was perfectly aligned with the senior distributed-systems engineer audience. Consistency across runs was outstanding, showcasing stable reasoning and solution generation despite wording variations. The output demonstrated a deep understanding of the problem and the 'tree-of-thoughts' pattern."
+    },
+    {
+      "judge": "claude-opus-4-8",
+      "provider": "anthropic",
+      "same_provider_as_target": false,
+      "scores": {
+        "accuracy": 5,
+        "completeness": 4,
+        "format_compliance": 5,
+        "tone_style": 5,
+        "safety": 5,
+        "efficiency": 4,
+        "consistency": 5
+      },
+      "summary": "A strong, well-structured tree-of-thoughts response. Both runs faithfully follow the three-phase format, deliver a senior-engineer-grade final design that addresses all four requirements with an O(1) local hot path plus lease-based borrowing, and remain highly consistent across runs. The main weakness is partial fake diversity: two of the three candidate approaches are token-bucket variants and the distinct shared-store/approximate-counter paradigm is missing, slightly undercutting completeness. The selection is nonetheless genuinely driven by the evaluated weaknesses (eliminating WFQ for latency, preferring distributed leasing over naive shared buckets), avoiding evaluation theater. Verbosity is reasonable but includes some recap padding and closing upsell offers."
+    }
+  ],
+  "prompt": "Solve this problem in three phases:\n1. Generate 3 distinct candidate approaches. Each should attack the problem from a different angle.\n2. For each approach, briefly trace its reasoning and identify its main weakness.\n3. Select the strongest approach (or combine elements) and produce the final answer.\n\nIf the selected approach fails partway, backtrack and try another.\n\nProblem: Design a rate limiter for a multi-tenant API gateway. Tenants have wildly different and bursty traffic profiles (some send 10 req/s steady, others burst to 50k req/s for a few seconds then idle). You must (a) prevent any single tenant from starving the others' throughput, (b) still let a tenant burst into spare capacity when the system is underutilized, and (c) keep per-request overhead in the low microseconds at 100k+ aggregate req/s. Specify the algorithm(s), the data structures, where the limiter state lives in a horizontally-scaled gateway fleet, and the key failure modes.\n",
+  "outputs": [
+    {
+      "run": 1,
+      "text": "Below are three candidate designs, each from a different angle, followed by a comparison and a final recommended architecture.\n\n---\n\n## 1) Three candidate approaches\n\n### Approach A \u2014 **Hierarchical token buckets with distributed refill**\n**Idea:**  \nGive every tenant a guaranteed bucket, plus a shared \u201coverflow\u201d bucket for unused capacity. Each request consumes from the tenant bucket first; if empty, it can consume from overflow if available.\n\n**How it works**\n- Each tenant has:\n  - **Committed rate** `r_i` and burst `b_i`\n  - A local token bucket on each gateway node\n- There is also a **cluster-wide excess pool** representing unused capacity.\n- Refill happens periodically or via distributed accounting.\n\n**Pros**\n- Simple mental model.\n- Naturally supports burst above baseline when spare capacity exists.\n- Strong per-tenant isolation if the committed bucket is strictly enforced.\n\n**Main weakness**\n- Hard to make the shared overflow bucket both **accurate and low-latency** across a horizontally scaled fleet.\n- Distributed refill/accounting can become expensive or inconsistent at 100k+ req/s.\n- Hot tenants may cause synchronization contention.\n\n---\n\n### Approach B \u2014 **Weighted fair queuing / deficit round robin at admission**\n**Idea:**  \nInstead of hard per-tenant buckets, place requests into per-tenant queues and schedule them fairly using weights. Spare capacity is naturally borrowed by active tenants.\n\n**How it works**\n- Each tenant has a queue.\n- Scheduler runs weighted round robin / DRR:\n  - Each tenant gets quanta proportional to its fair share.\n  - Unused quanta from idle tenants are redistributed implicitly.\n- Requests are admitted when a tenant is scheduled.\n\n**Pros**\n- Strong fairness guarantees.\n- Idle tenants don\u2019t waste capacity.\n- Good for preventing starvation.\n\n**Main weakness**\n- Adds queueing and scheduling overhead.\n- Bad fit for \u201cper-request overhead in low microseconds\u201d at 100k+ req/s unless heavily optimized.\n- Queuing requests at the gateway can increase tail latency and memory pressure.\n- Bursty traffic can explode queue sizes.\n\n---\n\n### Approach C \u2014 **Local token buckets per gateway + distributed elastic fairness controller**\n**Idea:**  \nUse a fast local limiter on each node for the hot path, while a slower control plane assigns each tenant a dynamic share of cluster capacity based on recent demand and usage.\n\n**How it works**\n- Each gateway node maintains:\n  - A **local per-tenant token bucket** for fast admission.\n  - A **local borrowed-capacity budget**.\n- A distributed controller periodically computes:\n  - Guaranteed minimum rate for each tenant.\n  - Opportunistic extra capacity based on unused global headroom.\n- Nodes receive updated tenant budgets periodically, not per request.\n- Requests are admitted locally with a few atomic ops and timestamp math.\n\n**Pros**\n- Fast hot path.\n- Good scalability across many gateways.\n- Can preserve fairness while allowing burst borrowing.\n- Better fit for low-microsecond overhead.\n\n**Main weakness**\n- Needs careful design to avoid over-allocation when many nodes borrow simultaneously.\n- Fairness is approximate between control-plane updates.\n- Requires robust handling of stale configuration and node skew.\n\n---\n\n## 2) Reasoning trace and weakness of each\n\n### Approach A reasoning\n- A token bucket is ideal for burst tolerance.\n- If every tenant has a committed bucket, no tenant can exceed its guaranteed share indefinitely.\n- A shared overflow bucket lets active tenants use spare capacity.\n\n**Weakness:**  \nThe overflow bucket becomes the hard part. In a fleet of gateways, keeping a single shared pool accurate without introducing contention, coordination overhead, or oversubscription is difficult. This is exactly where low-microsecond latency tends to break down.\n\n---\n\n### Approach B reasoning\n- Fair queueing solves starvation by construction.\n- If a tenant is active, it gets service proportional to weight.\n- Idle tenants don\u2019t consume service; others can use the slack.\n\n**Weakness:**  \nA gateway rate limiter is usually on the critical path before request execution. Queueing every request, even briefly, is expensive and complicates backpressure. It also makes burst handling awkward, especially for 50k req/s spikes. It\u2019s more of a scheduler than a pure limiter.\n\n---\n\n### Approach C reasoning\n- The hot path must be local and tiny: hash lookup, token refill math, atomic decrement.\n- The control plane can tolerate slower, approximate decisions.\n- A tenant\u2019s guaranteed floor prevents starvation; dynamic extra budget lets tenants burst into unused capacity.\n- Because the limiter state is local, the gateway fleet scales horizontally.\n\n**Weakness:**  \nThe main risk is temporary unfairness due to stale budget distribution and uneven tenant placement across nodes. But this is manageable with conservative borrowing rules and periodic reconciliation.\n\n---\n\n## 3) Selected approach and final design\n\n## Recommended design: **Hybrid hierarchical token buckets with local enforcement and distributed budget allocation**\nThis is essentially Approach C, strengthened with the useful parts of Approach A.\n\n---\n\n# Final architecture\n\n## Goals mapped to mechanisms\n\n### (a) Prevent any single tenant from starving others\nUse **per-tenant guaranteed rate limits** enforced independently on every gateway node.\n\n- Each tenant has a **reserved minimum rate** `min_rate`\n- Requests beyond the tenant\u2019s local reservation are either:\n  - denied, or\n  - allowed only if there is borrowed shared capacity available\n\nThis ensures one tenant cannot consume everyone else\u2019s guaranteed share.\n\n---\n\n### (b) Let tenants burst into spare capacity when underutilized\nUse a **shared elastic pool** of uncommitted capacity.\n\n- Every tenant has:\n  1. **Guaranteed bucket**: always available up to reservation\n  2. **Borrow bucket**: allows temporary use of unused cluster-wide capacity\n- Under low load, borrow tokens are plentiful.\n- Under heavy load, borrowing is throttled so the system preserves fairness.\n\nA tenant can burst well above its floor, but not in a way that permanently steals from others.\n\n---\n\n### (c) Keep per-request overhead in low microseconds at 100k+ req/s\nUse a **single-node fast path** only:\n\n- Per request:\n  - lookup tenant state in a cache-friendly map\n  - compute token refill using monotonic time\n  - atomic decrement / compare-and-swap\n- No per-request distributed calls\n- No per-request queueing\n- No per-request cross-node coordination\n\nThis is the key performance requirement.\n\n---\n\n# Algorithm details\n\n## 1. Per-tenant local limiter: token bucket\nFor each tenant `t` on each gateway node:\n\n- `tokens_guaranteed`\n- `tokens_borrowed`\n- `last_refill_ts`\n\nRefill function:\n- `tokens_guaranteed += min_rate_t * elapsed`\n- `tokens_borrowed += borrow_rate_t * elapsed` up to a cap\n- clamp both to their bursts\n\nAdmission rule:\n1. If `tokens_guaranteed > 0`, consume from guaranteed bucket\n2. Else if `tokens_borrowed > 0`, consume from borrowed bucket\n3. Else reject with 429 / retry-after\n\nThis gives:\n- strict baseline protection\n- burstability\n- simple O(1) request path\n\n---\n\n## 2. Cluster-wide capacity model\nThe control plane periodically computes:\n\n- Total gateway capacity estimate `C`\n- Sum of reserved tenant minima `\u03a3 min_rate_t`\n- Slack capacity `S = C - \u03a3 min_rate_t`\n- Per-tenant burst/borrow allowance based on:\n  - recent usage\n  - configured priority/weight\n  - tenant plan limits\n  - observed fairness\n\nThere are two practical ways to distribute this:\n\n### Option 1: Fixed periodic budget push\nEvery few hundred milliseconds or second:\n- control plane pushes each node a budget for each tenant\n- node uses that budget locally until next update\n\n### Option 2: Leasing / replenishment\nEach node receives short-lived leases of borrow tokens for tenants it serves.\n- leases are renewed periodically\n- if a node is isolated, it degrades safely to guaranteed-only mode\n\nFor low overhead, I\u2019d prefer **periodic push with local counters**.\n\n---\n\n## 3. Optional fairness enforcement with \u201csoft caps\u201d\nTo avoid one tenant consuming all spare capacity indefinitely:\n\n- Give each tenant:\n  - **Guaranteed floor**\n  - **Soft cap** on borrow rate\n- Soft cap can be exceeded only if global utilization is low enough\n\nThis means:\n- When system is idle, tenants can burst aggressively\n- When system is busy, spare capacity is shared in proportion to weights or recent demand\n\nA practical policy:\n- allocate unused capacity by **weighted fair share**\n- redistribute unused share every control interval\n\n---\n\n# State placement in a horizontally scaled gateway fleet\n\n## Hot-path state: **local memory on each gateway node**\nEach gateway keeps a local in-memory map:\n\n- key: tenant_id\n- value:\n  - token counters\n  - last refill time\n  - current borrow lease\n  - small metadata like weight, min_rate, burst cap\n\nThis state should be:\n- sharded by tenant_id within the node\n- stored in a cache-friendly structure\n- protected with atomics or striped locks\n\n### Recommended data structures\n- **Tenant state table**\n  - concurrent hash map or sharded hash map\n- **Per-shard arrays**\n  - if tenant IDs are dense or can be remapped, a flat array is even better\n- **Atomic counters**\n  - for token counts and timestamps\n- **LRU / TTL eviction**\n  - for inactive tenants to control memory\n\n---\n\n## Control-plane state: **centralized or consensus-backed config**\nStore in a durable config store:\n- tenant plans\n- min_rate\n- burst limit\n- weight / priority\n- tenant status / suspension / overrides\n\nThis is not on the request path.\n\nThe control plane also tracks:\n- global utilization\n- per-node load\n- lease allocations / reconciliation\n\n---\n\n# Request path pseudocode\n\n```text\non_request(tenant_id):\n    state = local_table.get_or_create(tenant_id)\n\n    now = monotonic_time()\n    elapsed = now - state.last_refill_ts\n    state.last_refill_ts = now\n\n    state.guaranteed_tokens = min(\n        state.guaranteed_tokens + min_rate[tenant_id] * elapsed,\n        guaranteed_burst_cap[tenant_id]\n    )\n\n    state.borrowed_tokens = min(\n        state.borrowed_tokens + borrow_rate[state] * elapsed,\n        borrowed_burst_cap[tenant_id]\n    )\n\n    if state.guaranteed_tokens >= 1:\n        state.guaranteed_tokens -= 1\n        allow()\n    else if state.borrowed_tokens >= 1:\n        state.borrowed_tokens -= 1\n        allow()\n    else:\n        reject_429()\n```\n\nThis can be optimized further by:\n- replenishing lazily only when a request arrives\n- using fixed-point arithmetic\n- caching computed refill rates\n- avoiding division on the hot path\n\n---\n\n# How to keep it fair across gateways\n\nA local-only limiter can overspend borrowed capacity if every node independently thinks it has slack. So add one of these safeguards:\n\n## Safeguard A: Conservative borrow budgets\nEach node gets only a fraction of the estimated global slack:\n- `node_borrow_budget = slack / number_of_active_nodes * safety_factor`\n- safety factor < 1 to prevent oversubscription\n\nThis is simplest and robust.\n\n## Safeguard B: Lease-based borrowing\nNodes must spend from a lease token budget that is periodically renewed.\n- if a node runs out, it falls back to guaranteed-only\n\nThis is stricter and safer under skew.\n\n## Safeguard C: Global feedback loop\nControl plane adjusts borrow budgets based on observed utilization and rejection rates.\n\nBest in practice: **A + C**, optionally **B** for stricter environments.\n\n---\n\n# Key failure modes\n\n## 1) Oversubscription of shared capacity\n**Symptom:** many nodes simultaneously borrow too aggressively.  \n**Impact:** overload, latency spikes, unfairness.  \n**Mitigation:**\n- conservative per-node slack allocation\n- short lease intervals\n- safety margins\n- global reconciliation\n\n---\n\n## 2) Hot tenant on one node\n**Symptom:** a tenant hashes heavily to one gateway and exhausts local tokens there while other nodes are idle.  \n**Impact:** local 429s despite global slack.  \n**Mitigation:**\n- consistent hashing / better load balancing\n- optional cross-node tenant stickiness balancing\n- larger local burst caps with conservative global budgeting\n\n---\n\n## 3) Clock skew / time drift\n**Symptom:** refill calculations diverge across nodes.  \n**Impact:** inconsistent admission.  \n**Mitigation:**\n- use monotonic clocks only\n- avoid wall-clock dependence\n- keep refill intervals short\n- prefer fixed-point math\n\n---\n\n## 4) Stale control-plane config\n**Symptom:** node uses old min rates or borrow budgets.  \n**Impact:** unfairness, over-admission, or unnecessary throttling.  \n**Mitigation:**\n- versioned config\n- TTL on budgets\n- fail closed to guaranteed-only mode when stale\n\n---\n\n## 5) Tenant churn / memory blowup\n**Symptom:** many short-lived tenants or spoofed tenant IDs create state explosion.  \n**Impact:** memory pressure, eviction churn.  \n**Mitigation:**\n- authenticated tenant identity\n- TTL eviction\n- bounded per-node state\n- admission controls for unknown tenants\n\n---\n\n## 6) Retry storms\n**Symptom:** rejected clients immediately retry and amplify load.  \n**Impact:** worsening congestion.  \n**Mitigation:**\n- return `429` with `Retry-After`\n- optionally add jittered backoff hints\n- coordinate with upstream client libraries\n\n---\n\n# Practical implementation notes\n\n## Fast path optimizations\n- fixed-point arithmetic instead of floating point\n- shard tenant state to reduce lock contention\n- batch refill if tenant is very hot\n- use approximate prechecks before heavier atomic updates\n- keep metadata in a compact struct for cache locality\n\n## Policy knobs\n- per-tenant guaranteed rate\n- per-tenant burst size\n- borrow weight\n- soft cap\n- global safety factor\n- control-plane update interval\n\n---\n\n# Recommended summary\n\nIf I had to implement this for a real multi-tenant gateway, I would use:\n\n1. **Local per-tenant token buckets on each gateway node**\n2. **Guaranteed floor + borrowed burst capacity**\n3. **Periodic distributed allocation of shared slack**\n4. **Conservative borrowing with safety margins**\n5. **Monotonic-clock, lock-light hot path**\n6. **Config/state split: local runtime state, centralized policy state**\n\nThis design:\n- prevents starvation,\n- allows burst into unused capacity,\n- scales horizontally,\n- and keeps request overhead extremely low.\n\nIf you want, I can also provide:\n- a concrete pseudocode implementation,\n- a diagram of the data flow,\n- or a comparison with pure Redis-backed rate limiting and why it won\u2019t meet the microsecond target.",
+      "output_tokens": 3106
+    },
+    {
+      "run": 2,
+      "text": "Below are three candidate designs, then a comparison, then a recommended final design.\n\n---\n\n## 1) Three candidate approaches\n\n### Approach A: Pure hierarchical token buckets\n**Idea:**  \nGive each tenant its own token bucket plus a global bucket for the whole gateway. A request must pass both:\n\n- **Tenant bucket** enforces tenant\u2019s base rate and burst.\n- **Global bucket** enforces total system capacity.\n\nOptionally add a second \u201cborrowing\u201d bucket that lets tenants consume unused global capacity.\n\n**How it works:**\n- Each tenant has:\n  - refill rate = assigned quota\n  - burst size = allowed short spike\n- Gateway has:\n  - one global token bucket that represents spare capacity\n- Request admission:\n  1. Check tenant bucket.\n  2. Check global bucket.\n  3. If both have tokens, allow.\n  4. Otherwise reject or delay.\n\n**Why it fits:**\n- Simple.\n- Easy to reason about fairness and caps.\n- Low overhead if state is local.\n\n**Main weakness:**\n- Pure token buckets are poor at preventing starvation when traffic is highly skewed and tenants are uncoordinated across many gateway nodes.\n- If a tenant is distributed across multiple nodes, local token buckets can oversubscribe unless state is shared or heavily synchronized.\n- Borrowing spare capacity fairly across tenants is awkward without extra machinery.\n\n---\n\n### Approach B: Hierarchical deficit round robin / fair queuing\n**Idea:**  \nTreat requests as flows in a scheduler, not just meters. Use weighted fair queueing-like logic per tenant, with a global scheduler that serves tenants in round-robin or deficit order.\n\n**How it works:**\n- Maintain a queue per tenant.\n- Serve requests from tenants in weighted fair order.\n- Each tenant has a weight/quantum.\n- Bursty tenants can accumulate deficit and later send bursts.\n- Idle tenants don\u2019t consume service.\n\n**Why it fits:**\n- Strong fairness guarantees.\n- Naturally prevents starvation.\n- Can support burstiness if deficit accumulates.\n\n**Main weakness:**\n- It requires queuing, not just admission control.\n- Gateway APIs usually need fast admit/reject, not deep scheduling latency.\n- Per-request overhead rises because you must manage queues and service order.\n- Hard to keep in low microseconds at 100k+ req/s across many tenants and nodes.\n\n---\n\n### Approach C: Distributed hierarchical token bucket with elastic borrowing\n**Idea:**  \nCombine local fast-path token buckets with a shared control plane that allocates tenant budgets and a global \u201celastic pool.\u201d Tenants get guaranteed base rates, but unused capacity is redistributed dynamically. Use local token buckets for the hot path and periodically refreshed budgets from a centralized or sharded allocator.\n\n**How it works:**\n- Each tenant has:\n  - **Guaranteed rate**: minimum refill rate\n  - **Burst budget**: local burst tokens\n  - **Borrowable budget**: extra tokens from unused capacity\n- The fleet maintains:\n  - **Global capacity accounting**\n  - **Per-tenant usage counters**\n  - **Periodic redistribution** of spare capacity\n- Local gateway nodes:\n  - keep in-memory token buckets for hot tenants\n  - update via periodic lease/refresh\n  - admit requests locally with O(1) operations\n\n**Why it fits:**\n- Fast local path.\n- Supports bursting into unused capacity.\n- Can be made fair enough with carefully designed redistribution.\n- Works in a horizontally scaled fleet.\n\n**Main weakness:**\n- More complex than a pure local bucket.\n- Needs careful handling of lease expiry, clock skew, and consistency.\n- If redistribution is too slow, burst borrowing becomes stale; if too fast, control-plane overhead increases.\n\n---\n\n## 2) Brief reasoning trace and weakness per approach\n\n### Approach A reasoning\n- Every tenant gets isolated rate control.\n- Global bucket ensures the cluster doesn\u2019t exceed capacity.\n- If capacity is unused, a tenant can consume it through the global bucket.\n- Simple admission check is very fast.\n\n**Weakness:**  \nWithout distributed coordination, tenants active on multiple gateway nodes can exceed their intended share. Also, \u201cfair use of spare capacity\u201d is not robustly enforced.\n\n---\n\n### Approach B reasoning\n- If tenants are scheduled fairly, no one can starve others.\n- Bursty behavior is naturally handled by deficit accumulation.\n- A scheduler can precisely allocate throughput.\n\n**Weakness:**  \nThis is too queue-heavy for an API gateway admission path. It\u2019s a better fit for a work scheduler than a rate limiter. Low-latency and 100k+ req/s become harder.\n\n---\n\n### Approach C reasoning\n- Keep the request path simple: a couple of atomic counter/token-bucket checks.\n- Push fairness and redistribution into a control plane that updates budgets periodically.\n- Let local nodes borrow unused global capacity without coordination per request.\n- This balances fairness, burst absorption, and performance.\n\n**Weakness:**  \nOperational complexity is higher. Correctness depends on lease design, refresh intervals, and dealing with node loss or partition.\n\n---\n\n## 3) Strongest approach and final design\n\n## Recommended design: distributed hierarchical token buckets with elastic borrowing\n\nThis is the best balance of fairness, burst handling, and low overhead.\n\n---\n\n# Final design\n\n## Goals and how they are met\n\n### (a) Prevent any single tenant from starving others\nUse **per-tenant guaranteed budgets** plus **tenant-level local burst caps**.  \nEach tenant gets a minimum rate and a bounded burst allowance. This ensures one tenant cannot consume all capacity indefinitely.\n\n### (b) Let tenants burst into spare capacity\nUse a **shared elastic pool** derived from unused cluster capacity.  \nTenants can temporarily borrow from this pool when the system is underutilized.\n\n### (c) Keep per-request overhead in low microseconds at 100k+ req/s\nKeep the hot path entirely **in-memory and O(1)**:\n- a couple of atomic reads/writes,\n- a token refill calculation,\n- no per-request RPC,\n- no central lock.\n\n---\n\n# Algorithm\n\n## 1. Per-tenant token bucket with two layers\nFor each tenant `t`:\n\n1. **Guaranteed bucket**\n   - refill rate = tenant\u2019s guaranteed rate\n   - burst = small/medium local burst\n\n2. **Borrow bucket**\n   - extra tokens granted from the elastic pool\n   - expires quickly or is lease-based\n\nRequest admission:\n- First consume from guaranteed bucket.\n- If empty, attempt borrow bucket.\n- If both empty, reject with 429 or queue briefly if your product allows soft throttling.\n\nThis gives:\n- strong baseline fairness,\n- opportunistic burst absorption.\n\n---\n\n## 2. Global elastic pool\nMaintain cluster-wide spare capacity:\n- `global_capacity = total_service_capacity - reserved_safety_margin`\n- Every tenant has a committed minimum share.\n- Unused capacity is periodically aggregated into an elastic pool.\n\nThe elastic pool is divided into **leases**:\n- A gateway node receives a lease for tenant borrowing.\n- The lease grants extra tokens for a short TTL, e.g. 100\u2013500 ms.\n- Node can spend those tokens locally without contacting the control plane again.\n\nThis is the key to keeping request path fast.\n\n---\n\n## 3. Hierarchical accounting\nUse a hierarchy:\n\n- **Cluster level**\n  - total capacity guardrail\n  - elastic pool manager\n- **Tenant level**\n  - guaranteed quota\n  - borrowed quota\n- **Node level**\n  - local cache of tenant state\n  - leased borrow tokens\n  - local refill based on timestamp\n\nThis avoids a central bottleneck.\n\n---\n\n# Data structures\n\n## On each gateway node\nFor each active tenant:\n\n- `guaranteed_tokens`  \n  float or fixed-point token count\n- `borrow_tokens`\n- `last_refill_ts`\n- `lease_expiry_ts`\n- `lease_id / version`\n- `tenant_limit` metadata\n\nUse:\n- **hash map** keyed by tenant ID\n- **fixed-size shard maps** or striped maps to reduce contention\n- **atomic counters** if multiple workers touch the same tenant\n\nFor the hot path:\n- a tenant entry is one cache-friendly struct\n- token refill computed lazily on request arrival:\n  - `tokens += (now - last_refill_ts) * rate`\n  - clamp to burst cap\n\n## Global / control plane\n- per-tenant usage counters aggregated periodically\n- spare capacity estimator\n- lease allocator\n- optional shard/partition by tenant ID for scale\n\n---\n\n# Where the limiter state lives\n\n## 1. Local fast path state on each gateway node\nThis is where request admission happens.\n\nContains:\n- current token counts\n- last refill timestamps\n- active lease state\n\nThis state is ephemeral and cache-hot.\n\n## 2. Distributed control plane / coordinator\nStores:\n- tenant plans / quotas\n- cluster capacity policy\n- lease allocations\n- aggregate usage statistics\n\nThis can be:\n- a small replicated control service,\n- or a sharded metadata plane.\n\n## 3. Optional persistent store\nOnly for configuration, not request path:\n- tenant configuration\n- audit/history\n- billing usage\n\nDo **not** put request-time decision making here.\n\n---\n\n# Admission path\n\nFor each request:\n\n1. Hash tenant ID to local tenant record.\n2. Lazily refill guaranteed bucket using monotonic clock.\n3. If guaranteed bucket has tokens:\n   - decrement and allow.\n4. Else check borrow bucket:\n   - if valid lease exists and tokens remain, decrement and allow.\n5. Else deny or soft-throttle.\n\nThis is O(1), no blocking, no network.\n\n---\n\n# How spare capacity borrowing works\n\nTwo reasonable variants:\n\n## Variant 1: Periodic lease refresh\n- Every node reports tenant usage every N milliseconds.\n- Control plane computes unused capacity.\n- Grants borrow leases to active tenants on demand.\n\nBest when:\n- you want tight control,\n- tenants are numerous but not all hot.\n\n## Variant 2: Proportional steal / credit model\n- Idle tenants\u2019 unused shares decay into an elastic credit pool.\n- Active tenants consume credits as they burst.\n- Credits are reclaimed or expire quickly.\n\nBest when:\n- you want simpler fairness semantics,\n- approximate redistribution is acceptable.\n\nFor an API gateway, **lease-based borrowing** is usually cleaner and safer.\n\n---\n\n# Fairness policy\n\nTo prevent starvation:\n- reserve a **minimum guaranteed rate** per tenant or per tier\n- cap the amount borrowed above guarantee unless spare capacity exists\n- optionally prioritize tenants by tier/SLA\n\nIf a tenant is extremely bursty, it can:\n- consume its own burst budget,\n- then borrow if the fleet is underutilized,\n- but it cannot exceed what the elastic pool grants.\n\nThis means:\n- a noisy tenant cannot permanently steal capacity,\n- but it can temporarily surge when others are idle.\n\n---\n\n# Scaling the state horizontally\n\n## Shard by tenant ID\n- Each gateway node keeps local state only for tenants it has recently seen.\n- State can be reconstructed from control-plane configs and fresh leases.\n\n## Avoid strong consistency on every request\n- Strong consistency per request would destroy latency.\n- Use **eventual consistency** for usage reports and **lease-based safety** for enforcement.\n\n## Node-local fast path\n- Most requests only touch local memory.\n- The control plane is consulted on lease renewal, not every request.\n\n---\n\n# Key failure modes\n\n## 1. Lease oversubscription\nIf multiple nodes believe they own the same borrow tokens, tenants can exceed intended limits.\n\n**Mitigation:**\n- unique lease IDs and versioning\n- short TTLs\n- control-plane atomic grant assignment\n- lease revocation on refresh\n\n---\n\n## 2. Clock skew / refill errors\nToken refill uses timestamps; bad clocks can overgrant or undergrant.\n\n**Mitigation:**\n- use monotonic clocks only\n- clamp refill deltas\n- keep leases short\n- avoid relying on wall clock for admission\n\n---\n\n## 3. Control-plane partition\nIf gateway nodes cannot refresh leases:\n- tenants may be throttled prematurely,\n- or they may continue until lease expiry and then hard-limit.\n\n**Mitigation:**\n- fail closed after lease expiry\n- keep small grace windows if acceptable\n- cache conservative default quotas\n\n---\n\n## 4. Hot-tenant contention on one node\nA single very hot tenant can cause lock contention in its local record.\n\n**Mitigation:**\n- shard tenant state by worker/core\n- use striped atomics or per-thread counters with periodic merge\n- if needed, pin tenant state to one worker\n\n---\n\n## 5. Burst amplification across the fleet\nIf many nodes independently grant bursts without a shared bound, total cluster usage can spike above safe levels.\n\n**Mitigation:**\n- cluster-level global guardrail\n- cap total borrow credits\n- allocate leases from a centrally tracked pool\n\n---\n\n## 6. Thundering herd at lease renewal\nMany tenants renewing simultaneously can overload control plane.\n\n**Mitigation:**\n- stagger lease expirations with jitter\n- renew asynchronously before expiry\n- batch grant updates\n\n---\n\n## 7. Tenant churn / memory growth\nMany short-lived tenants can bloat local state.\n\n**Mitigation:**\n- TTL eviction of inactive tenant entries\n- compact structs\n- approximate eviction/LRU for cold tenants\n\n---\n\n# Practical implementation notes\n\n- Use **fixed-point arithmetic** for tokens to avoid floating-point drift.\n- Use **monotonic time** and lazy refill.\n- Keep tenant records in a **sharded concurrent hash map**.\n- Use **per-node leases** for burst tokens.\n- Keep burst windows short enough to prevent abuse but long enough to absorb real spikes.\n- If requests may be queued, cap queue depth strictly; otherwise reject fast with 429.\n\n---\n\n# Summary\n\n**Best design:**  \nA **distributed hierarchical token bucket** with:\n- per-tenant guaranteed token buckets,\n- a cluster-wide elastic borrowing pool,\n- short-lived leases issued by a control plane,\n- local in-memory fast-path enforcement on each gateway node.\n\n**Why it wins:**\n- prevents starvation via guaranteed quotas,\n- supports bursting into unused capacity,\n- stays fast enough for low-microsecond per-request overhead,\n- scales horizontally without per-request coordination.\n\nIf you want, I can also provide:\n1. a concrete pseudocode implementation, or  \n2. a sample Redis/control-plane schema for the lease allocator.",
+      "output_tokens": 2961
+    }
+  ]
+}
