@@ -92,5 +92,27 @@ class EvalWiring(unittest.TestCase):
         self.assertNotIn("**Judges:**", md)
 
 
+class BatchResilience(unittest.TestCase):
+    """run_batch must skip a failed eval and keep its completed siblings ([B3] hardening)."""
+
+    def setUp(self):
+        self._ev, self._wr = pe.evaluate, pe.write_batch_reports
+
+    def tearDown(self):
+        pe.evaluate, pe.write_batch_reports = self._ev, self._wr
+
+    def test_failed_eval_is_skipped_not_fatal(self):
+        def fake_eval(spec, models, runs, judges, do_review, out_dir, method="mean"):
+            if spec["pattern"] == "boom":
+                raise RuntimeError("provider 503")
+            return {"pattern": spec["pattern"], "models": [{"model": "m", "overall": 4.0}]}
+
+        pe.evaluate = fake_eval
+        pe.write_batch_reports = lambda *a, **k: ("x.md", "x.json")
+        manifest = {"evals": [{"pattern": "a"}, {"pattern": "boom"}, {"pattern": "c"}]}
+        res = pe.run_batch(manifest, ["m"], 1, ["j"], False, "/tmp", "mean")
+        self.assertEqual([r["pattern"] for r in res], ["a", "c"])  # boom skipped; a + c survive
+
+
 if __name__ == "__main__":
     unittest.main()

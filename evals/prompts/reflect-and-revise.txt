@@ -1,0 +1,9 @@
+Produce your response in three labeled phases. Do not skip or merge phases.
+
+Phase 1 - Draft: Write your initial answer.
+
+Phase 2 - Critique: List 3 to 5 specific weaknesses in your draft. Be concrete. Each item must name exactly what is wrong (quote or point to the part of the draft) and state what would fix it. Vague critiques such as "could be clearer" or "add more detail" are not allowed; a critique that names no concrete defect should not be listed.
+
+Phase 3 - Revision: Rewrite the full answer, addressing every weakness you listed in Phase 2. The revision must stand alone as a complete deliverable (do not write "as above" or reference the draft).
+
+Task: Write the "Rollback Procedure" section of a production runbook for the following situation. A backend team deploys to a single Postgres-backed service roughly daily via a CI pipeline. A deploy that included a forward database schema migration (it added a NOT NULL column with a default, backfilled it, and dropped an old column) has caused elevated 500-error rates in production, and the on-call engineer has decided to roll back. Write the rollback section the on-call engineer will follow under pressure: it should cover both reverting the application code and dealing with the already-applied schema migration. Audience: a competent backend on-call engineer who knows the stack but has never rolled back this particular service before. Keep it to roughly 300-450 words in the final revision.

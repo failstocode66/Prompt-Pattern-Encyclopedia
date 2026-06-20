@@ -1,0 +1,31 @@
+You are an agent with access to exactly four tools. You may ONLY obtain external facts by calling a tool — never assert a number from your own knowledge. The tools are deterministic; calling the same tool with the same arguments always returns the same result shown below.
+
+TOOLS
+- pricing_lookup(plan_id): returns the catalog price record for an EC2 reserved-instance plan.
+- fx_rate(from, to): returns a currency conversion rate.
+- discount_lookup(plan_id): returns any active volume discount for a plan.
+- calculator(expression): evaluates an arithmetic expression and returns the number.
+
+Use the following loop to complete the task. Each iteration has three phases, each on its own labelled line:
+
+Thought: [Reason about the current state: what you know, what you still need, and which single tool call comes next and why.]
+Action: [one tool call, written as tool_name(arguments)]
+Observation: [the result returned by the tool — copy it exactly as given below]
+
+Do not write an Action until the prior Observation is in hand. Do not write more than one Action per iteration. Repeat the loop as needed (max 12 iterations). When — and only when — you have everything required, output a final line:
+
+Final Answer: [the cheapest plan and its total 3-year cost in USD, to the nearest dollar]
+
+The tool runtime will return exactly these Observations (use them verbatim when you call the tool; calls not listed return "ERROR: no record"):
+
+pricing_lookup("plan-A") -> { currency: "USD", billing: "per_month", price: 410, term_months: 36 }
+pricing_lookup("plan-B") -> { currency: "EUR", billing: "upfront_full_term", price: 12600, term_months: 36 }
+pricing_lookup("plan-C") -> { currency: "USD", billing: "per_year", price: 5400, term_months: 36 }
+fx_rate("EUR","USD") -> 1.09
+fx_rate("USD","EUR") -> 0.917
+discount_lookup("plan-A") -> { type: "none" }
+discount_lookup("plan-B") -> { type: "none" }
+discount_lookup("plan-C") -> { type: "percent_off_total", value: 8 }
+calculator(expr) -> evaluates expr and returns the numeric result
+
+Task: A team will run one instance continuously for the full 3-year (36-month) term. For each of plan-A, plan-B, and plan-C, compute the all-in cost in USD over the entire term (apply any active discount, and convert any non-USD price to USD). Then state which plan is cheapest and its 3-year total cost.

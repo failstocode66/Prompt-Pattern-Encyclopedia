@@ -1,9 +1,20 @@
-Classify the sentiment of customer feedback as exactly one of: POSITIVE, NEGATIVE, or NEUTRAL.
+You convert raw bank-statement memo lines into normalized JSON records. Each output is a single JSON object with exactly these keys, in this order: "merchant" (string or null), "amount" (number, in dollars, sign preserved: debits/charges negative, credits/refunds positive), "date" (string, ISO "YYYY-MM-DD"), and "category" (one of: "groceries", "dining", "transport", "fees", "income", "other"). Output only the JSON object, no commentary.
 
-Examples:
-Feedback: "The delivery was late but the product is excellent." -> NEUTRAL
-Feedback: "Absolutely love it, works perfectly!" -> POSITIVE
-Feedback: "Broke after one day, total waste of money." -> NEGATIVE
+Here are examples:
 
-Now classify this feedback. Respond with only the single uppercase label and nothing else.
-Feedback: "The interface is confusing and I couldn't find the export button, but support sorted it out quickly."
+Input: "POS PURCHASE WHOLEFDS MKT #103 04/12/2026 $86.40"
+Output: {"merchant": "Whole Foods Market", "amount": -86.40, "date": "2026-04-12", "category": "groceries"}
+
+Input: "SQ *BLUE BOTTLE COFFEE 4/13 7.25"
+Output: {"merchant": "Blue Bottle Coffee", "amount": -7.25, "date": "2026-04-13", "category": "dining"}
+
+Input: "UBER TRIP HELP.UBER.COM 04-14-2026 23.18"
+Output: {"merchant": "Uber", "amount": -23.18, "date": "2026-04-14", "category": "transport"}
+
+Now do the same for each of the following inputs. Return one JSON object per input, each on its own line, in the same order:
+
+Input: "MONTHLY MAINTENANCE FEE 04/30/2026 12.00"
+Input: "ATM CASH WITHDRAWAL 0417 200.00"
+Input: "REFUND SQ *BLUE BOTTLE COFFEE 4/16 7.25"
+Input: "ACH DEPOSIT PAYROLL ACME CORP 04/15/2026 2,431.07"
+Input: "TARGET T- 1842 04/18/2026 $54"

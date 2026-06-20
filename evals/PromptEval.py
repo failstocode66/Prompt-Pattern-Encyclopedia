@@ -678,14 +678,28 @@ def run_batch(manifest, models, runs, judges, do_review, out_dir, method="mean")
     print(f"PromptEval v{TOOL_VERSION} BATCH -- {len(specs)} evals x {len(models)} models")
     print(f"Targets: {', '.join(models)} | runs/model: {runs} | judge: {label}\n")
     all_results = []
+    failed = []
     for n, spec in enumerate(specs, 1):
         print(f"\n========== [{n}/{len(specs)}] {spec['pattern']} ==========")
-        all_results.append(evaluate(spec, models, runs, judges, do_review, out_dir, method))
+        # Resilience: one eval's failure (a refusal, sustained 503, model 404) must NOT
+        # crash a long multi-pattern campaign — log it, keep its completed siblings, continue.
+        # Re-run only the failed patterns afterward (their reports were never written).
+        try:
+            all_results.append(evaluate(spec, models, runs, judges, do_review, out_dir, method))
+        except Exception as e:
+            failed.append((spec.get("pattern", "?"), f"{e.__class__.__name__}: {e}"))
+            print(f"  !! FAILED [{spec.get('pattern', '?')}]: {e.__class__.__name__}: {e}")
+            continue
     md_path, json_path = write_batch_reports(all_results, models, judges, runs, out_dir, method)
     print("\n=== Batch complete ===")
     for r in all_results:
         scores = " | ".join(f"{m['model'].split('-')[0]}:{m['overall']}" for m in r["models"])
         print(f"  {r['pattern']}: {scores}")
+    if failed:
+        print(f"\n!! {len(failed)} of {len(specs)} pattern(s) FAILED — re-run these: "
+              + ", ".join(p for p, _ in failed))
+        for p, err in failed:
+            print(f"   - {p}: {err}")
     print(f"\nMatrix:  {md_path}\nSidecar: {json_path}")
     return all_results
 

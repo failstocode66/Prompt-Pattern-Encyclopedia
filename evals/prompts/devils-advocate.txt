@@ -1,0 +1,9 @@
+Answer the question below in three explicit, separately-labeled phases. Do not collapse them.
+
+Phase 1 — Initial answer: Give your single best, committed recommendation (a clear yes or no with the core reasoning). Do not hedge.
+
+Phase 2 — Devil's advocate: Now switch roles completely. As a hostile reviewer whose job is to get your Phase 1 answer thrown out, construct the strongest possible case AGAINST it. List at least four specific, concrete objections — real failure cases, overlooked second-order effects, or conditions under which your Phase 1 recommendation is actively wrong. Be adversarial, not balanced; do not pre-soften them or smuggle in rebuttals here.
+
+Phase 3 — Revised answer: Take each objection in turn. For each, either (a) revise your recommendation to address it, or (b) explain concisely and specifically why it does not defeat your recommendation in this case. Then state your final recommendation. If your final position differs from Phase 1, say exactly what moved you; if it is unchanged, justify why it survived rather than restating Phase 1.
+
+Question: We are a 12-engineer B2B SaaS company. Our product is a single Ruby on Rails modular monolith backed by one Postgres database, serving ~400 mid-market customers. Deploys take 25 minutes and the whole team is blocked during them; two domains (billing and the analytics export job) cause most of our production incidents and have very different scaling and reliability needs from the rest of the app. Leadership wants us to break the monolith into microservices this quarter to "move faster and scale." Should we do this microservices migration this quarter?

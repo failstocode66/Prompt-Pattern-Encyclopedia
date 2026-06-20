@@ -1,0 +1,7 @@
+Answer the question in two phases, and label them exactly "Phase 1: Skeleton" and "Phase 2: Expansion".
+
+Phase 1: Generate a skeleton — a numbered list of 3-7 short bullet points (3-10 words each) that name the structure of a complete answer. Do NOT elaborate, justify, or include any reasoning yet; each bullet is just a heading.
+
+Phase 2: Take the skeleton points in the same order and, under each numbered heading, write a 2-4 sentence expansion that actually answers that part. Expand each point to the depth it deserves — do not pad thin points or compress the load-bearing ones.
+
+Question: Our 9-person team runs a single Postgres 15 instance behind a Rails monolith for a B2B analytics product. Two tables — `events` (write-heavy, ~4B rows, append-only) and `accounts` (read-heavy, ~2M rows, hit on nearly every request) — now dominate load; p99 latency is climbing and the primary's CPU sits at ~80% during business hours. We are weighing three paths: (a) add read replicas plus an application-level cache for `accounts`, (b) shard `events` by tenant, or (c) move `events` to a purpose-built columnar/time-series store and keep the rest on Postgres. Recommend a path and sequencing for the next two quarters, and be explicit about what we are trading away and the failure modes of your recommendation.

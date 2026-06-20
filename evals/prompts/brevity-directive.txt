@@ -1,0 +1,3 @@
+Answer in 30 words or fewer. No preamble.
+
+We're low on disk on our production Postgres primary. One table has a lot of dead tuples after a big delete. Should we run VACUUM FULL on it during business hours to get the space back?

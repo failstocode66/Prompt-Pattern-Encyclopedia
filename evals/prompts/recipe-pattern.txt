@@ -1,0 +1,15 @@
+I want to achieve: migrating the primary key of a high-traffic production table from a 32-bit integer to a 64-bit bigint, with zero downtime, because we are weeks away from exhausting the int4 ID space.
+
+Context (this is my actual environment, so the recipe must fit it, not a generic one):
+- PostgreSQL 15, single primary with one streaming read replica, managed (I have SQL access and connection-string control, but no superuser and no filesystem access to the data directory).
+- The table is `orders` (~900M rows, growing ~3M/day). Its `id int4` PK is referenced by foreign keys from three other tables.
+- The application is a Rails app running on multiple instances behind a load balancer; deploys are rolling.
+- I cannot take a maintenance window — writes must continue throughout.
+
+Provide a complete, ordered recipe of steps to reach this goal:
+- Include any prerequisite steps and any follow-up / cleanup steps I may not have thought to ask about.
+- Number each step.
+- For each step, note the required inputs, tools, or specific commands/SQL.
+- Flag any step where a wrong choice or premature execution would be expensive or impossible to reverse.
+
+Make it portable — I should be able to follow it start to finish without coming back to ask further questions.

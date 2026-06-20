@@ -1,0 +1,23 @@
+Respond with only a single JSON object that conforms exactly to the schema below. No explanation, no preamble, no trailing commentary, no markdown code fences.
+
+Schema (all keys required, in this order):
+{
+  "ticket_id": string,
+  "customer_email": string | null,
+  "severity": "low" | "medium" | "high" | "critical",
+  "product_versions": array of strings,
+  "error_message": string,
+  "minutes_to_first_response": number | null,
+  "tags": array of strings,
+  "resolved": boolean
+}
+
+Rules:
+- Use null for any field the source does not state. Do not guess or fabricate values.
+- product_versions and tags must be arrays even if there is one element or none ([]).
+- severity must be exactly one of the four allowed lowercase strings; map any synonym in the source to the closest allowed value.
+- Numbers must be JSON numbers, not strings.
+- Preserve the error_message text verbatim, including its internal punctuation.
+
+Source ticket (single raw log line):
+TICKET#A-2291 | reporter: o'neil+billing@acme.co | sev: SEV-1 (urgent) | affects builds 3.10.0-rc2 and 3.9.4 | symptom: parser threw `Unexpected token "}" at C:\app\config.json:42` — backslash in path, embedded quotes | first agent reply after ~ (still waiting) | labels: parser, regression, windows-only | status: open

@@ -1,0 +1,23 @@
+For the rest of this conversation, use the shorthand below. First acknowledge each binding back to me in your own words (so I can confirm you have them right), then wait for my first instruction — do not act on anything yet.
+
+- When I write `>>safety`, treat it as: review the most recent SQL migration I sent for production-safety hazards ONLY (locking, long-running rewrites, blocking DDL, non-concurrent index builds, unsafe NOT NULL / type changes on large tables). Do not comment on style or naming. Output a bullet per hazard, each tagged [BLOCKER] or [WARN].
+- When I write `>>rollback`, treat it as: write the exact reverse/down migration SQL that undoes the most recent migration, and nothing else — SQL only, no commentary.
+- When I write `>>review`, treat it as: a FULL review — correctness, style, naming, and safety together — in prose paragraphs, NOT bullets.
+- When I write `>>safe?`, treat it as: answer only YES or NO on a single line as to whether the most recent migration is safe to run online against a 50M-row table, with no explanation.
+- When I write `>>split`, treat it as: rewrite the most recent migration as an ordered, numbered sequence of separately-deployable steps that each avoid long locks.
+
+Confirm you understand the bindings.
+
+[Assume I then send this migration:]
+```sql
+-- migration 0042_orders_tighten.sql
+ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending';
+ALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2);
+CREATE INDEX idx_orders_status ON orders (status);
+ALTER TABLE orders ADD CONSTRAINT fk_orders_customer
+  FOREIGN KEY (customer_id) REFERENCES customers (id);
+```
+
+[Then my one and only follow-up message is exactly:]
+
+>>safety then >>split — and finish with >>safe? Also give me the >>downgrade.

@@ -1,0 +1,22 @@
+You are computing a quarterly performance bonus for a contractor under the following policy. Work through it step by step, showing each calculation, then state a final bonus figure.
+
+POLICY
+- Base bonus pool for a full-quarter contractor is $12,000.
+- Proration: a contractor accrues the bonus pro rata by *calendar days actively engaged* during the quarter (Q2 = April 1 through June 30 inclusive = 91 days). Partial days do not count; an engagement that ends on a given day counts that day as worked.
+- Eligibility gate: a contractor is eligible for ANY bonus only if they were actively engaged for at least 60 calendar days in the quarter. Below 60 days, the bonus is $0 regardless of performance.
+- Performance multiplier applied to the prorated amount:
+    - "Exceeds": x1.25
+    - "Meets": x1.00
+    - "Below": x0.50
+- Hard cap: the final bonus (after proration and multiplier) may never exceed $11,000.
+- Clawback offset: if the contractor had any unresolved compliance flag during the quarter, subtract a flat $1,500 from the final figure AFTER the cap is applied. The result may go to $0 but never negative.
+
+CONTRACTOR DATA
+- Engagement: started April 18, ended June 30 (still engaged at quarter end).
+- Performance rating: "Exceeds".
+- Compliance: one unresolved flag logged in May.
+
+TASK
+Compute the bonus step by step: days engaged, eligibility check, prorated base, multiplier, cap, clawback, and final figure.
+
+Now review each step of your answer above. Independently re-derive the day count and each arithmetic result, and check every policy constraint against your work — eligibility threshold, the order in which the cap and the clawback are applied, and the non-negative floor. Identify any errors, inconsistencies, or missed or misordered constraints. If you find any, correct them and state the revised final bonus figure.

@@ -1,0 +1,15 @@
+Respond in no more than 60 words.
+
+If you cannot fit a complete answer within the budget, prioritize the most decision-relevant content for an affected customer and explicitly omit lower-priority context. Do not pad to reach the budget.
+
+Task: Write the public status-page banner for an ongoing incident, addressed to our customers (businesses who integrate our payments API). Use the facts below. The banner must let an affected integrator decide what to do right now.
+
+Incident facts:
+- Started 14:05 UTC; still ongoing.
+- Card charge creation (POST /v1/charges) is failing intermittently — roughly 40% of attempts return HTTP 503.
+- Refunds, payouts, and the dashboard are fully unaffected.
+- Root cause identified: a bad deploy to the charge-authorization service; rollback in progress.
+- Workaround: charge requests are safely idempotent, so customers can retry failed charges with the same Idempotency-Key without risk of double-charging.
+- Next update will be posted by 15:00 UTC.
+- Affects all regions except eu-central-1.
+- This is a degradation, not a full outage; successful charges are processing normally.
