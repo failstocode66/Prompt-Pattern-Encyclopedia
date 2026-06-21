@@ -113,6 +113,24 @@ class BatchResilience(unittest.TestCase):
         res = pe.run_batch(manifest, ["m"], 1, ["j"], False, "/tmp", "mean")
         self.assertEqual([r["pattern"] for r in res], ["a", "c"])  # boom skipped; a + c survive
 
+    def test_circuit_breaker_aborts_on_consecutive_failures(self):
+        attempted = []
+
+        def fake_eval(spec, *a, **k):
+            attempted.append(spec["pattern"])
+            if spec["pattern"].startswith("bad"):
+                raise RuntimeError("provider quota")
+            return {"pattern": spec["pattern"], "models": [{"model": "m", "overall": 4.0}]}
+
+        pe.evaluate = fake_eval
+        pe.write_batch_reports = lambda *a, **k: ("x.md", "x.json")
+        manifest = {"evals": [{"pattern": "ok1"}, {"pattern": "bad1"}, {"pattern": "bad2"},
+                              {"pattern": "bad3"}, {"pattern": "bad4"}, {"pattern": "ok2"}]}
+        res = pe.run_batch(manifest, ["m"], 1, ["j"], False, "/tmp", "mean", abort_after=4)
+        self.assertEqual([r["pattern"] for r in res], ["ok1"])             # only ok1 scored
+        self.assertEqual(attempted, ["ok1", "bad1", "bad2", "bad3", "bad4"])  # stopped at 4th consecutive fail
+        self.assertNotIn("ok2", attempted)                                # circuit broke before ok2
+
 
 if __name__ == "__main__":
     unittest.main()

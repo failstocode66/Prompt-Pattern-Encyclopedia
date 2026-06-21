@@ -672,13 +672,14 @@ def _load_manifest(path):
     return manifest
 
 
-def run_batch(manifest, models, runs, judges, do_review, out_dir, method="mean"):
+def run_batch(manifest, models, runs, judges, do_review, out_dir, method="mean", abort_after=4):
     specs = manifest["evals"]
     label = judges[0] if len(judges) == 1 else f"panel[{', '.join(judges)}]"
     print(f"PromptEval v{TOOL_VERSION} BATCH -- {len(specs)} evals x {len(models)} models")
     print(f"Targets: {', '.join(models)} | runs/model: {runs} | judge: {label}\n")
     all_results = []
     failed = []
+    consecutive = 0  # circuit breaker: N consecutive failures => systemic (provider quota/auth/outage)
     for n, spec in enumerate(specs, 1):
         print(f"\n========== [{n}/{len(specs)}] {spec['pattern']} ==========")
         # Resilience: one eval's failure (a refusal, sustained 503, model 404) must NOT
@@ -686,9 +687,21 @@ def run_batch(manifest, models, runs, judges, do_review, out_dir, method="mean")
         # Re-run only the failed patterns afterward (their reports were never written).
         try:
             all_results.append(evaluate(spec, models, runs, judges, do_review, out_dir, method))
+            consecutive = 0
         except Exception as e:
             failed.append((spec.get("pattern", "?"), f"{e.__class__.__name__}: {e}"))
+            consecutive += 1
             print(f"  !! FAILED [{spec.get('pattern', '?')}]: {e.__class__.__name__}: {e}")
+            # Circuit breaker: a run of consecutive failures is almost always systemic (a provider's
+            # daily quota/billing/auth, or an outage) — not per-pattern. Stop instead of burning the
+            # other providers' spend across the whole remaining batch (the 2026-06-20 gemini-free-tier
+            # incident: 39/40 attempted after gemini was dead-for-the-day). Fix the cause, then resume.
+            if abort_after and consecutive >= abort_after:
+                remaining = len(specs) - n
+                print(f"\n!! CIRCUIT BREAKER: {consecutive} consecutive failures — likely systemic "
+                      f"(provider quota/auth/outage), not per-pattern. Aborting with {remaining} "
+                      f"pattern(s) unattempted to save spend. Fix the cause, then resume the unscored set.")
+                break
             continue
     md_path, json_path = write_batch_reports(all_results, models, judges, runs, out_dir, method)
     print("\n=== Batch complete ===")
