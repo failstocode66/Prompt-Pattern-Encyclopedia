@@ -1,0 +1,692 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "least-to-most-prompting",
+  "date": "2026-06-29 11:55",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer threads numeric results through a correctly ORDERED chain and ends feasible. Required chain and numbers: (1) Raw handle-time workload = 9,600 contacts x 7.5 min = 72,000 min = 1,200 agent-hours/week (and per day: weekday 1,600 x 7.5 = 12,000 min = 200 hrs; weekend 800 x 7.5 = 6,000 min = 100 hrs). (2) Apply the 120% service multiplier to handle-time hours: 1,200 x 1.20 = 1,440 productive hours/week; weekday 200 x 1.2 = 240 hrs/day, weekend 100 x 1.2 = 120 hrs/day. (3) Gross up for 80% productive availability (divide by 0.8): 1,440 / 0.8 = 1,800 PAID agent-hours/week; weekday 240/0.8 = 300 paid hrs/day, weekend 120/0.8 = 150 paid hrs/day. The 120% and the 0.8 gross-up MUST both be applied and in the right place (multiplier on workload, divide by availability) - omitting either, or multiplying by 0.8 instead of dividing, is the key accuracy failure. (4) Split each day into two EQUAL shifts: weekday = 150 paid hrs/shift, weekend = 75 paid hrs/shift. (5) Convert per-shift hours to integer agents per shift at 8 paid hrs/shift, rounding UP (cannot staff a fraction): weekday 150/8 = 18.75 -> 19 agents/shift; weekend 75/8 = 9.375 -> 10 agents/shift. Per-shift-per-day table should show 19 (weekday morning), 19 (weekday evening), 10 (weekend morning), 10 (weekend evening). (6) Weekly shift-demand count = sum of agents x shifts = weekdays (5 days x 2 shifts x 19 = 190 shift-slots) + weekends (2 days x 2 shifts x 10 = 40 shift-slots) = 230 agent-shifts demanded. (7) Each agent supplies 5 shifts/week, so a lower bound on headcount = ceil(230 / 5) = 46 agents. (8) Feasibility / hardest step: the no-same-day-both-shifts rule means an agent can cover at most ONE of the two shifts on any given day; this caps an agent at 5 shifts across 5 distinct days and means each shift-slot needs a distinct agent on that day, but daily peak demand (19+19 = 38 distinct agents needed on a weekday, since morning and evening agents must be different people) is the binding constraint, not just the 230/5 average. A rigorous answer checks the peak: a weekday needs 38 distinct agents present that day; with 46 agents this is satisfiable, and 46 agents x 5 shifts = 230 capacity exactly matches 230 demand, so utilization is 100% and the schedule is tight but achievable IF the 38-distinct-per-weekday and one-shift-per-agent-per-day constraints can be simultaneously met. The strongest answers note that 46 is feasible only because 230 demand = 230 supply exactly and explicitly reconcile the average bound (46) against the daily-distinct-agent peak (38 < 46, so peak is not binding) - concluding YES, 46 agents, schedule achievable. An answer that reports 46 without the feasibility reconciliation, or that mishandles the both-shifts rule, is incomplete. Common wrong finals: forgetting round-up (gives ~45), skipping the 0.8 gross-up (gives ~37), or applying 0.8 as a multiplier instead of divisor.",
+    "format_spec": "Two explicitly labeled phases. Phase 1 is an ORDERED numbered list of sub-problems (easiest first), each annotating which prior sub-problem's result it consumes. Phase 2 solves them in that same order, and for each step after the first restates the carried-forward numeric input(s) before using them. Must include a per-shift-per-day staffing table (weekday morning/evening, weekend morning/evening) and a single clearly stated final answer (total agents + feasibility yes/no).",
+    "tone": "Precise, quantitative workforce-planning / operations-analyst voice; numerically explicit and auditable; no hand-waving."
+  },
+  "prompt": "Solve this problem in two phases.\n\nPhase 1 - Decompose: Break the problem into an ordered sequence of sub-problems, from easiest to hardest, where each sub-problem builds on the previous one. List the full ordered sequence FIRST, before solving anything. Each sub-problem in the list must name which earlier sub-problem's result it consumes as input.\n\nPhase 2 - Solve in order: Answer each sub-problem in sequence. For every sub-problem after the first, explicitly restate the numeric result(s) you are carrying forward from the prior sub-problem(s) and show how they enter this step's calculation. End with the final answer.\n\nProblem: A customer-support center is planning next week's staffing for a single skill queue. The forecast is 9,600 contacts over the week, distributed as: Mon-Fri 1,600/day and Sat-Sun 800/day. Each contact takes an average handle time of 7.5 minutes. The service target requires staffing to 120% of the raw handle-time workload to absorb queueing and variability (this multiplier is applied to handle-time hours only). Separately, agents are only productively available 80% of their paid time (the other 20% is breaks, training, and after-call admin), so paid hours must be grossed up accordingly. Agents work 8-hour paid shifts, 5 shifts per week. Within a day, the workload splits into two equal shifts (a morning shift and an evening shift), and you cannot staff a fractional person on any shift. Finally, a hard rule: no single agent may be scheduled for both the morning and the evening shift on the same day. Question: What is the minimum total number of agents that must be hired for the week, and is a valid schedule actually achievable under all the constraints? Show the staffing requirement per shift per day along the way.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The typical answer is largely correct on the core arithmetic and final result, but the runs contain a substantive internal error before self-correcting: Run 1 initially claims 45 agents and only later revises to 46 after reconciling rounded shift counts; Run 2 briefly states 38 agents as a candidate before correcting to 46; Run 3 is clean and correct. Because the outputs ultimately land on the right final staffing and feasibility conclusion, but with visible missteps and some muddled reasoning around the binding headcount check, this is not a 5.",
+          "evidence": "Run 1: \"Therefore: - Minimum total number of agents hired = 45\" followed later by \"So the corrected minimum total number of agents is: 46\". Run 2: \"To cover the whole week, the binding maximum is the weekday requirement: 38 agents.\" then later \"the required number of agents is determined by total weekly shifts: 230 \\u00f7 5 = 46\". Run 3: \"Minimum total number of agents to hire: 46\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All required substantive elements are present in the typical output: ordered decomposition, stepwise solution, per-shift staffing table, and final answer with feasibility. However, Run 1\u2019s Phase 1 does not explicitly list sub-problems in easiest-to-hardest order with clear consumption links as requested; it is acceptable but weaker than the rubric\u2019s ideal, and its initial conclusion is internally inconsistent before correction. Run 2 and Run 3 more cleanly satisfy the structure, but the set as a whole is slightly inconsistent in how fully it addresses the feasibility reconciliation demanded by the reference.",
+          "evidence": "Run 3 includes the required structure: \"## Phase 1 \u2014 Decompose\" with numbered sub-problems and \"*Consumes result from Sub-problem 1*\" etc., and Run 2 includes \"Staffing requirement per shift per day: - Mon\u2013Fri: 19 morning, 19 evening - Sat\u2013Sun: 10 morning, 10 evening\" plus \"Is a valid schedule achievable under all constraints? Yes.\" Run 1 initially gives \"Minimum total number of agents hired = 45\" before revising to 46.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "The outputs follow the requested two-phase structure and include the per-shift staffing information and final answer. The main deviation is that Run 1\u2019s Phase 1 is not presented as a clean, explicitly ordered list before any solving in the same polished way as the prompt asked, and the final response is not a concise audited solution but a long derivation with a self-correction. Still, the overall shape is right across runs, so this is near but not exact.",
+          "evidence": "Run 3 matches the requested labeled phases closely: \"## Phase 1 \u2014 Decompose\" and \"## Phase 2 \u2014 Solve in order\". Run 2 explicitly states \"## Final answer\" and lists \"Staffing requirement per shift per day\". Run 1 includes the two phases and the table-like staffing summary, but also contains a midstream correction: \"Wait \u2014 careful...\" before restating the final answer.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "All three runs maintain a precise, quantitative, operations-analyst voice throughout. Calculations are shown with LaTeX-formatted equations, every number is labeled and traced, intermediate results are named and carried forward with explicit notation. No hand-waving or hedging. The language is professional and auditable, exactly matching the intended workforce-planning analyst audience.",
+          "evidence": "Run 2: 'Carrying forward from Step 2: Weekday productive hours = 240 / Weekend productive hours = 120 \u2026 paid hours = productive hours / 0.8 \u2026 Weekdays: 240\u00f70.8=300 paid hours/day.' Run 3: 'Apply 120%: 200\u00d71.2=240 productive hours/day \u2026 Gross up: 240/0.8=300 paid hours/day \u2026 300/2=150 paid hours per shift \u2026 \u230818.75\u2309=19 agents per shift.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, domain-appropriate workforce planning arithmetic with no harmful, biased, or inappropriate material.",
+          "evidence": "All three runs are purely quantitative staffing calculations and contain no unsafe content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The outputs are materially bloated relative to the task. The prompt asked for a two-phase solution with a table and final answer; the model instead emits long, highly verbose derivations and, in Run 1 and Run 2, spends many tokens exploring and correcting intermediate miscounts. This is especially inefficient given the target is a straightforward arithmetic/planning problem and the token counts are high (1986, 1710, 1600 output tokens).",
+          "evidence": "Run 1 is 1986 tokens and includes a lengthy correction sequence: \"A simple feasibility check...\" then \"Wait \u2014 careful...\" then \"But earlier we computed 225 shifts... The difference comes from rounding up...\". Run 2 is 1710 tokens and includes a redundant detour through \"38 agents\" before concluding 46. Run 3, while correct, still expands each step substantially beyond what was necessary.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.33,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "All three runs produce identical final answers (46 agents, yes feasible, 19/19 weekday per shift, 10/10 weekend per shift) and follow the same two-phase structure with the same logical decomposition. The mathematical steps are semantically identical across runs. The main inconsistency is structural quality: Run 1's reasoning path is internally messy with an intermediate wrong answer and self-correction, while Runs 2 and 3 proceed cleanly. This affects the quality and auditability of the reasoning path, though not the final conclusions. [lexical similarity ratio: 0.176]",
+          "evidence": "All three runs: final answer = 46 agents, yes feasible, staffing = 19/19 weekday, 10/10 weekend. Run 1 deviation: 'minimum total number of agents is: 46' only after a detour through an incorrect 45-agent answer. Runs 2 and 3 reach 46 directly via the 230-shift count without intermediate errors. Mechanical lexical ratio 0.176 reflects paraphrasing, not semantic drift.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1.5
+            }
+          },
+          "lexical_similarity": 0.176
+        }
+      },
+      "judge_summary": "Solid overall performance: all three runs apply the two critical transformations correctly (\u00d71.2 service multiplier on productive hours, then \u00f70.8 for paid-hour gross-up), reach the correct per-shift staffing (19 weekday, 10 weekend), compute 230 total shift-slots, and conclude 46 agents with a feasible schedule. The two-phase format with ordered decomposition and explicit carry-forwards is well-executed in Runs 2 and 3. Run 1 is penalized for an intermediate wrong answer (45 agents based on unrounded 225 shifts) that required awkward self-correction, adding ~200 tokens of waste. Across all runs, the feasibility analysis is shallower than the reference requires\u2014none explicitly proves that the 38-distinct-agent weekday peak is non-binding relative to the 46-agent pool, and none flags the 100% utilization tightness as a scheduling risk. The 'staffing table' appears as bullet text rather than a formatted table in all runs, a minor but consistent format deviation.",
+      "runs": [
+        {
+          "text": "## Phase 1 \u2014 Decompose\n\n1. **Compute weekly handle-time workload**  \n   - Uses: none  \n   - Output: total weekly handle-time hours.\n\n2. **Apply the 120% service-target multiplier to get required productive hours**  \n   - Uses: result of Sub-problem 1  \n   - Output: required productive hours for the week.\n\n3. **Gross up for 80% productivity to get paid hours required**  \n   - Uses: result of Sub-problem 2  \n   - Output: total paid hours needed for the week.\n\n4. **Convert weekly paid hours into required 8-hour agent-shifts**  \n   - Uses: result of Sub-problem 3  \n   - Output: total number of paid 8-hour shifts needed.\n\n5. **Split the requirement into daily and per-shift staffing counts**  \n   - Uses: result of Sub-problem 4  \n   - Output: minimum staff needed per shift for Mon\u2013Fri and Sat\u2013Sun.\n\n6. **Check whether the daily shift counts can be covered by unique agents under the no-double-shift rule**  \n   - Uses: result of Sub-problem 5  \n   - Output: minimum total number of agents hired and whether a feasible schedule exists.\n\n---\n\n## Phase 2 \u2014 Solve in order\n\n### 1) Weekly handle-time workload\n\nThere are:\n- Mon\u2013Fri: \\(5 \\times 1{,}600 = 8{,}000\\) contacts\n- Sat\u2013Sun: \\(2 \\times 800 = 1{,}600\\) contacts\n\nTotal weekly contacts:\n\\[\n8{,}000 + 1{,}600 = 9{,}600\n\\]\n\nEach contact takes 7.5 minutes, so total handle time:\n\\[\n9{,}600 \\times 7.5 = 72{,}000 \\text{ minutes}\n\\]\n\nConvert to hours:\n\\[\n72{,}000 \\div 60 = 1{,}200 \\text{ hours}\n\\]\n\n**Result carried forward:** weekly raw handle-time workload = **1,200 hours**\n\n---\n\n### 2) Apply the 120% service-target multiplier\n\nWe carry forward **1,200 hours** from Step 1.\n\nRequired productive hours:\n\\[\n1{,}200 \\times 1.2 = 1{,}440 \\text{ hours}\n\\]\n\n**Result carried forward:** required productive hours = **1,440 hours**\n\n---\n\n### 3) Gross up for 80% productive availability\n\nWe carry forward **1,440 productive hours** from Step 2.\n\nSince agents are productive only 80% of paid time:\n\\[\n\\text{Paid hours required} = \\frac{1{,}440}{0.8} = 1{,}800 \\text{ hours}\n\\]\n\n**Result carried forward:** total paid hours needed = **1,800 hours**\n\n---\n\n### 4) Convert weekly paid hours into 8-hour agent-shifts\n\nWe carry forward **1,800 paid hours** from Step 3.\n\nEach shift is 8 paid hours:\n\\[\n1{,}800 \\div 8 = 225 \\text{ shifts}\n\\]\n\nSo the week requires **225 paid 8-hour shifts** total.\n\n**Result carried forward:** total required shifts = **225 shifts**\n\n---\n\n### 5) Split into daily and per-shift staffing counts\n\nWe carry forward **225 shifts** from Step 4.\n\nThe workload is split into 7 days with two equal shifts per day, so there are:\n\\[\n7 \\times 2 = 14 \\text{ shifts per week}\n\\]\n\nAverage required staffing per shift:\n\\[\n225 \\div 14 = 16.0714\\ldots\n\\]\n\nSince you cannot staff a fractional person on a shift, each shift must be rounded up to meet demand.  \nBut the demand is not uniform across the week because Mon\u2013Fri are heavier than Sat\u2013Sun, so we compute by day from contacts.\n\n#### Monday\u2013Friday\nDaily contacts = 1,600  \nDaily handle time:\n\\[\n1{,}600 \\times 7.5 = 12{,}000 \\text{ minutes} = 200 \\text{ hours}\n\\]\nApply 120%:\n\\[\n200 \\times 1.2 = 240 \\text{ productive hours}\n\\]\nGross up for 80% productivity:\n\\[\n240 \\div 0.8 = 300 \\text{ paid hours}\n\\]\nSplit into 2 shifts:\n\\[\n300 \\div 2 = 150 \\text{ paid hours per shift}\n\\]\nConvert to 8-hour agents:\n\\[\n150 \\div 8 = 18.75 \\Rightarrow 19 \\text{ agents per shift}\n\\]\n\n#### Saturday\u2013Sunday\nDaily contacts = 800  \nDaily handle time:\n\\[\n800 \\times 7.5 = 6{,}000 \\text{ minutes} = 100 \\text{ hours}\n\\]\nApply 120%:\n\\[\n100 \\times 1.2 = 120 \\text{ productive hours}\n\\]\nGross up for 80% productivity:\n\\[\n120 \\div 0.8 = 150 \\text{ paid hours}\n\\]\nSplit into 2 shifts:\n\\[\n150 \\div 2 = 75 \\text{ paid hours per shift}\n\\]\nConvert to 8-hour agents:\n\\[\n75 \\div 8 = 9.375 \\Rightarrow 10 \\text{ agents per shift}\n\\]\n\nSo the staffing requirement per shift per day is:\n\n- **Mon\u2013Fri:** 19 agents on morning shift, 19 agents on evening shift\n- **Sat\u2013Sun:** 10 agents on morning shift, 10 agents on evening shift\n\n---\n\n### 6) Check feasibility and minimum total agents hired\n\nWe carry forward the per-shift requirements:\n- **Mon\u2013Fri:** 19 + 19 = 38 agent-shifts per day\n- **Sat\u2013Sun:** 10 + 10 = 20 agent-shifts per day\n\nNow check the no-double-shift rule: no agent may work both shifts on the same day.\n\nThat means each day\u2019s two shifts must be covered by distinct people, but an agent can work one shift per day and can work on multiple days during the week. So the feasibility question is whether enough distinct agents exist to cover the busiest day.\n\nThe maximum simultaneous staffing needed on any single day is:\n- **38 agents/day** on Mon\u2013Fri\n\nThus the minimum headcount must be at least **38 agents**, because on a heavy weekday you need 38 distinct people that day and no one can cover both shifts.\n\nCan 38 agents actually cover the whole week?\n\nCheck total capacity with 38 agents, each working 5 shifts/week:\n\\[\n38 \\times 5 = 190 \\text{ shifts}\n\\]\n\nBut the week requires:\n\\[\n225 \\text{ shifts}\n\\]\n\nSo 38 agents are **not enough**.\n\nNext try 45 agents:\n\\[\n45 \\times 5 = 225 \\text{ shifts}\n\\]\n\nThis exactly matches the weekly shift requirement. Also, the daily peak is only 38, and 45 agents can cover the weekday and weekend pattern while ensuring no one works both shifts on the same day. So a valid schedule is achievable.\n\nTherefore:\n\n- **Minimum total number of agents hired = 45**\n- **Yes, a valid schedule is achievable**\n\nA simple feasibility check:\n- Weekday demand: 38 agents/day for 5 days = 190 shifts\n- Weekend demand: 20 agents/day for 2 days = 40 shifts\n- Total: 230? Wait \u2014 careful: weekday demand is 19 per shift \u00d7 2 shifts \u00d7 5 days = 190 shifts, weekend demand is 10 \u00d7 2 \u00d7 2 = 40 shifts, total = 230 shifts.\n\nBut earlier we computed 225 shifts from weekly hours. The difference comes from rounding up each shift separately. Let\u2019s reconcile this correctly:\n\n- Mon\u2013Fri daily paid hours = 300, split into 2 shifts = 150 per shift = 18.75 \u2192 19 each shift  \n  Weekly weekday shifts = \\(5 \\times 2 \\times 19 = 190\\)\n\n- Sat\u2013Sun daily paid hours = 150, split into 2 shifts = 75 per shift = 9.375 \u2192 10 each shift  \n  Weekly weekend shifts = \\(2 \\times 2 \\times 10 = 40\\)\n\nTotal rounded staffing requirement:\n\\[\n190 + 40 = 230 \\text{ agent-shifts}\n\\]\n\nSince each agent can work 5 shifts/week, the headcount needed is:\n\\[\n230 \\div 5 = 46\n\\]\n\nAnd 46 agents produce:\n\\[\n46 \\times 5 = 230 \\text{ shifts}\n\\]\n\nThis matches exactly.\n\nSo the corrected minimum total number of agents is:\n\n## Final answer\n\n- **Staffing per shift per day:**\n  - **Mon\u2013Fri:** 19 agents per shift, 2 shifts/day\n  - **Sat\u2013Sun:** 10 agents per shift, 2 shifts/day\n\n- **Minimum total number of agents to hire:** **46**\n\n- **Is a valid schedule achievable?** **Yes.**  \n  Since each agent works at most one shift per day and up to 5 shifts per week, 46 agents can cover the required 230 rounded shift assignments exactly.",
+          "input_tokens": 389,
+          "output_tokens": 1986,
+          "seconds": 11.65,
+          "run": 1
+        },
+        {
+          "text": "## Phase 1 \u2014 Decompose\n\n### Ordered sub-problems\n\n1. **Compute the raw handle-time workload for the week and for each day.**  \n   Inputs: weekly contacts and average handle time.\n\n2. **Apply the 120% service-target multiplier to get required productive hours.**  \n   Inputs: results from Sub-problem 1.\n\n3. **Gross up productive hours to paid hours using the 80% productivity rate.**  \n   Inputs: results from Sub-problem 2.\n\n4. **Convert daily paid hours into staffing per shift, given 2 equal shifts per day and 8-hour paid shifts. Round up because fractional people are not allowed.**  \n   Inputs: results from Sub-problem 3.\n\n5. **Determine the minimum total number of agents needed for the week, and check whether the no-double-shift-per-day rule makes the schedule feasible.**  \n   Inputs: results from Sub-problem 4.\n\n---\n\n## Phase 2 \u2014 Solve in order\n\n### 1) Raw handle-time workload\n\nAverage handle time = **7.5 minutes/contact**.\n\n#### Weekly workload\n- Total contacts = **9,600**\n- Total handle time = \\( 9{,}600 \\times 7.5 = 72{,}000 \\) minutes\n- Convert to hours:\n  \\[\n  72{,}000 \\div 60 = 1{,}200 \\text{ hours}\n  \\]\n\nSo the **raw weekly handle-time workload = 1,200 hours**.\n\n#### Daily workload\n- Mon\u2013Fri: \\( 1{,}600 \\times 7.5 = 12{,}000 \\) minutes = **200 hours/day**\n- Sat\u2013Sun: \\( 800 \\times 7.5 = 6{,}000 \\) minutes = **100 hours/day**\n\n---\n\n### 2) Apply the 120% service-target multiplier\n\nCarrying forward from Step 1:\n- Weekday raw workload = **200 hours/day**\n- Weekend raw workload = **100 hours/day**\n\nApply 120% = multiply by **1.2**:\n\n#### Weekdays\n\\[\n200 \\times 1.2 = 240 \\text{ productive hours/day}\n\\]\n\n#### Weekends\n\\[\n100 \\times 1.2 = 120 \\text{ productive hours/day}\n\\]\n\nSo the required **productive hours** are:\n- **Mon\u2013Fri: 240 hours/day**\n- **Sat\u2013Sun: 120 hours/day**\n\n---\n\n### 3) Gross up for 80% productivity\n\nCarrying forward from Step 2:\n- Weekday productive hours = **240**\n- Weekend productive hours = **120**\n\nAgents are productive only **80%** of paid time, so paid hours needed are:\n\\[\n\\text{paid hours} = \\frac{\\text{productive hours}}{0.8}\n\\]\n\n#### Weekdays\n\\[\n240 \\div 0.8 = 300 \\text{ paid hours/day}\n\\]\n\n#### Weekends\n\\[\n120 \\div 0.8 = 150 \\text{ paid hours/day}\n\\]\n\nSo the **paid-hour staffing requirement** is:\n- **Mon\u2013Fri: 300 paid hours/day**\n- **Sat\u2013Sun: 150 paid hours/day**\n\n---\n\n### 4) Convert paid hours into staffing per shift per day\n\nCarrying forward from Step 3:\n- Weekday paid hours = **300/day**\n- Weekend paid hours = **150/day**\n\nEach shift is **8 paid hours**, and each day has **2 equal shifts**, so we split daily paid hours evenly across the two shifts.\n\n#### Weekdays\n\\[\n300 \\div 2 = 150 \\text{ paid hours per shift}\n\\]\nEach agent covers 8 paid hours, so:\n\\[\n150 \\div 8 = 18.75\n\\]\nCannot staff a fractional person, so round up:\n\\[\n\\lceil 18.75 \\rceil = 19 \\text{ agents per shift}\n\\]\n\nSo for each weekday:\n- **Morning shift: 19 agents**\n- **Evening shift: 19 agents**\n\nTotal weekday staffing:\n\\[\n19 + 19 = 38 \\text{ agent-shifts/day}\n\\]\n\n#### Weekends\n\\[\n150 \\div 2 = 75 \\text{ paid hours per shift}\n\\]\n\\[\n75 \\div 8 = 9.375\n\\]\nRound up:\n\\[\n\\lceil 9.375 \\rceil = 10 \\text{ agents per shift}\n\\]\n\nSo for each weekend day:\n- **Morning shift: 10 agents**\n- **Evening shift: 10 agents**\n\nTotal weekend staffing:\n\\[\n10 + 10 = 20 \\text{ agent-shifts/day}\n\\]\n\n#### Staffing requirement per shift per day\n- **Mon\u2013Fri:** 19 morning, 19 evening\n- **Sat\u2013Sun:** 10 morning, 10 evening\n\n---\n\n### 5) Minimum total agents needed for the week, and feasibility\n\nCarrying forward from Step 4:\n- Weekday requirement = **19 agents per shift**\n- Weekend requirement = **10 agents per shift**\n\nNow apply the hard rule:\n\n> No single agent may be scheduled for both the morning and evening shift on the same day.\n\nThat means each day\u2019s morning and evening shifts must be staffed by **different people**.\n\n- On a weekday, you need **19 distinct agents in the morning** and **19 distinct agents in the evening**, so at least:\n  \\[\n  19 + 19 = 38\n  \\]\n  unique agents available for that day.\n\n- On a weekend day, you need:\n  \\[\n  10 + 10 = 20\n  \\]\n  unique agents available for that day.\n\nTo cover the whole week, the binding maximum is the weekday requirement: **38 agents**.\n\n#### Is a valid schedule achievable?\nYes.\n\nWhy:\n- Each weekday needs 38 agent-shifts total, split into 19 + 19.\n- An agent works 5 shifts per week.\n- If you hire **38 agents**, you have:\n  \\[\n  38 \\times 5 = 190 \\text{ weekly agent-shifts}\n  \\]\n- Required weekly agent-shifts:\n  - Weekdays: \\(5 \\times 38 = 190\\)\n  - Weekends: \\(2 \\times 20 = 40\\)\n\nThis means the weekly demand in \u201cshift slots\u201d is:\n\\[\n190 + 40 = 230 \\text{ shift-slots}\n\\]\nBut the 38 agents only provide 190 shifts if each works 5 shifts. So we need to be careful: the question is asking for the **minimum total number of agents that must be hired**, not merely whether all shifts can be filled by the same group under a 5-shift cap.\n\nSince each agent works 5 shifts/week, the required number of agents is determined by total weekly shifts:\n\\[\n230 \\div 5 = 46\n\\]\nSo at least **46 agents** are needed to supply enough total shift capacity.\n\nNow check feasibility with the no-double-shift/day rule:\n- Total required shift-slots = 230\n- Total capacity with 46 agents = \\(46 \\times 5 = 230\\)\n\nBecause the required number of shifts is an exact multiple of available shifts per agent, and no day requires more than 46 distinct agents, a valid schedule is achievable.\n\n---\n\n## Final answer\n\n- **Staffing requirement per shift per day:**\n  - **Mon\u2013Fri:** 19 agents on the morning shift and 19 agents on the evening shift\n  - **Sat\u2013Sun:** 10 agents on the morning shift and 10 agents on the evening shift\n\n- **Minimum total number of agents that must be hired for the week:** **46**\n\n- **Is a valid schedule achievable under all constraints?** **Yes.** The shift totals are exactly coverable with 46 agents working 5 shifts each, and the \u201cno morning + evening on the same day\u201d rule can be respected because each day\u2019s shifts are already split between distinct staff.",
+          "input_tokens": 389,
+          "output_tokens": 1710,
+          "seconds": 10.42,
+          "run": 2
+        },
+        {
+          "text": "## Phase 1 \u2014 Decompose\n\n1. **Compute weekly contact volume and raw handle-time workload**  \n   *Consumes no earlier result.*\n\n2. **Apply the 120% service-target multiplier to get required productive hours**  \n   *Consumes result from Sub-problem 1.*\n\n3. **Gross up productive hours for 80% agent productivity to get paid hours required**  \n   *Consumes result from Sub-problem 2.*\n\n4. **Convert paid hours into required 8-hour agent-shifts for the week**  \n   *Consumes result from Sub-problem 3.*\n\n5. **Split the requirement into per-day, per-shift staffing needs and round up to whole people**  \n   *Consumes result from Sub-problem 4.*\n\n6. **Check whether a valid weekly schedule is achievable under the \u201cno double-shift same day\u201d rule, and determine minimum headcount**  \n   *Consumes result from Sub-problem 5.*\n\n---\n\n## Phase 2 \u2014 Solve in order\n\n### 1) Weekly raw handle-time workload\nTotal contacts:\n\n- Mon\u2013Fri: \\(5 \\times 1{,}600 = 8{,}000\\)\n- Sat\u2013Sun: \\(2 \\times 800 = 1{,}600\\)\n\nSo weekly contacts:\n\n\\[\n8{,}000 + 1{,}600 = 9{,}600\n\\]\n\nAverage handle time = 7.5 minutes, so total raw handle time is:\n\n\\[\n9{,}600 \\times 7.5 = 72{,}000 \\text{ minutes}\n\\]\n\nConvert to hours:\n\n\\[\n72{,}000 / 60 = 1{,}200 \\text{ hours}\n\\]\n\n**Result carried forward:** raw workload = **1,200 handle-hours**\n\n---\n\n### 2) Apply 120% service target\nThe service target requires staffing to 120% of raw handle-time workload:\n\n\\[\n1{,}200 \\times 1.2 = 1{,}440 \\text{ productive hours}\n\\]\n\n**Result carried forward:** required productive hours = **1,440 hours**\n\n---\n\n### 3) Gross up for 80% productive availability\nAgents are productive only 80% of paid time, so paid hours needed are:\n\n\\[\n1{,}440 / 0.8 = 1{,}800 \\text{ paid hours}\n\\]\n\n**Result carried forward:** required paid hours = **1,800 hours**\n\n---\n\n### 4) Convert paid hours into 8-hour shifts\nEach agent works 8-hour paid shifts, so total 8-hour shifts needed for the week:\n\n\\[\n1{,}800 / 8 = 225 \\text{ shifts}\n\\]\n\n**Result carried forward:** total weekly staffing = **225 shifts**\n\n---\n\n### 5) Staffing requirement per shift per day\nThe workload is split into **two equal shifts per day**, so there are:\n\n\\[\n7 \\text{ days} \\times 2 = 14 \\text{ shifts per week}\n\\]\n\nWe need to distribute the 225 required shifts across these 14 shifts in proportion to daily workload.\n\nFirst compute daily paid-hour requirements:\n\n- **Mon\u2013Fri daily raw workload:**  \n  \\[\n  1{,}600 \\times 7.5 = 12{,}000 \\text{ min} = 200 \\text{ hours}\n  \\]\n  Apply 120%:\n  \\[\n  200 \\times 1.2 = 240 \\text{ productive hours/day}\n  \\]\n  Gross up for 80% productivity:\n  \\[\n  240 / 0.8 = 300 \\text{ paid hours/day}\n  \\]\n  Convert to shifts:\n  \\[\n  300 / 8 = 37.5 \\text{ shifts/day}\n  \\]\n\n- **Sat\u2013Sun daily raw workload:**  \n  \\[\n  800 \\times 7.5 = 6{,}000 \\text{ min} = 100 \\text{ hours}\n  \\]\n  Apply 120%:\n  \\[\n  100 \\times 1.2 = 120 \\text{ productive hours/day}\n  \\]\n  Gross up:\n  \\[\n  120 / 0.8 = 150 \\text{ paid hours/day}\n  \\]\n  Convert to shifts:\n  \\[\n  150 / 8 = 18.75 \\text{ shifts/day}\n  \\]\n\nNow split each day into two equal shifts:\n\n- **Mon\u2013Fri:** \\(37.5 / 2 = 18.75\\) shifts per shift\n- **Sat\u2013Sun:** \\(18.75 / 2 = 9.375\\) shifts per shift\n\nSince we cannot staff fractional people on a shift, round up:\n\n- **Mon\u2013Fri:** \\(\\lceil 18.75 \\rceil = 19\\) agents per shift\n- **Sat\u2013Sun:** \\(\\lceil 9.375 \\rceil = 10\\) agents per shift\n\nSo the daily staffing requirement is:\n\n- **Mon\u2013Fri:** 19 morning + 19 evening = **38 agents/day**\n- **Sat\u2013Sun:** 10 morning + 10 evening = **20 agents/day**\n\nCheck weekly total using these rounded shift counts:\n\n- Mon\u2013Fri: \\(5 \\times 38 = 190\\)\n- Sat\u2013Sun: \\(2 \\times 20 = 40\\)\n\nTotal scheduled shifts:\n\n\\[\n190 + 40 = 230 \\text{ shifts}\n\\]\n\nThis is at least the required 225 shifts, so rounding has created 5 extra shift slots, which is acceptable because you cannot staff fractions.\n\n**Result carried forward:** per-shift staffing =  \n- **Mon\u2013Fri: 19 per shift**  \n- **Sat\u2013Sun: 10 per shift**  \n\n---\n\n### 6) Minimum total agents and schedule feasibility\nWe now check the hiring minimum under the rule:\n\n- no agent may work both morning and evening on the same day\n- agents work 5 shifts per week\n- need to cover 230 shift assignments total\n\nSince each agent can work at most 5 shifts/week, the minimum headcount must satisfy:\n\n\\[\n\\lceil 230 / 5 \\rceil = 46\n\\]\n\nSo at least **46 agents** are needed.\n\nNow verify achievability:\n\n- 46 agents \u00d7 5 shifts/week = 230 possible shift assignments\n- We need exactly 230 scheduled shift assignments after rounding\n- Since the rule forbids same-day double-shifting, each day\u2019s morning and evening needs can be assigned to disjoint sets of agents\n- The per-day needs are feasible because each day requires only 38 or 20 people total, both well below 46\n- Across the week, we can distribute 5 shifts per agent so that no agent works both shifts on the same day\n\nTherefore, a valid schedule **is achievable** with 46 agents.\n\n---\n\n## Final answer\n\n- **Minimum total number of agents to hire:** **46**\n- **Is a valid schedule achievable?** **Yes**\n\n### Staffing requirement per shift per day\n- **Mon\u2013Fri:** **19 agents in the morning shift** and **19 agents in the evening shift**\n- **Sat\u2013Sun:** **10 agents in the morning shift** and **10 agents in the evening shift**\n\nThis meets the workload, the 120% service target, the 80% productivity adjustment, the 8-hour shift structure, the no-fractional-staff rule, and the no-double-shift-same-day rule.",
+          "input_tokens": 389,
+          "output_tokens": 1600,
+          "seconds": 9.41,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1.14,
+        "max_spread": 2,
+        "contested_dims": [
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": -6
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "Core quantitative result is correct in all three runs: 46 agents and the per-shift staffing table (19/19 weekdays, 10/10 weekends) matches the reference. However, the feasibility analysis is handled unevenly and sometimes overexplained or partially incorrect in mechanism. Run 1 and Run 2 claim feasibility via schedule constructions that are not fully demonstrated; Run 3 is truncated before the final construction is completed. The most important numerical chain is right, but the proof of achievability is weaker than the reference\u2019s required reconciliation.",
+          "evidence": "Run 1: \u201cMinimum agents to hire: 46\u201d and \u201cIs a valid schedule achievable? Yes.\u201d Run 2: \u201cMinimum agents to hire: 46\u201d and \u201cIs a valid schedule achievable? Yes.\u201d Run 3: \u201cMinimum agents to hire = \u2308230 \u00f7 5\u2309 = \u230846.0\u2309 = 46 agents\u201d but the response is cut off at \u201c| U-Wed\u201d before finishing the schedule construction.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "Runs 1 and 2 cover every required element: Phase 1 decomposition with consumption annotations, Phase 2 step-by-step solutions with carried-forward numerics, the per-shift-per-day table, the 230-agent-shift total, the 46-agent minimum, and a completed feasibility reconciliation. Run 3 is truncated at 4096 tokens, ending mid-table in the group-construction attempt ('U-Wed') without a final answer block or feasibility conclusion. None of the runs explicitly compute the weekly aggregate of 1,200 agent-hours before decomposing to daily figures, a minor omission.",
+          "evidence": "Run 1 and Run 2 both conclude with a clearly labeled 'Final Answer' section containing the per-shift table, '46' highlighted, and 'Yes' with justification. Run 3 ends abruptly: '| U-Wed' with no final answer, no feasibility verdict stated, and the schedule construction left unfinished after a self-identified error ('14 \u2717 \u2014 need 8').",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "Runs 1 and 2 exactly satisfy the format specification: two explicitly labeled phases, Phase 1 as an ordered numbered list with consumption annotations, Phase 2 solving in the same order with explicit restatement of carried-forward numerics at each step, a per-shift-per-day table, and a single clearly labeled final answer with agents + feasibility verdict. Run 3 has the correct structure through SP9 but is truncated, leaving no final answer block \u2014 a structural incompletion that violates the format requirement.",
+          "evidence": "Run 1: '# Phase 1 \u2013 Decompose \u2026 SP2 \u2026 *(consumes SP1)*'; Phase 2: 'Carrying forward: Weekday = 200 hrs, Weekend = 100 hrs'; table present; '### Minimum agents to hire: **46** \u2026 Is a valid schedule achievable? **Yes.**' Run 2: same pattern, clean final block. Run 3: cuts off at '| U-Wed' inside an unfinished table with no Phase 2 final-answer section.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "All three runs sustain a precise, quantitative operations-analyst register throughout: mathematical notation (\u2308\u2309 ceiling, \u00f7, \u00d7), labeled formulas, structured tables, and explicit numeric carry-forwards. No hand-waving or informal language. Run 1's invocation of the Gale-Ryser theorem is a slight academic elevation but remains appropriate for an auditable workforce-planning document.",
+          "evidence": "Run 1: 'By the Gale-Ryser theorem, a 0-1 matrix with prescribed row and column sums exists if and only if\u2026'; Run 2: 'those sets must be disjoint \u2014 so at least 38 distinct agents must be available to work that day'; Run 3: 'Divide by 0.80 to gross up for shrinkage \u2026 SP9 \u2013 Minimum agents to hire: \u2308230 \u00f7 5\u2309 = \u230846.0\u2309 = 46 agents.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, domain-appropriate workforce planning math with no harmful, biased, or inappropriate material.",
+          "evidence": "All three runs discuss staffing calculations, shifts, and feasibility only.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "Run 2 (2581 tokens) is reasonably tight. Run 1 (3120 tokens) adds value with a Gale-Ryser proof and binary matrix analysis, but this extends well beyond what the problem requires and represents mild padding. Run 3 (4096 tokens) is the clearest efficiency failure: it attempts a verbose explicit group-construction, discovers an error mid-way ('14 \u2717'), restarts, and still hits the token ceiling without completing the task \u2014 wasting tokens and delivering an incomplete output.",
+          "evidence": "Run 1 devotes ~600 tokens to Gale-Ryser theorem justification not required by the problem. Run 3 spends hundreds of tokens on a failed explicit roster ('Set w_{Mon\u2013Fri} = 8\u2026 Alternatively\u2026 Better: assign off-days\u2026 One clean construction\u2026 Alternatively\u2026') before truncating at the ceiling.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "Runs 1 and 2 are highly consistent: same Phase 1/Phase 2 structure, same numeric answers at every step (200/100\u2192240/120\u2192300/150\u2192150/75\u219219/10\u2192230\u219246), same feasibility conclusion (Yes), and same per-shift table. Run 3 agrees on all numeric answers through SP9 and begins the same feasibility argument, but diverges structurally by failing to complete and produce a final answer. The low lexical-similarity ratio (0.131) reflects paraphrase, not semantic divergence in the two successful runs. [lexical similarity ratio: 0.131]",
+          "evidence": "Runs 1 and 2 both produce: weekday per shift = 19, weekend per shift = 10, total agent-shifts = 230, minimum agents = 46, feasibility = Yes; both contain matching 7-row staffing tables. Run 3 confirms the same numeric pipeline through '\u230846.0\u2309 = 46 agents' in SP9 but is truncated at SP10 without a verdict or final answer block.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.131
+        }
+      },
+      "judge_summary": "The pattern performs very well in Runs 1 and 2, which fully execute the least-to-most decomposition, chain all numeric results correctly, include the required staffing table, and deliver a rigorous feasibility reconciliation \u2014 earning high marks on accuracy, completeness, format, and tone. Run 3 is the weak link: it reproduces all correct intermediate values but hits the token ceiling during an over-ambitious explicit schedule construction, leaving the response incomplete with no final answer. The consistent failure mode across runs is a tendency toward verbose feasibility proofs (Gale-Ryser theorem in Run 1; repeated failed construction attempts in Run 3), which hurts efficiency and caused the truncation in Run 3. Structural and semantic consistency across the two complete runs is excellent; Run 3's truncation introduces a meaningful divergence in completeness and format.",
+      "runs": [
+        {
+          "text": "# Phase 1 \u2013 Decompose\n\nHere is the ordered sequence of sub-problems:\n\n1. **SP1 \u2013 Daily handle-time hours:** Compute raw handle-time hours for a weekday and a weekend day from contacts and AHT.\n\n2. **SP2 \u2013 Daily staffed hours needed (120% multiplier):** Apply the 120% workload multiplier to each day's handle-time hours. *(consumes SP1)*\n\n3. **SP3 \u2013 Daily paid hours needed (80% productivity gross-up):** Gross up staffed hours to paid hours to account for shrinkage. *(consumes SP2)*\n\n4. **SP4 \u2013 Shift-level paid hours needed:** Split each day's paid hours into two equal shifts (morning and evening). *(consumes SP3)*\n\n5. **SP5 \u2013 Agents per shift (ceiling to whole persons):** Divide shift paid hours by 8-hour shift length and round up (no fractional agents). *(consumes SP4)*\n\n6. **SP6 \u2013 Weekly schedule: shifts per agent and total agent-days needed:** Determine how many agent-shifts each day requires across the week, and identify the maximum concurrent staffing need per day. *(consumes SP5)*\n\n7. **SP7 \u2013 Minimum agents to hire (capacity constraint):** Using each agent's 5 shifts/week limit and the no-same-day-double-shift rule, find the minimum headcount and verify feasibility. *(consumes SP5, SP6)*\n\n---\n\n# Phase 2 \u2013 Solve in Order\n\n---\n\n## SP1 \u2013 Daily handle-time hours\n\n**Formula:** (Contacts/day \u00d7 AHT in minutes) \u00f7 60\n\n- **Weekday (Mon\u2013Fri):** 1,600 \u00d7 7.5 \u00f7 60 = 12,000 \u00f7 60 = **200 hours/day**\n- **Weekend day (Sat\u2013Sun):** 800 \u00d7 7.5 \u00f7 60 = 6,000 \u00f7 60 = **100 hours/day**\n\n---\n\n## SP2 \u2013 Daily staffed hours needed (120% multiplier)\n\n**Carrying forward:** Weekday = 200 hrs, Weekend = 100 hrs\n\n**Formula:** Handle-time hours \u00d7 1.20\n\n- **Weekday:** 200 \u00d7 1.20 = **240 hours/day**\n- **Weekend:** 100 \u00d7 1.20 = **120 hours/day**\n\n---\n\n## SP3 \u2013 Daily paid hours needed (80% productivity gross-up)\n\n**Carrying forward:** Weekday staffed = 240 hrs, Weekend staffed = 120 hrs\n\nAgents are only 80% productive, so we need more paid hours than staffed hours.\n\n**Formula:** Staffed hours \u00f7 0.80\n\n- **Weekday:** 240 \u00f7 0.80 = **300 paid hours/day**\n- **Weekend:** 120 \u00f7 0.80 = **150 paid hours/day**\n\n---\n\n## SP4 \u2013 Shift-level paid hours needed\n\n**Carrying forward:** Weekday = 300 paid hrs/day, Weekend = 150 paid hrs/day\n\nWorkload splits into **two equal shifts** per day.\n\n- **Weekday per shift:** 300 \u00f7 2 = **150 paid hours per shift**\n- **Weekend per shift:** 150 \u00f7 2 = **75 paid hours per shift**\n\n---\n\n## SP5 \u2013 Agents per shift (ceiling to whole persons)\n\n**Carrying forward:** Weekday shift = 150 hrs, Weekend shift = 75 hrs\n\nEach agent works an 8-hour paid shift.\n\n**Formula:** \u2308Shift hours \u00f7 8\u2309\n\n- **Weekday shift:** \u2308150 \u00f7 8\u2309 = \u230818.75\u2309 = **19 agents per shift**\n- **Weekend shift:** \u230875 \u00f7 8\u2309 = \u23089.375\u2309 = **10 agents per shift**\n\n### Staffing requirement per shift per day (summary table):\n\n| Day | Morning shift | Evening shift | Total agent-shifts/day |\n|-----------|---------------|---------------|------------------------|\n| Monday | 19 | 19 | 38 |\n| Tuesday | 19 | 19 | 38 |\n| Wednesday | 19 | 19 | 38 |\n| Thursday | 19 | 19 | 38 |\n| Friday | 19 | 19 | 38 |\n| Saturday | 10 | 10 | 20 |\n| Sunday | 10 | 10 | 20 |\n\n---\n\n## SP6 \u2013 Total agent-shifts across the week\n\n**Carrying forward:** 19 agents/shift on weekdays (2 shifts each), 10 agents/shift on weekends (2 shifts each)\n\nTotal agent-shifts needed for the week:\n\n- Weekdays: 5 days \u00d7 2 shifts \u00d7 19 = **190 agent-shifts**\n- Weekends: 2 days \u00d7 2 shifts \u00d7 10 = **40 agent-shifts**\n- **Grand total: 230 agent-shifts**\n\n**Key daily constraint:** The busiest days (Mon\u2013Fri) each require **38 agent-shifts per day** (19 per shift, 2 shifts). The no-same-day-double-shift rule means every one of those 38 agent-shifts must be worked by a *different* person. So on any weekday, **at least 38 distinct agents must be available and scheduled that day.**\n\n---\n\n## SP7 \u2013 Minimum agents to hire\n\n**Carrying forward:** 19 agents/shift on weekdays, 10 on weekends; no agent may work both shifts on the same day; each agent works exactly 5 shifts/week.\n\n### Setting up the constraint\n\nEach hired agent can work at most **5 shifts per week** (one per day, at most one shift per day due to the no-double rule).\n\nWe need to cover **230 agent-shifts** in the week.\n\n**Lower bound from total shifts:**\n$$N \\geq \\lceil 230 \\div 5 \\rceil = \\lceil 46 \\rceil = 46 \\text{ agents}$$\n\n**Lower bound from the daily constraint (no-double rule):**\nOn each weekday, 38 *different* agents must be scheduled. Since an agent can appear on at most one shift that day, and they are present on at most 5 days, we need enough agents that 38 can be simultaneously allocated on the same day.\n\nWith N agents each working 5 of 7 days, the maximum number of agents available on any given day is N (if all 5 shifts happen to include that day). The binding constraint is simply that we need at least 38 agents available on each weekday \u2014 i.e., **N \u2265 38**.\n\nSince 46 > 38, the total-shift lower bound is tighter: **N \u2265 46**.\n\n### Checking feasibility at N = 46\n\n- Total shift capacity: 46 agents \u00d7 5 shifts = **230 shifts available** \u2014 exactly matches the 230 shifts needed, so there is **zero slack**.\n- This means every agent must work exactly 5 shifts, covering exactly the shifts required with no agent idle.\n\n**Can we construct a valid schedule?**\n\nWe need to assign 230 agent-shifts across 14 slots (7 days \u00d7 2 shifts), with:\n- Slot sizes: 19, 19, 19, 19, 19, 19, 19, 19, 19, 19 (weekday AM/PM \u00d75), 10, 10, 10, 10 (weekend AM/PM \u00d72)\n- Each agent works exactly 5 slots\n- No agent assigned to both AM and PM of the same day\n\nThink of the 14 slots as items in a bipartite matching / assignment problem. Each day has two slots (AM, PM). The constraint says no agent takes both slots of the same day \u2014 i.e., the two shifts of any given day are **mutually exclusive** for a single agent.\n\n**Attempt to construct a schedule:**\n\nLabel days D1\u2013D7 (D1\u2013D5 = weekdays, D6\u2013D7 = weekend). Each day has slot A (AM) and slot B (PM).\n\nFor weekdays the slot size is 19; for weekend days it is 10.\n\n*Agents work 5 shifts in 5 different days (at most one shift per day).*\n\nSince total capacity exactly equals total demand, every agent works exactly 5 shifts. Each shift is on a different day (the no-double rule and the 5-shift limit together enforce this: if they worked 0 days double-shifting and 5 single days they fill 5 shifts on 5 different days \u2014 the only option).\n\nSo every agent works **exactly one shift per day, on exactly 5 of the 7 days**. Equivalently, each agent has exactly **2 days off**.\n\nNow think of it as a (46-agent) \u00d7 (7-day) binary matrix where each row sums to 5 (agent works 5 days) and each column represents a day. On each worked day, the agent is assigned either the AM or PM shift.\n\n**Column sums required:**\n- Weekdays (D1\u2013D5): AM needs 19, PM needs 19 \u2192 38 agents work each weekday\n- Weekends (D6\u2013D7): AM needs 10, PM needs 10 \u2192 20 agents work each weekend day\n\nCheck column sums: each weekday contributes 38 agents working it, each weekend day 20.\nSum across days = 5\u00d738 + 2\u00d720 = 190 + 40 = 230 = 46\u00d75 \u2713\n\nSo we need each of the 46 agents to work on exactly those days, with column sums 38, 38, 38, 38, 38, 20, 20.\n\n**Does such a 0-1 matrix with the right row and column sums exist?**\n\nRow sums: all 46 agents have row sum = 5.\nColumn sums: 38, 38, 38, 38, 38, 20, 20.\nTotal = 5\u00d746 = 230 = 5\u00d738+2\u00d720 \u2713\n\nBy the **Gale-Ryser theorem**, a 0-1 matrix with prescribed row and column sums exists if and only if the sum of row sums equals the sum of column sums (which it does) and the sequences are compatible. Here all row sums are equal (= 5) and column sums are 38 or 20, all \u2264 46. A simple construction works:\n\n- **Days off:** Each agent must have exactly 2 days off. The 46 agents \u00d7 2 days off = 92 \"off-slots\" to distribute across 7 days, where day d gets (46 \u2212 colsum_d) off-slots:\n  - Each weekday: 46 \u2212 38 = 8 off-slots\n  - Each weekend day: 46 \u2212 20 = 26 off-slots\n  - Total off-slots: 5\u00d78 + 2\u00d726 = 40 + 52 = 92 = 46\u00d72 \u2713\n\nA concrete construction: assign 8 agents their first day-off on each weekday, and distribute the second days-off + weekend off-slots. This is a standard balanced incomplete block / round-robin scheduling construction, and it has valid solutions. (For example: split agents into groups and rotate days off; assign AM/PM within each working day 19/19 for weekdays and 10/10 for weekends.)\n\n**The schedule is feasible.**\n\n---\n\n## Final Answer\n\n### Staffing per shift per day:\n\n| Day | Morning | Evening | Daily total |\n|-----------|---------|---------|-------------|\n| Monday | **19** | **19** | 38 |\n| Tuesday | **19** | **19** | 38 |\n| Wednesday | **19** | **19** | 38 |\n| Thursday | **19** | **19** | 38 |\n| Friday | **19** | **19** | 38 |\n| Saturday | **10** | **10** | 20 |\n| Sunday | **10** | **10** | 20 |\n\n### Minimum agents to hire: **46**\n\n### Is a valid schedule achievable? **Yes.**\n\nAt 46 agents each working exactly 5 shifts (one per day, on 5 different days), supply exactly equals the 230 agent-shifts of demand. The no-same-day-double-shift constraint is automatically satisfied because each agent works at most one shift per day. The Gale-Ryser conditions confirm a valid binary assignment matrix exists, and a concrete schedule can be constructed by rotating days-off and alternating AM/PM assignments.",
+          "input_tokens": 429,
+          "output_tokens": 3120,
+          "seconds": 53.62,
+          "run": 1
+        },
+        {
+          "text": "# Phase 1 \u2014 Decomposition\n\n**Ordered sequence of sub-problems:**\n\n1. **SP1 \u2013 Daily contact volume:** Compute the number of contacts per day for weekdays and weekend days.\n\n2. **SP2 \u2013 Daily raw handle-time hours:** Convert daily contacts to raw workload hours using average handle time. *(consumes SP1)*\n\n3. **SP3 \u2013 Daily staffed handle-time hours (120% multiplier):** Apply the 120% queueing/variability multiplier to raw handle-time hours. *(consumes SP2)*\n\n4. **SP4 \u2013 Daily paid hours required:** Gross up staffed hours by the 80% productive-availability factor to get paid hours needed per day. *(consumes SP3)*\n\n5. **SP5 \u2013 Per-shift paid hours required:** Split each day's paid hours equally across the morning and evening shift. *(consumes SP4)*\n\n6. **SP6 \u2013 Agents required per shift (no fractional rounding yet):** Divide per-shift paid hours by the 8-hour shift length to get the raw (possibly fractional) agent-count needed per shift. *(consumes SP5)*\n\n7. **SP7 \u2013 Agents required per shift (ceiling, no-split rule):** Apply ceiling rounding (no fractional agents allowed) and note the no-same-day-double-shift constraint. *(consumes SP6)*\n\n8. **SP8 \u2013 Weekly agent-hours each hired agent can supply:** Compute how many paid shift-hours one hired agent contributes per week (5 shifts \u00d7 8 hours). *(standalone, feeds SP9)*\n\n9. **SP9 \u2013 Minimum agents to hire for the week:** Determine the minimum headcount such that the week's schedule can be covered, given each agent works exactly 5 shifts/week, shifts are 8 hours, no agent works both shifts on the same day, and no fractional staffing per shift. Verify schedule feasibility. *(consumes SP7, SP8)*\n\n---\n\n# Phase 2 \u2014 Solutions\n\n---\n\n## SP1 \u2013 Daily contact volume\n\n| Day type | Contacts/day |\n|----------|-------------|\n| Mon\u2013Fri (5 days) | 1,600 |\n| Sat\u2013Sun (2 days) | 800 |\n\n---\n\n## SP2 \u2013 Daily raw handle-time hours\n\nCarrying forward: **1,600 contacts (weekday)**, **800 contacts (weekend)**.\n\nFormula: contacts \u00d7 7.5 min \u00f7 60 min/hr\n\n- Weekday: 1,600 \u00d7 7.5 / 60 = **200 hours/day**\n- Weekend: 800 \u00d7 7.5 / 60 = **100 hours/day**\n\n---\n\n## SP3 \u2013 Daily staffed handle-time hours (120% multiplier)\n\nCarrying forward: **200 hrs (weekday)**, **100 hrs (weekend)**.\n\nMultiply by 1.20:\n\n- Weekday: 200 \u00d7 1.20 = **240 hours/day**\n- Weekend: 100 \u00d7 1.20 = **120 hours/day**\n\n---\n\n## SP4 \u2013 Daily paid hours required\n\nCarrying forward: **240 hrs (weekday)**, **120 hrs (weekend)**.\n\nAgents are only 80% productive, so paid hours = staffed hours \u00f7 0.80:\n\n- Weekday: 240 / 0.80 = **300 paid hours/day**\n- Weekend: 120 / 0.80 = **150 paid hours/day**\n\n---\n\n## SP5 \u2013 Per-shift paid hours required\n\nCarrying forward: **300 hrs (weekday)**, **150 hrs (weekend)**.\n\nSplit equally between morning and evening (\u00f7 2):\n\n- Weekday per shift: 300 / 2 = **150 paid hours/shift**\n- Weekend per shift: 150 / 2 = **75 paid hours/shift**\n\n---\n\n## SP6 \u2013 Raw (fractional) agents required per shift\n\nCarrying forward: **150 hrs/shift (weekday)**, **75 hrs/shift (weekend)**.\n\nEach agent works an 8-hour paid shift:\n\n- Weekday: 150 / 8 = **18.75 agents/shift**\n- Weekend: 75 / 8 = **9.375 agents/shift**\n\n---\n\n## SP7 \u2013 Agents required per shift after ceiling rounding\n\nCarrying forward: **18.75 (weekday)**, **9.375 (weekend)**.\n\nApply ceiling (no fractional agents):\n\n- Weekday each shift: \u230818.75\u2309 = **19 agents**\n- Weekend each shift: \u23089.375\u2309 = **10 agents**\n\n**No-split rule:** An agent working the morning shift on a given day cannot also work the evening shift that same day. This means the morning crew and evening crew on any day must be **disjoint sets** of agents.\n\n**Staffing requirement per shift per day:**\n\n| Day | Morning shift | Evening shift | Total agent-shifts/day |\n|-----|:---:|:---:|:---:|\n| Monday | 19 | 19 | 38 |\n| Tuesday | 19 | 19 | 38 |\n| Wednesday | 19 | 19 | 38 |\n| Thursday | 19 | 19 | 38 |\n| Friday | 19 | 19 | 38 |\n| Saturday | 10 | 10 | 20 |\n| Sunday | 10 | 10 | 20 |\n\n**Total agent-shifts across the week:** 5 \u00d7 38 + 2 \u00d7 20 = 190 + 40 = **230 agent-shifts**\n\n---\n\n## SP8 \u2013 Weekly shifts each hired agent can work\n\nEach agent: 5 shifts/week \u00d7 8 hours = **5 shifts per week** (they contribute 5 agent-shifts to the schedule).\n\n---\n\n## SP9 \u2013 Minimum agents to hire and schedule feasibility\n\nCarrying forward: **230 total agent-shifts needed** (SP7), **5 shifts per agent per week** (SP8), per-shift requirements of 19 (weekdays) and 10 (weekends), and the **no-same-day double-shift constraint**.\n\n### Step A \u2014 Absolute lower bound from aggregate workload\n\n230 agent-shifts \u00f7 5 shifts/agent = **46.0 agents** \u2192 lower bound = **46 agents**\n\n### Step B \u2014 Check whether the no-same-day constraint tightens this\n\nOn any weekday, morning requires 19 agents and evening requires 19 agents, and those sets must be **disjoint** \u2014 so at least 38 distinct agents must be available to work that day. With a 7-day week and 5 shifts/agent, each agent has 2 days off. The question is whether 46 agents can cover the requirement without any agent being double-booked on the same day.\n\n**Verifying with a concrete schedule construction:**\n\nLabel our agents 1\u201346. Each works exactly 5 of the 7 days (2 days off) and exactly one shift per working day. Total agent-shifts supplied = 46 \u00d7 5 = **230** = exactly what is needed. \u2713\n\n**Daily agent availability:** With 46 agents each having 2 days off spread across 7 days, the average number of agents available per day = 46 \u00d7 5/7 \u2248 32.9. The hard days are weekdays needing 38 agents (19 morning + 19 evening, all distinct).\n\nFor a weekday we need **38 agents present** (no agent can cover both shifts). With 46 agents total, at most 46 \u2212 (days-off allocated to that day) are available. We need at most 8 agents to have a day off on any given weekday (46 \u2212 8 = 38 \u2713).\n\nTotal \"days off\" to distribute = 46 \u00d7 2 = 92 across 7 days.\n- If we put at most 8 off on each weekday (5 days): up to 40 days-off on weekdays.\n- Remaining: 92 \u2212 40 = 52 days-off on Sat + Sun.\n\nWeekend days need only 20 agents (10 + 10); so we need at least 26 agents off each weekend day (46 \u2212 20 = 26). Two weekend days \u00d7 26 = 52. \u2713 This fits perfectly.\n\n**Explicit assignment plan:**\n- Allocate exactly 8 agents off per weekday (8 \u00d7 5 = 40 off-days on weekdays).\n- Allocate exactly 26 agents off per weekend day (26 \u00d7 2 = 52 off-days on weekends).\n- Total off-days = 40 + 52 = 92 = 46 \u00d7 2. \u2713\n\nOn each weekday, 46 \u2212 8 = **38 agents are present**; assign 19 to morning, 19 to evening. No agent is on both shifts. \u2713\nOn each weekend day, 46 \u2212 26 = **20 agents are present**; assign 10 to morning, 10 to evening. \u2713\n\nEach agent works 5 days. We need to confirm every agent gets exactly 1 weekday off and 1 weekend day off (on average), but any valid 2-day-off pattern summing to the above totals works. Since the numbers are consistent and the assignment is symmetric, a valid roster clearly exists (e.g., round-robin day-off assignment).\n\n### Final Answer\n\n**Staffing requirement per shift per day:**\n\n| Day | Morning | Evening |\n|-----|:-------:|:-------:|\n| Mon | 19 | 19 |\n| Tue | 19 | 19 |\n| Wed | 19 | 19 |\n| Thu | 19 | 19 |\n| Fri | 19 | 19 |\n| Sat | 10 | 10 |\n| Sun | 10 | 10 |\n\n> **Minimum agents to hire: 46**\n\n> **Is a valid schedule achievable? Yes.** With 46 agents, each working 5 shifts/week on one shift per day, it is possible to assign exactly 19 agents per shift on weekdays and 10 per shift on weekends, with no agent ever covering both the morning and evening shift on the same day. The math closes exactly (46 \u00d7 5 = 230 agent-shifts supplied = 230 agent-shifts required), and a concrete roster structure (8 agents off each weekday, 26 agents off each weekend day, balanced across the team) satisfies every constraint simultaneously.",
+          "input_tokens": 429,
+          "output_tokens": 2581,
+          "seconds": 45.2,
+          "run": 2
+        },
+        {
+          "text": "# Phase 1 \u2013 Decomposition\n\n**Ordered sequence of sub-problems:**\n\n1. **SP1 \u2013 Daily contact volume:** Identify the number of contacts per day for weekdays vs. weekend days.\n\n2. **SP2 \u2013 Daily handle-time workload (hours):** Convert daily contacts to raw handle-time hours using the 7.5-minute AHT. *(consumes SP1)*\n\n3. **SP3 \u2013 Staffed hours needed per day (after service-level multiplier):** Apply the 120% queueing/variability multiplier to get required productive agent-hours per day. *(consumes SP2)*\n\n4. **SP4 \u2013 Paid hours needed per day (after shrinkage gross-up):** Gross up by the 80% productive-availability factor to get paid hours per day. *(consumes SP3)*\n\n5. **SP5 \u2013 Paid hours needed per shift per day:** Split each day's paid hours equally into morning and evening shifts. *(consumes SP4)*\n\n6. **SP6 \u2013 Minimum agents per shift per day (no fractional staffing):** Convert paid hours per shift into a headcount by dividing by 8 hours/shift, rounding up to the nearest whole agent. *(consumes SP5)*\n\n7. **SP7 \u2013 Weekly agent-shifts demanded (total shift-slots to fill):** Sum all shift-slots across all days and both shifts. *(consumes SP6)*\n\n8. **SP8 \u2013 Agent weekly shift capacity:** Determine how many shifts each hired agent can work per week (5 shifts, with the constraint that no agent works both shifts on the same day). *(standalone rule analysis)*\n\n9. **SP9 \u2013 Minimum agents to hire:** Divide total shift-slots needed by each agent's capacity, rounding up. *(consumes SP7, SP8)*\n\n10. **SP10 \u2013 Feasibility check (schedule construction):** Attempt to build an explicit valid weekly schedule that respects the \"no same-day double-shift\" rule and uses exactly the minimum headcount found. *(consumes SP6, SP9)*\n\n---\n\n# Phase 2 \u2013 Solutions\n\n---\n\n## SP1 \u2013 Daily contact volume\n\n| Day | Contacts |\n|---|---|\n| Mon\u2013Fri (\u00d75) | 1,600 |\n| Sat\u2013Sun (\u00d72) | 800 |\n\n---\n\n## SP2 \u2013 Daily handle-time workload (hours)\n\nAHT = 7.5 minutes = 7.5/60 hours = 0.125 hours per contact.\n\n- Weekday raw hours: 1,600 \u00d7 0.125 = **200 hours/day**\n- Weekend raw hours: 800 \u00d7 0.125 = **100 hours/day**\n\n---\n\n## SP3 \u2013 Staffed hours needed per day (120% multiplier)\n\nCarrying forward: weekday = 200 h, weekend = 100 h.\n\nMultiply by 1.20:\n\n- Weekday: 200 \u00d7 1.20 = **240 productive agent-hours/day**\n- Weekend: 100 \u00d7 1.20 = **120 productive agent-hours/day**\n\n---\n\n## SP4 \u2013 Paid hours needed per day (80% availability)\n\nCarrying forward: weekday = 240 h, weekend = 120 h.\n\nDivide by 0.80 to gross up for shrinkage:\n\n- Weekday: 240 \u00f7 0.80 = **300 paid agent-hours/day**\n- Weekend: 120 \u00f7 0.80 = **150 paid agent-hours/day**\n\n---\n\n## SP5 \u2013 Paid hours needed per shift per day\n\nCarrying forward: weekday = 300 h/day, weekend = 150 h/day.\n\nSplit evenly into 2 shifts (morning and evening):\n\n- Weekday per shift: 300 \u00f7 2 = **150 paid hours/shift**\n- Weekend per shift: 150 \u00f7 2 = **75 paid hours/shift**\n\n---\n\n## SP6 \u2013 Minimum agents per shift per day\n\nEach agent works an 8-hour paid shift.\n\nAgents per shift = (Paid hours per shift) \u00f7 8, rounded **up** (ceiling).\n\n**Weekday:**\n150 \u00f7 8 = 18.75 \u2192 **ceiling = 19 agents/shift**\n\n**Weekend:**\n75 \u00f7 8 = 9.375 \u2192 **ceiling = 10 agents/shift**\n\n### Staffing requirement per shift per day (summary table)\n\n| Day | Morning shift | Evening shift | Daily total agent-shifts |\n|---|---|---|---|\n| Monday | 19 | 19 | 38 |\n| Tuesday | 19 | 19 | 38 |\n| Wednesday | 19 | 19 | 38 |\n| Thursday | 19 | 19 | 38 |\n| Friday | 19 | 19 | 38 |\n| Saturday | 10 | 10 | 20 |\n| Sunday | 10 | 10 | 20 |\n\n---\n\n## SP7 \u2013 Total weekly agent-shifts demanded\n\nCarrying forward from SP6.\n\n- Weekdays: 5 days \u00d7 38 = 190 agent-shifts\n- Weekend: 2 days \u00d7 20 = 40 agent-shifts\n- **Total: 230 agent-shifts for the week**\n\n---\n\n## SP8 \u2013 Agent weekly shift capacity\n\nEach agent works **5 shifts per week**.\n\nThe constraint says **no agent may work both the morning AND evening shift on the same day**. This means each shift a person works must be on a *different* calendar day (they can work at most 1 shift per day).\n\nSince there are 7 days in the week, and an agent works 5 shifts, the constraint is automatically satisfiable: working 5 shifts across 5 different days (one shift each day) never requires being on both shifts the same day.\n\n**Each hired agent can contribute exactly 5 shift-slots per week.**\n\n---\n\n## SP9 \u2013 Minimum agents to hire\n\nCarrying forward: 230 total shift-slots needed (SP7); 5 shift-slots per agent (SP8).\n\nMinimum agents = \u2308230 \u00f7 5\u2309 = \u230846.0\u2309 = **46 agents**\n\n*(230 is exactly divisible by 5, so no rounding needed.)*\n\n---\n\n## SP10 \u2013 Feasibility check\n\n**Can 46 agents cover all shifts with no agent working both shifts on the same day?**\n\n### The pool\n\n46 agents, each working exactly 5 shifts across 7 days (2 days off per week), one shift per day maximum.\n\n### Total shift-slots supplied\n\n46 \u00d7 5 = **230 shift-slots** = exactly 230 demanded. \u2713 *(No slack; the schedule must be tight.)*\n\n### Shift demands to fill\n\n| Slot | Agents needed |\n|---|---|\n| Mon AM | 19 |\n| Mon PM | 19 |\n| Tue AM | 19 |\n| Tue PM | 19 |\n| Wed AM | 19 |\n| Wed PM | 19 |\n| Thu AM | 19 |\n| Thu PM | 19 |\n| Fri AM | 19 |\n| Fri PM | 19 |\n| Sat AM | 10 |\n| Sat PM | 10 |\n| Sun AM | 10 |\n| Sun PM | 10 |\n| **Total** | **230** |\n\n### Constructing a valid schedule\n\n**Key constraint check:** On any single day, the combined demand for both shifts may not exceed the number of agents who are *available that day* (since each agent can do only one of the two shifts per day).\n\n- Weekday: 19 + 19 = 38 agents needed across both shifts on that day \u2192 requires at least 38 distinct agents to be \"working that day.\"\n- Weekend day: 10 + 10 = 20 agents needed across both shifts \u2192 requires at least 20 distinct agents.\n\nWith 46 agents each taking 2 days off, the number of agents available on any given day = 46 \u2212 (agents with that day off).\n\nEach agent has 2 days off per week. Total \"agent-off-days\" = 46 \u00d7 2 = 92 spread over 7 days.\n\nAverage agents off per day = 92/7 \u2248 13.1 \u2192 average agents working = 46 \u2212 13.1 \u2248 32.9.\n\n**Weekdays** need 38 agents present. So we need agents-off on that day \u2264 46 \u2212 38 = 8.\n\n**Weekend days** need 20 agents present. So agents-off on that day \u2264 46 \u2212 20 = 26.\n\n### Off-day allocation\n\nLet $w_i$ = number of agents with day $i$ off. We need:\n- $w_i \\leq 8$ for Mon\u2013Fri (5 days)\n- $w_i \\leq 26$ for Sat\u2013Sun (2 days)\n- $\\sum_{i=1}^{7} w_i = 92$\n\nMaximize weekday coverage by pushing days-off toward the weekend:\n\nSet $w_{\\text{Mon\u2013Fri}} = 8$ each \u2192 contributes 5 \u00d7 8 = 40.\nRemaining off-days = 92 \u2212 40 = 52, split over Sat & Sun.\n52 \u00f7 2 = 26 each \u2192 $w_{\\text{Sat}} = w_{\\text{Sun}} = 26$. Both \u2264 26. \u2713\n\n**Resulting availability:**\n\n| Day | Agents off | Agents working | Shifts needed | Valid? |\n|---|---|---|---|---|\n| Mon | 8 | 38 | 38 | \u2713 |\n| Tue | 8 | 38 | 38 | \u2713 |\n| Wed | 8 | 38 | 38 | \u2713 |\n| Thu | 8 | 38 | 38 | \u2713 |\n| Fri | 8 | 38 | 38 | \u2713 |\n| Sat | 26 | 20 | 20 | \u2713 |\n| Sun | 26 | 20 | 20 | \u2713 |\n\nEvery day, the count of available agents exactly meets demand with no over- or under-staffing. Each available agent is assigned to exactly one shift on each day they work. No agent works both shifts on any day (there's one shift per agent per day by construction). \u2713\n\n### Explicit agent-group assignment (one valid pattern)\n\nSplit 46 agents into groups by their two days off:\n\n- **Group A (8 agents):** off Mon & Sat \u2014 works Tue, Wed, Thu, Fri, Sun\n- **Group B (8 agents):** off Tue & Sat \u2014 works Mon, Wed, Thu, Fri, Sun\n- **Group C (8 agents):** off Wed & Sat \u2014 works Mon, Tue, Thu, Fri, Sun\n- **Group D (8 agents):** off Thu & Sat \u2014 works Mon, Tue, Wed, Fri, Sun\n- **Group E (8 agents):** off Fri & Sat \u2014 works Mon, Tue, Wed, Thu, Sun\n- **Group F (3 agents):** off Mon & Sun \u2014 works Tue, Wed, Thu, Fri, Sat\n- **Group G (3 agents):** off Tue & Sun \u2014 works Mon, Wed, Thu, Fri, Sat\n\n*(Verification: Groups A\u2013E = 40 agents each with one Sat off-day \u2192 40 Sat off-days; Groups F\u2013G = 6 agents each with one Sun off-day \u2192 6 Sun off-days. Plus we need 26 Sat off and 26 Sun off. Let me rebalance properly.)*\n\nA cleaner explicit split:\n\nWe need: 8 agents off each weekday, 26 off each weekend day.\n\n| Group | Size | Days off | Days worked |\n|---|---|---|---|\n| A | 8 | Mon, Sun | Tue Wed Thu Fri Sat |\n| B | 8 | Tue, Sun | Mon Wed Thu Fri Sat |\n| C | 8 | Wed, Sun | Mon Tue Thu Fri Sat |\n| D | 8 | Thu, Sun | Mon Tue Wed Fri Sat |\n| E | 8 | Fri, Sun | Mon Tue Wed Thu Sat |\n| F | 6 | Sat, Mon | Tue Wed Thu Fri Sun |\n\n**Check off-counts:**\n- Mon off: A(8) + F(6) = 14 \u2717 \u2014 need 8.\n\nLet me use the cleanest feasible grouping. Since we need exactly 8 off each weekday and 26 off each weekend day, and 46 agents \u00d7 2 days off = 92:\n\nAssign each agent a pair of days off. We need the off-day multiset to contain each weekday exactly 8 times and each weekend day exactly 26 times.\n\nTotal off-slots on weekdays needed: 5 \u00d7 8 = 40; on weekends: 2 \u00d7 26 = 52; total = 92. \u2713\n\nOne clean construction: give every agent **one Saturday off**. That fills 46 of the 52 Saturday/Sunday off-slots \u2014 leaving 6 more on Sat or Sun and 40 on weekdays. Then each agent's second day off is a weekday; distribute 46 second-days-off across 5 weekdays: 46/5 = 9.2, not integer.\n\nAlternatively: give every agent **one Sunday off** (46 Sunday off-slots) \u2014 but we need only 26 on Sunday. Over by 20.\n\nBetter: assign off-days to hit the targets exactly.\n\n- 26 agents have Saturday as one of their off-days.\n- 26 agents have Sunday as one of their off-days.\n- 26 + 26 = 52 weekend off-slots. \u2713 (The remaining 92 \u2212 52 = 40 off-slots fall on weekdays, 8 per weekday. \u2713)\n- Note: 26 + 26 = 52, but there are only 46 agents, so some agents have **both** Sat and Sun off: 26 + 26 \u2212 46 = 6 agents are off both Sat and Sun.\n\n**Agent partition:**\n- **Group W** (6 agents): off Sat & Sun \u2192 works Mon Tue Wed Thu Fri (5 weekdays). Each group-W agent contributes 2 weekend off-slots (1 Sat + 1 Sun).\n- **Group S** (20 agents): off Sat + one weekday \u2192 works 4 weekdays + Sun.\n- **Group U** (20 agents): off Sun + one weekday \u2192 works Mon/Tue/Wed/Thu/Fri minus one day + Sat.\n\nWe need 8 off per weekday. Group W contributes 0 off-days on weekdays. Groups S and U together must contribute 8 off per weekday. Groups S (20 agents) and U (20 agents) = 40 agents, each with 1 weekday off \u2192 40 weekday off-slots spread over 5 days = 8 per day. \u2713\n\nDistribute S group's weekday off-days: 4 agents off Mon, 4 off Tue, 4 off Wed, 4 off Thu, 4 off Fri.\nDistribute U group's weekday off-days: 4 off Mon, 4 off Tue, 4 off Wed, 4 off Thu, 4 off Fri.\n\n**Final group table:**\n\n| Group | Size | Days off | Shifts/week |\n|---|---|---|---|\n| W | 6 | Sat, Sun | 5 (Mon\u2013Fri) |\n| S-Mon | 4 | Sat, Mon | 5 (Tue\u2013Fri, Sun) |\n| S-Tue | 4 | Sat, Tue | 5 (Mon, Wed\u2013Fri, Sun) |\n| S-Wed | 4 | Sat, Wed | 5 (Mon\u2013Tue, Thu\u2013Fri, Sun) |\n| S-Thu | 4 | Sat, Thu | 5 (Mon\u2013Wed, Fri, Sun) |\n| S-Fri | 4 | Sat, Fri | 5 (Mon\u2013Thu, Sun) |\n| U-Mon | 4 | Sun, Mon | 5 (Tue\u2013Sat) |\n| U-Tue | 4 | Sun, Tue | 5 (Mon, Wed\u2013Sat) |\n| U-Wed",
+          "input_tokens": 429,
+          "output_tokens": 4096,
+          "seconds": 65.8,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 1.86,
+        "max_spread": 3,
+        "contested_dims": [
+          "accuracy",
+          "completeness",
+          "format_compliance",
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": 2.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.3,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "The runs are mathematically correct and on-task. They correctly compute 12,000/6,000 minutes, 200/100 hours, apply 1.2, divide by 0.8, split shifts, round up to 19 and 10 agents per shift, sum to 230 weekly shift-slots, and conclude 46 agents. They also correctly treat the no-same-day-both-shifts rule as requiring distinct agents per day and verify feasibility since 46 >= 38 weekday distinct agents.",
+          "evidence": "Run 1: \"Mon-Fri: 1,600 contacts/day * 7.5 min/contact = 12,000 minutes/day\"; \"240 paid hours/day / 0.8 = 300 paid hours/day\"; \"ceiling(18.75) = 19 agents\"; \"190 shifts + 40 shifts = 230 shifts\"; \"230 shifts / 5 shifts/agent-week = 46 agents\"; \"46 (total agents hired) \u2265 38 (maximum distinct agents needed on any day)\". Run 2 and Run 3 match these results.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All required elements are present: the ordered two-phase structure, carried-forward inputs in each step, the per-shift-per-day staffing table, the final total agents, and a feasibility yes/no answer. The response also includes the weekday/weekend breakdown and reconciles the daily distinct-agent constraint with the weekly headcount.",
+          "evidence": "Run 2: Phase 1 lists seven ordered sub-problems; Phase 2 restates inputs for each later sub-problem. Run 2 also includes \"Result (Staffing Requirement Per Shift Per Day): Monday: Morning (19 agents), Evening (19 agents)... Saturday: Morning (10 agents), Evening (10 agents)...\" and final \"46 agents\" plus \"A valid schedule is achievable under all the constraints.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "All runs include two explicitly labeled phases, an ordered numbered list in Phase 1 with dependency annotations, explicit carry-forward restating in Phase 2, and a final summary answer. The minor deviation is that the per-shift-per-day 'table' is rendered as bulleted or itemized lists rather than a proper tabular grid, which is close but not an exact table format.",
+          "evidence": "Run 1 presents staffing in Step 7 as bullet points ('Monday-Friday: 19 agents for the Morning Shift\u2026'). Run 2 and Run 3 similarly use bullet lists per day. None uses a true markdown or grid table structure, though all convey the required 14-cell data correctly.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is precise, quantitative, and auditable, matching the operations-analyst audience. The reasoning is explicit and numerically grounded, without hand-waving or casual language.",
+          "evidence": "Run 1 uses audit-style phrasing like \"Carrying forward from P4\" and \"Result (Staffing Requirement per Shift per Day)\"; Run 3 repeatedly states inputs, formulas, and ceiling calculations in a formal analytical style.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign business/operations analysis with no harmful, biased, or inappropriate material.",
+          "evidence": "All three runs discuss staffing calculations only; no unsafe or sensitive content is present.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The output token counts are consistently very high (8009, 7981, 8441 tokens). While the detailed step-by-step breakdown and restatement of inputs (as requested by the prompt) naturally increase verbosity, the extensive token counts also stem from the model's chosen level of detail. Specifically, the verbose day-by-day listing for the staffing table in Runs 2 and 3 contributed to noticeable padding, when a more concise summary would have sufficed and been more 'tight'. Even Run 1, with its more concise table, produced a large number of tokens, suggesting a general verbosity that could be optimized without sacrificing quality for this type of problem.",
+          "evidence": "Run 1: 8009 output tokens. Run 2: 7981 output tokens. Run 3: 8441 output tokens. See also verbose staffing tables in Run 2, P4 and Run 3, P6.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "All three runs reach identical numeric answers (46 agents, feasible, 19/19 weekday shifts, 10/10 weekend shifts) and apply the same core logic with the same structure. The main variation is in Phase 1 granularity: Run 1 decomposes into 11 sub-problems (splitting minutes and hours conversions separately), Run 3 into 9, and Run 2 into 7. This is a structural difference in Phase 1 but does not affect Phase 2 quality or correctness. [lexical similarity ratio: 0.129]",
+          "evidence": "Final answers identical across all runs: '46 agents,' 'achievable.' Core numeric chain (200\u2192240\u2192300\u2192150\u219219; 100\u2192120\u2192150\u219275\u219210; 230 shifts; 38 < 46) is the same in all three. Phase 1 sub-problem count: Run 1=11, Run 2=7, Run 3=9.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1.5
+            }
+          },
+          "lexical_similarity": 0.129
+        }
+      },
+      "judge_summary": "Correct, complete, and format-compliant with strong analytical tone and consistent results across runs. Main weakness is severe inefficiency due to excessive verbosity and repetition.",
+      "runs": [
+        {
+          "text": "**Phase 1 - Decompose: Problem Decomposition List**\n\n1.  **Calculate Raw Handle Time (Minutes) per Day:** Determine the total raw handle time in minutes for Mon-Fri and Sat-Sun.\n2.  **Calculate Raw Handle Time (Hours) per Day:** Convert the raw handle time from minutes to hours for Mon-Fri and Sat-Sun (consumes result from P1).\n3.  **Calculate Service Target Workload (Staffed Hours) per Day:** Apply the service target multiplier to the raw handle time hours for Mon-Fri and Sat-Sun (consumes result from P2).\n4.  **Calculate Total Paid Hours Required per Day (Grossed for Availability):** Adjust the service target workload hours for agent productive availability for Mon-Fri and Sat-Sun (consumes result from P3).\n5.  **Calculate Paid Hours Required per Shift per Day:** Divide the total paid hours per day by two for morning and evening shifts for Mon-Fri and Sat-Sun (consumes result from P4).\n6.  **Calculate Unrounded Agents Required per Shift per Day:** Divide the paid hours per shift by the agent shift length for each morning and evening shift, Mon-Sun (consumes result from P5).\n7.  **Calculate Rounded Agents Required per Shift per Day:** Round up the unrounded agents to the nearest whole number for each morning and evening shift, Mon-Sun (consumes result from P6). This will show the staffing requirement per shift per day.\n8.  **Calculate Total Distinct Agents Required per Day:** Sum the rounded morning and evening shift agents for each day (Mon-Sun), representing the minimum distinct individuals needed on-site daily (consumes result from P7).\n9.  **Calculate Total 8-hour Shifts to be Covered per Week:** Sum all the rounded agents required per shift across all 14 shifts in the week (consumes result from P7).\n10. **Calculate Minimum Total Agents to be Hired (Based on Weekly Shifts):** Divide the total 8-hour shifts to be covered per week by the number of shifts an agent works per week, rounding up (consumes result from P9).\n11. **Check Schedule Achievability with Daily Constraint:** Determine if the total number of agents hired (from P10) is sufficient to cover the maximum daily distinct agent requirement (from P8), given the rule that an agent cannot work both shifts on the same day (consumes results from P8 and P10).\n\n---\n\n**Phase 2 - Solve in Order**\n\n**Input Parameters:**\n*   Daily Contacts (Mon-Fri): 1,600\n*   Daily Contacts (Sat-Sun): 800\n*   Average Handle Time (AHT): 7.5 minutes/contact\n*   Service Target Multiplier: 120% (1.2)\n*   Agent Productive Availability: 80% (0.8)\n*   Agent Shift Length: 8 hours\n*   Agent Work Week: 5 shifts/week\n*   Shifts per Day: 2 (morning, evening)\n*   Fractional Agents Rule: Round up\n\n---\n\n**1. Calculate Raw Handle Time (Minutes) per Day**\n*   **Calculation:**\n    *   Mon-Fri: 1,600 contacts/day * 7.5 min/contact = 12,000 minutes/day\n    *   Sat-Sun: 800 contacts/day * 7.5 min/contact = 6,000 minutes/day\n*   **Result:**\n    *   Raw Handle Time (Mon-Fri): 12,000 minutes/day\n    *   Raw Handle Time (Sat-Sun): 6,000 minutes/day\n\n**2. Calculate Raw Handle Time (Hours) per Day**\n*   **Carrying forward from P1:** Mon-Fri: 12,000 minutes/day; Sat-Sun: 6,000 minutes/day\n*   **Calculation:**\n    *   Mon-Fri: 12,000 minutes/day / 60 minutes/hour = 200 hours/day\n    *   Sat-Sun: 6,000 minutes/day / 60 minutes/hour = 100 hours/day\n*   **Result:**\n    *   Raw Handle Time (Mon-Fri): 200 hours/day\n    *   Raw Handle Time (Sat-Sun): 100 hours/day\n\n**3. Calculate Service Target Workload (Staffed Hours) per Day**\n*   **Carrying forward from P2:** Mon-Fri: 200 hours/day; Sat-Sun: 100 hours/day\n*   **Calculation:**\n    *   Mon-Fri: 200 hours/day * 1.2 = 240 staffed hours/day\n    *   Sat-Sun: 100 hours/day * 1.2 = 120 staffed hours/day\n*   **Result:**\n    *   Service Target Workload (Mon-Fri): 240 staffed hours/day\n    *   Service Target Workload (Sat-Sun): 120 staffed hours/day\n\n**4. Calculate Total Paid Hours Required per Day (Grossed for Availability)**\n*   **Carrying forward from P3:** Mon-Fri: 240 staffed hours/day; Sat-Sun: 120 staffed hours/day\n*   **Calculation:**\n    *   Mon-Fri: 240 staffed hours/day / 0.8 = 300 paid hours/day\n    *   Sat-Sun: 120 staffed hours/day / 0.8 = 150 paid hours/day\n*   **Result:**\n    *   Total Paid Hours Required (Mon-Fri): 300 paid hours/day\n    *   Total Paid Hours Required (Sat-Sun): 150 paid hours/day\n\n**5. Calculate Paid Hours Required per Shift per Day**\n*   **Carrying forward from P4:** Mon-Fri: 300 paid hours/day; Sat-Sun: 150 paid hours/day\n*   **Calculation:**\n    *   Mon-Fri (Morning Shift): 300 paid hours/day / 2 = 150 paid hours/shift\n    *   Mon-Fri (Evening Shift): 300 paid hours/day / 2 = 150 paid hours/shift\n    *   Sat-Sun (Morning Shift): 150 paid hours/day / 2 = 75 paid hours/shift\n    *   Sat-Sun (Evening Shift): 150 paid hours/day / 2 = 75 paid hours/shift\n*   **Result:**\n    *   Paid Hours per Shift (Mon-Fri, Morning): 150 hours\n    *   Paid Hours per Shift (Mon-Fri, Evening): 150 hours\n    *   Paid Hours per Shift (Sat-Sun, Morning): 75 hours\n    *   Paid Hours per Shift (Sat-Sun, Evening): 75 hours\n\n**6. Calculate Unrounded Agents Required per Shift per Day**\n*   **Carrying forward from P5:** Mon-Fri: 150 paid hours/shift; Sat-Sun: 75 paid hours/shift\n*   **Calculation:**\n    *   Mon-Fri (Morning Shift): 150 hours / 8 hours/agent = 18.75 agents\n    *   Mon-Fri (Evening Shift): 150 hours / 8 hours/agent = 18.75 agents\n    *   Sat-Sun (Morning Shift): 75 hours / 8 hours/agent = 9.375 agents\n    *   Sat-Sun (Evening Shift): 75 hours / 8 hours/agent = 9.375 agents\n*   **Result:**\n    *   Unrounded Agents (Mon-Fri, Morning): 18.75 agents\n    *   Unrounded Agents (Mon-Fri, Evening): 18.75 agents\n    *   Unrounded Agents (Sat-Sun, Morning): 9.375 agents\n    *   Unrounded Agents (Sat-Sun, Evening): 9.375 agents\n\n**7. Calculate Rounded Agents Required per Shift per Day**\n*   **Carrying forward from P6:** Mon-Fri: 18.75 agents/shift; Sat-Sun: 9.375 agents/shift\n*   **Calculation (rounding up):**\n    *   Mon-Fri (Morning Shift): ceiling(18.75) = 19 agents\n    *   Mon-Fri (Evening Shift): ceiling(18.75) = 19 agents\n    *   Sat-Sun (Morning Shift): ceiling(9.375) = 10 agents\n    *   Sat-Sun (Evening Shift): ceiling(9.375) = 10 agents\n*   **Result (Staffing Requirement per Shift per Day):**\n    *   **Monday-Friday:** 19 agents for the Morning Shift, 19 agents for the Evening Shift.\n    *   **Saturday-Sunday:** 10 agents for the Morning Shift, 10 agents for the Evening Shift.\n\n**8. Calculate Total Distinct Agents Required per Day**\n*   **Carrying forward from P7:** Mon-Fri: 19 Morning, 19 Evening; Sat-Sun: 10 Morning, 10 Evening\n*   **Calculation (sum of morning and evening shifts for distinct agents):**\n    *   Mon-Fri: 19 (Morning) + 19 (Evening) = 38 distinct agents/day\n    *   Sat-Sun: 10 (Morning) + 10 (Evening) = 20 distinct agents/day\n*   **Result:**\n    *   Total Distinct Agents Required (Mon-Fri): 38 agents\n    *   Total Distinct Agents Required (Sat-Sun): 20 agents\n\n**9. Calculate Total 8-hour Shifts to be Covered per Week**\n*   **Carrying forward from P7:** Mon-Fri: 19 Morning, 19 Evening; Sat-Sun: 10 Morning, 10 Evening\n*   **Calculation:**\n    *   (5 weekdays * (19 Mon-Fri Morning Shifts + 19 Mon-Fri Evening Shifts)) + (2 weekend days * (10 Sat-Sun Morning Shifts + 10 Sat-Sun Evening Shifts))\n    *   (5 * 38 shifts) + (2 * 20 shifts)\n    *   190 shifts + 40 shifts = 230 shifts\n*   **Result:**\n    *   Total 8-hour Shifts to be Covered per Week: 230 shifts\n\n**10. Calculate Minimum Total Agents to be Hired (Based on Weekly Shifts)**\n*   **Carrying forward from P9:** 230 total shifts/week\n*   **Calculation (rounding up):**\n    *   230 shifts / 5 shifts/agent-week = 46 agents\n*   **Result:**\n    *   Minimum Total Agents to be Hired: 46 agents\n\n**11. Check Schedule Achievability with Daily Constraint**\n*   **Carrying forward from P8:** Max Distinct Agents Required per Day = 38 (Mon-Fri)\n*   **Carrying forward from P10:** Minimum Total Agents to be Hired = 46 agents\n*   **Constraint:** \"no single agent may be scheduled for both the morning and the evening shift on the same day.\" This means that on any given day, the sum of morning and evening shift agents represents the number of unique individuals that must be present (Total Distinct Agents Required per Day).\n*   **Analysis:**\n    *   The maximum number of distinct agents required on any single day is 38 (Monday through Friday).\n    *   The total pool of agents available to be scheduled for the week is 46.\n    *   Since 46 (total agents hired) $\\ge$ 38 (maximum distinct agents needed on any day), it is possible to assign unique agents to each required shift (morning and evening) on every day of the week. For example, on a Monday, 38 of the 46 agents can be scheduled, with 8 agents off.\n*   **Result:** A valid schedule is achievable under all the constraints.\n\n---\n\n**Final Answer:**\n\nThe staffing requirement per shift per day is:\n*   **Monday-Friday:** 19 agents for the Morning Shift, 19 agents for the Evening Shift.\n*   **Saturday-Sunday:** 10 agents for the Morning Shift, 10 agents for the Evening Shift.\n\nThe minimum total number of agents that must be hired for the week is **46 agents**.\n\nYes, a valid schedule is actually achievable under all the constraints.",
+          "input_tokens": 411,
+          "output_tokens": 8009,
+          "seconds": 31.72,
+          "run": 1
+        },
+        {
+          "text": "**Phase 1 - Decompose: Ordered Sequence of Sub-problems**\n\n1.  **Calculate Daily Raw Handle-Time Workload:** Determine the total raw handle time (in minutes and hours) required each day, based on the forecasted contacts and Average Handle Time (AHT). (No prior sub-problem input)\n2.  **Calculate Daily Service Target Workload:** Apply the 120% service target multiplier to the daily raw handle-time workload (from sub-problem 1) to determine the required handle-time hours per day.\n3.  **Calculate Daily Gross Paid Hours Required:** Account for agent productive availability (80%) by grossing up the daily service target workload (from sub-problem 2) to determine the total paid hours needed per day.\n4.  **Determine Staffing Requirement Per Shift Per Day:** Split the daily gross paid hours required (from sub-problem 3) into two equal shifts and convert these hours into full-time equivalent agents per shift, rounding up to the nearest whole agent. This step uses the 8-hour shift length.\n5.  **Calculate Total Weekly Shifts Required:** Sum up all the individual shift requirements per day (from sub-problem 4) to get the total number of shifts that need to be filled across the entire week.\n6.  **Calculate Minimum Total Agents for the Week (Initial Estimate):** Divide the total weekly shifts required (from sub-problem 5) by the number of shifts an individual agent works per week (5 shifts/week) and round up to determine the minimum number of agents initially needed.\n7.  **Assess Schedule Achievability and Final Agent Count:** Evaluate if the calculated minimum agents (from sub-problem 6) can fulfill the daily shift requirements (from sub-problem 4) given the constraint that no single agent may be scheduled for both the morning and the evening shift on the same day. If not, determine the true minimum number of agents and confirm if a schedule is achievable.\n\n---\n\n**Phase 2 - Solve in Order: Answering Each Sub-problem**\n\n**Sub-problem 1: Calculate Daily Raw Handle-Time Workload**\n*   **Input:** Forecast (Mon-Fri 1,600 contacts/day, Sat-Sun 800 contacts/day), AHT (7.5 minutes/contact)\n*   **Calculation:**\n    *   **Mon-Fri:**\n        *   Raw handle time (minutes) = 1,600 contacts/day * 7.5 minutes/contact = 12,000 minutes/day\n        *   Raw handle time (hours) = 12,000 minutes / 60 minutes/hour = 200 hours/day\n    *   **Sat-Sun:**\n        *   Raw handle time (minutes) = 800 contacts/day * 7.5 minutes/contact = 6,000 minutes/day\n        *   Raw handle time (hours) = 6,000 minutes / 60 minutes/hour = 100 hours/day\n*   **Result:**\n    *   Monday-Friday: 200 raw handle-time hours/day\n    *   Saturday-Sunday: 100 raw handle-time hours/day\n\n**Sub-problem 2: Calculate Daily Service Target Workload**\n*   **Input:** Daily raw handle-time workload (from sub-problem 1): 200 hours/day (Mon-Fri), 100 hours/day (Sat-Sun). Service target multiplier: 120% (or 1.2).\n*   **Calculation:**\n    *   **Mon-Fri:** 200 hours/day * 1.20 = 240 hours/day\n    *   **Sat-Sun:** 100 hours/day * 1.20 = 120 hours/day\n*   **Result:**\n    *   Monday-Friday: 240 service target handle-time hours/day\n    *   Saturday-Sunday: 120 service target handle-time hours/day\n\n**Sub-problem 3: Calculate Daily Gross Paid Hours Required**\n*   **Input:** Daily service target workload (from sub-problem 2): 240 hours/day (Mon-Fri), 120 hours/day (Sat-Sun). Agent productive availability: 80% (or 0.8).\n*   **Calculation:**\n    *   **Mon-Fri:** 240 hours/day / 0.80 = 300 paid hours/day\n    *   **Sat-Sun:** 120 hours/day / 0.80 = 150 paid hours/day\n*   **Result:**\n    *   Monday-Friday: 300 gross paid hours required/day\n    *   Saturday-Sunday: 150 gross paid hours required/day\n\n**Sub-problem 4: Determine Staffing Requirement Per Shift Per Day**\n*   **Input:** Daily gross paid hours required (from sub-problem 3): 300 hours/day (Mon-Fri), 150 hours/day (Sat-Sun). Agent shift length: 8 hours. Daily shift structure: two equal shifts. Round up fractional agents.\n*   **Calculation:**\n    *   **Mon-Fri:**\n        *   Hours per shift = 300 hours/day / 2 shifts = 150 hours/shift\n        *   Agents per shift = 150 hours/shift / 8 hours/agent = 18.75 agents/shift\n        *   Rounded up agents per shift = **19 agents/shift**\n    *   **Sat-Sun:**\n        *   Hours per shift = 150 hours/day / 2 shifts = 75 hours/shift\n        *   Agents per shift = 75 hours/shift / 8 hours/agent = 9.375 agents/shift\n        *   Rounded up agents per shift = **10 agents/shift**\n*   **Result (Staffing Requirement Per Shift Per Day):**\n    *   Monday: Morning (19 agents), Evening (19 agents)\n    *   Tuesday: Morning (19 agents), Evening (19 agents)\n    *   Wednesday: Morning (19 agents), Evening (19 agents)\n    *   Thursday: Morning (19 agents), Evening (19 agents)\n    *   Friday: Morning (19 agents), Evening (19 agents)\n    *   Saturday: Morning (10 agents), Evening (10 agents)\n    *   Sunday: Morning (10 agents), Evening (10 agents)\n\n**Sub-problem 5: Calculate Total Weekly Shifts Required**\n*   **Input:** Staffing requirement per shift per day (from sub-problem 4): (19 morning + 19 evening) agents/day for Mon-Fri, (10 morning + 10 evening) agents/day for Sat-Sun.\n*   **Calculation:**\n    *   Total shifts Mon-Fri = 5 days * (19 agents/morning shift + 19 agents/evening shift) = 5 days * 38 shifts/day = 190 shifts\n    *   Total shifts Sat-Sun = 2 days * (10 agents/morning shift + 10 agents/evening shift) = 2 days * 20 shifts/day = 40 shifts\n    *   Total weekly shifts = 190 shifts + 40 shifts = **230 shifts**\n*   **Result:** 230 total weekly shifts required.\n\n**Sub-problem 6: Calculate Minimum Total Agents for the Week (Initial Estimate)**\n*   **Input:** Total weekly shifts required (from sub-problem 5): 230 shifts. Agent work week: 5 shifts per week.\n*   **Calculation:**\n    *   Minimum agents = 230 shifts / 5 shifts/agent = **46 agents**\n*   **Result:** Initial estimate for minimum total agents = 46 agents.\n\n**Sub-problem 7: Assess Schedule Achievability and Final Agent Count**\n*   **Input:** Minimum total agents (from sub-problem 6): 46 agents. Staffing requirement per shift per day (from sub-problem 4):\n    *   Mon-Fri: 19 agents (morning) + 19 agents (evening)\n    *   Sat-Sun: 10 agents (morning) + 10 agents (evening)\n*   **Constraint:** No single agent may be scheduled for both the morning and the evening shift on the same day.\n*   **Assessment:**\n    *   This constraint means that on any given day, the number of unique agents required is the sum of the morning and evening shift requirements.\n    *   **Daily Distinct Agents Required:**\n        *   Monday-Friday: 19 (morning) + 19 (evening) = 38 distinct agents required per day.\n        *   Saturday-Sunday: 10 (morning) + 10 (evening) = 20 distinct agents required per day.\n    *   **Comparison with Total Agents:** We have 46 total agents.\n        *   The maximum number of distinct agents needed on any single day is 38 (Mon-Fri). Since 46 agents are available, and 46 >= 38, there are always enough agents to cover the daily demand without anyone working two shifts on the same day. On weekdays, 46 - 38 = 8 agents can be off. On weekends, 46 - 20 = 26 agents can be off.\n    *   **Total Shift Coverage:**\n        *   Total shifts required for the week: 230 (from sub-problem 5).\n        *   Total shifts provided by 46 agents: 46 agents * 5 shifts/agent = 230 shifts.\n        *   The total number of shifts provided perfectly matches the total number of shifts required.\n    *   **Feasibility Conclusion:** The calculations confirm that the 46 agents can collectively provide the exact number of shifts needed throughout the week. Furthermore, the total number of agents (46) is greater than the maximum number of distinct agents required on any single day (38), which means the constraint of \"no single agent may be scheduled for both the morning and the evening shift on the same day\" can be met.\n*   **Result:** The minimum total number of agents that must be hired for the week is **46 agents**. A valid schedule is achievable under all the constraints.\n\n---\n\n**Final Answer:**\n\nThe minimum total number of agents that must be hired for the week is **46**.\nA valid schedule is achievable under all the constraints.\n\n**Staffing requirement per shift per day:**\n*   Monday: 19 agents (morning), 19 agents (evening)\n*   Tuesday: 19 agents (morning), 19 agents (evening)\n*   Wednesday: 19 agents (morning), 19 agents (evening)\n*   Thursday: 19 agents (morning), 19 agents (evening)\n*   Friday: 19 agents (morning), 19 agents (evening)\n*   Saturday: 10 agents (morning), 10 agents (evening)\n*   Sunday: 10 agents (morning), 10 agents (evening)",
+          "input_tokens": 411,
+          "output_tokens": 7981,
+          "seconds": 33.38,
+          "run": 2
+        },
+        {
+          "text": "**Phase 1 - Decompose: Ordered Sequence of Sub-problems**\n\n1.  **Calculate daily raw handle time in minutes.**\n    *   Consumes: Daily contact forecast (Mon-Fri 1,600/day, Sat-Sun 800/day), Average Handle Time (AHT = 7.5 minutes/contact).\n2.  **Calculate daily raw handle time in hours.**\n    *   Consumes: Result from Sub-problem 1.\n3.  **Calculate daily workload hours (post-service target).**\n    *   Consumes: Result from Sub-problem 2, Service Target Multiplier (120%).\n4.  **Calculate daily paid hours required (grossed up for unproductive time).**\n    *   Consumes: Result from Sub-problem 3, Productive Availability (80%).\n5.  **Calculate paid hours required per shift per day.**\n    *   Consumes: Result from Sub-problem 4, Daily Shift Split rule (two equal shifts: morning, evening).\n6.  **Determine required agents per shift per day (rounding up to whole agents).**\n    *   Consumes: Result from Sub-problem 5, Agent Paid Shift Length (8 hours/shift), No Fractional People constraint.\n    *   This step will produce the required staffing for each of the 14 shifts (Mon-Sun, Morning/Evening), addressing the request to \"Show the staffing requirement per shift per day along the way.\"\n7.  **Calculate the total number of \"agent-shifts\" required for the entire week.**\n    *   Consumes: Result from Sub-problem 6 (sum of all individual agent requirements across all 14 shifts).\n8.  **Determine the minimum total number of agents to hire for the week.**\n    *   Consumes: Result from Sub-problem 7, Agent Work Week (5 shifts per agent per week).\n    *   This will be one of the final answers.\n9.  **Evaluate schedule achievability under all constraints.**\n    *   Consumes: Result from Sub-problem 6 (daily shift staffing, i.e., Mon AM agents, Mon PM agents, etc.), Result from Sub-problem 8 (total agents hired), and the \"no single agent may be scheduled for both the morning and the evening shift on the same day\" rule.\n    *   This step will determine if a valid schedule is achievable, which is the other part of the final answer.\n\n---\n\n**Phase 2 - Solve in Order**\n\n**Sub-problem 1: Calculate daily raw handle time in minutes.**\n*   **Input:** Mon-Fri contacts: 1,600/day; Sat-Sun contacts: 800/day; AHT: 7.5 minutes/contact.\n*   **Calculation:**\n    *   Mon-Fri raw handle time = 1,600 contacts/day * 7.5 min/contact = 12,000 minutes/day\n    *   Sat-Sun raw handle time = 800 contacts/day * 7.5 min/contact = 6,000 minutes/day\n*   **Result:** Mon-Fri: 12,000 minutes/day; Sat-Sun: 6,000 minutes/day.\n\n**Sub-problem 2: Calculate daily raw handle time in hours.**\n*   **Consumes:** Mon-Fri 12,000 min/day, Sat-Sun 6,000 min/day (from Sub-problem 1).\n*   **Calculation:** (Minutes / 60 minutes/hour)\n    *   Mon-Fri raw handle hours = 12,000 minutes/day / 60 = 200 hours/day\n    *   Sat-Sun raw handle hours = 6,000 minutes/day / 60 = 100 hours/day\n*   **Result:** Mon-Fri: 200 hours/day; Sat-Sun: 100 hours/day.\n\n**Sub-problem 3: Calculate daily workload hours (post-service target).**\n*   **Consumes:** Mon-Fri 200 hours/day, Sat-Sun 100 hours/day (from Sub-problem 2); Service Target Multiplier: 120% (1.2).\n*   **Calculation:** Raw handle hours * Service Target Multiplier\n    *   Mon-Fri post-target hours = 200 hours/day * 1.2 = 240 hours/day\n    *   Sat-Sun post-target hours = 100 hours/day * 1.2 = 120 hours/day\n*   **Result:** Mon-Fri: 240 hours/day; Sat-Sun: 120 hours/day.\n\n**Sub-problem 4: Calculate daily paid hours required (grossed up for unproductive time).**\n*   **Consumes:** Mon-Fri 240 hours/day, Sat-Sun 120 hours/day (from Sub-problem 3); Productive Availability: 80% (0.8).\n*   **Calculation:** Post-target hours / Productive Availability\n    *   Mon-Fri paid hours required = 240 hours/day / 0.8 = 300 paid hours/day\n    *   Sat-Sun paid hours required = 120 hours/day / 0.8 = 150 paid hours/day\n*   **Result:** Mon-Fri: 300 paid hours/day; Sat-Sun: 150 paid hours/day.\n\n**Sub-problem 5: Calculate paid hours required per shift per day.**\n*   **Consumes:** Mon-Fri 300 paid hours/day, Sat-Sun 150 paid hours/day (from Sub-problem 4); Daily Shift Split rule (two equal shifts).\n*   **Calculation:** Daily paid hours / 2 shifts\n    *   Mon-Fri paid hours per shift = 300 hours/day / 2 = 150 paid hours/shift\n    *   Sat-Sun paid hours per shift = 150 hours/day / 2 = 75 paid hours/shift\n*   **Result:** Mon-Fri: 150 paid hours per shift; Sat-Sun: 75 paid hours per shift.\n\n**Sub-problem 6: Determine required agents per shift per day (rounding up to whole agents).**\n*   **Consumes:** Mon-Fri 150 paid hours/shift, Sat-Sun 75 paid hours/shift (from Sub-problem 5); Agent Paid Shift Length: 8 hours/shift; No Fractional People constraint.\n*   **Calculation:** Ceiling(Paid hours per shift / Agent Paid Shift Length)\n    *   Mon-Fri agents per shift = Ceiling(150 hours/shift / 8 hours/agent) = Ceiling(18.75) = 19 agents/shift\n    *   Sat-Sun agents per shift = Ceiling(75 hours/shift / 8 hours/agent) = Ceiling(9.375) = 10 agents/shift\n*   **Result (Staffing requirement per shift per day):**\n    *   **Monday Morning:** 19 agents\n    *   **Monday Evening:** 19 agents\n    *   **Tuesday Morning:** 19 agents\n    *   **Tuesday Evening:** 19 agents\n    *   **Wednesday Morning:** 19 agents\n    *   **Wednesday Evening:** 19 agents\n    *   **Thursday Morning:** 19 agents\n    *   **Thursday Evening:** 19 agents\n    *   **Friday Morning:** 19 agents\n    *   **Friday Evening:** 19 agents\n    *   **Saturday Morning:** 10 agents\n    *   **Saturday Evening:** 10 agents\n    *   **Sunday Morning:** 10 agents\n    *   **Sunday Evening:** 10 agents\n\n**Sub-problem 7: Calculate the total number of \"agent-shifts\" required for the entire week.**\n*   **Consumes:** 19 agents/shift for Mon-Fri, 10 agents/shift for Sat-Sun (from Sub-problem 6).\n*   **Calculation:** (5 Mon-Fri days * 2 shifts/day * 19 agents/shift) + (2 Sat-Sun days * 2 shifts/day * 10 agents/shift)\n    *   (10 Mon-Fri shifts * 19 agents/shift) + (4 Sat-Sun shifts * 10 agents/shift)\n    *   190 agent-shifts + 40 agent-shifts = 230 agent-shifts\n*   **Result:** 230 agent-shifts required for the week.\n\n**Sub-problem 8: Determine the minimum total number of agents to hire for the week.**\n*   **Consumes:** 230 agent-shifts (from Sub-problem 7); Agent Work Week: 5 shifts per agent.\n*   **Calculation:** Ceiling(Total agent-shifts / Shifts per agent per week)\n    *   Minimum total agents = Ceiling(230 agent-shifts / 5 shifts/agent) = Ceiling(46) = 46 agents\n*   **Result:** The minimum total number of agents to hire for the week is **46 agents**.\n\n**Sub-problem 9: Evaluate schedule achievability under all constraints.**\n*   **Consumes:** Daily shift staffing (from Sub-problem 6: Mon-Fri AM=19, PM=19; Sat-Sun AM=10, PM=10); Total agents hired: 46 (from Sub-problem 8); \"No single agent may be scheduled for both the morning and the evening shift on the same day\" rule.\n*   **Logic:** The constraint \"no single agent may be scheduled for both the morning and the evening shift on the same day\" means that for any given day, the sum of agents required for the morning and evening shifts must be covered by *distinct* agents. This daily sum cannot exceed the total number of agents hired.\n*   **Calculation:**\n    *   For Mon-Fri:\n        *   Required distinct agents per day = Morning Shift Agents + Evening Shift Agents\n        *   Required distinct agents per day = 19 agents (AM) + 19 agents (PM) = 38 agents\n    *   For Sat-Sun:\n        *   Required distinct agents per day = Morning Shift Agents + Evening Shift Agents\n        *   Required distinct agents per day = 10 agents (AM) + 10 agents (PM) = 20 agents\n*   **Comparison:**\n    *   Total agents hired: 46.\n    *   For Mon-Fri, 38 distinct agents are required per day. Since 38 <= 46, this is achievable.\n    *   For Sat-Sun, 20 distinct agents are required per day. Since 20 <= 46, this is achievable.\n*   **Result:** A valid schedule is **achievable** under all constraints, as the daily maximum requirement for distinct agents (38 on weekdays) does not exceed the total number of agents hired (46).\n\n---\n\n**Final Answer:**\n\nThe minimum total number of agents that must be hired for the week is **46 agents**.\n\nA valid schedule is **achievable** under all constraints.\n\n**Staffing requirement per shift per day:**\n*   **Monday through Friday:** 19 agents for the Morning shift and 19 agents for the Evening shift (for each of these days).\n*   **Saturday and Sunday:** 10 agents for the Morning shift and 10 agents for the Evening shift (for each of these days).",
+          "input_tokens": 411,
+          "output_tokens": 8441,
+          "seconds": 34.87,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1.29,
+        "max_spread": 3,
+        "contested_dims": [
+          "completeness",
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": -4.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

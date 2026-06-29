@@ -1,0 +1,689 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "assumption-surfacing",
+  "date": "2026-06-29 09:40",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer surfaces 4-6 LOAD-BEARING assumptions \u2014 ones whose truth genuinely flips the recommendation \u2014 and for EACH attaches a specific counterfactual that names the alternative path, not a vague hedge. The load-bearing axes a strong answer must hit at least 3-4 of: (1) the actual bottleneck \u2014 is it write THROUGHPUT (volume the disk/CPU can't sustain) vs write LATENCY/lock contention vs just an un-tuned instance (missing indexes, no connection pooler, undersized hardware, no read replicas)? This is the dominant assumption: if it's a tuning/vertical-scale problem, BOTH sharding and distributed SQL are premature and the recommendation flips to 'exhaust vertical scaling + read replicas + query/index tuning + PgBouncer first.' (2) data volume / growth trajectory \u2014 current size and the '1 year' projection; if growth is linear and modest, distributed SQL is over-engineering. (3) transactional/consistency requirements and whether there's a natural shard/tenant key \u2014 if workloads need cross-shard transactions or there's no clean partition key, app-level sharding is far costlier and tilts toward managed distributed SQL; if there's a clean tenant key, sharding/Citus is viable. (4) team size / operational maturity \u2014 a small team self-managing shards is a strong argument AGAINST DIY sharding and toward managed. (5) budget & cloud lock-in tolerance (Spanner = GCP lock-in; managed distributed SQL is pricier per-node). (6) latency/geo-distribution and downtime tolerance for migration. A strong recommendation is then EXPLICITLY CONTINGENT on those assumptions (e.g., 'assuming the bottleneck is genuine throughput AND there is a clean tenant key AND the team is small, then\u2026'), most likely recommending: first rule out the un-tuned-instance case (the highest-probability real cause), and only if genuine throughput scaling is confirmed, prefer managed distributed SQL (or Citus as a middle path) over DIY sharding for a small team \u2014 while naming the conditions that would reverse this. It should also note that CockroachDB vs Spanner is a secondary choice gated by cloud commitment, not the primary decision. FLAWS to detect: (a) assumption inflation \u2014 trivial filler like 'I assume you want a production-grade answer' or 'I assume you're on a recent Postgres version' as if it were decision-relevant; (b) wrong-default lock-in \u2014 flagging an assumption (e.g., 'assuming this is a real throughput problem') then recommending sharding/distributed SQL confidently anyway without treating tuning-first as the live branch; (c) disconnected list \u2014 assumptions listed but the final recommendation doesn't actually pivot on them (e.g., listing 'no clean shard key' but then casually recommending sharding); (d) missing the single most important assumption (that the pain may be an under-provisioned/un-tuned instance rather than a fundamental scaling wall) \u2014 an answer that jumps straight to shard-vs-distributed without questioning the premise has missed the point of the pattern; (e) generic counterfactuals ('if false, my answer would be different') that don't name the alternative path.",
+    "format_spec": "Two clearly separated sections. First, a NUMBERED list of assumptions; each item states the assumption AND its 'if false \u2192 what the recommendation changes to' counterfactual (the conditional clause is mandatory per item, not optional). Second, a recommendation section that is explicitly contingent on the assumptions just listed. The assumption list must not dwarf the recommendation, and trivial/non-decision-relevant assumptions should be absent.",
+    "tone": "Pragmatic senior staff engineer / architect advising a small engineering team; direct and decisive, not hedging; honest about uncertainty without using the assumption list as defensive cover."
+  },
+  "prompt": "Before answering, list the assumptions you are making to interpret this request. Number them. For each, briefly note what your recommendation would change to if that assumption turned out to be false. Then give your recommendation.\n\nRequest: Our main app runs on a single Postgres instance and we're starting to feel it. Writes are getting slow during peak hours and we're worried about where this goes in a year. Should we shard Postgres ourselves or move to a managed distributed SQL database like CockroachDB or Spanner? Give us a clear recommendation.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are broadly on-topic and mostly sound, but they over-recommend distributed SQL/sharding without sufficiently centering the highest-probability tuning-first branch the reference demands. Run 1 is especially misaligned by jumping to \"move to a managed distributed SQL database\" while only later saying \"Short term: optimize the current Postgres setup first\". The recommendation also includes some generic or weakly grounded assumptions like \"transactional OLTP database\" (Run 1) and \"preserve a lot of the current Postgres application behavior\" (Run 2) that are not load-bearing in the intended pattern.",
+          "evidence": "Run 1: \"My clear recommendation: ... move to a managed distributed SQL database\" followed only later by \"Short term: optimize the current Postgres setup first\". Run 2: \"Do not shard Postgres yourselves as the default path.\" Run 3: \"Do not shard Postgres yourself unless you have a very strong platform/database team\" with no explicit \"tuning-first\" as the default branch.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All runs provide numbered assumptions and a recommendation section, so the basic structure is present. However, they miss or underweight the core expected assumption: that the issue may simply be an under-provisioned or un-tuned single Postgres instance, and they do not consistently make the final recommendation explicitly contingent on the listed assumptions in the required way. The assumption lists also include several non-essential or generic items instead of the most decision-relevant 4-6 load-bearing assumptions.",
+          "evidence": "Run 1 assumption 1: \"You need a transactional OLTP database\" is generic; assumption 2 mentions tuning but the final recommendation still leads with distributed SQL. Run 2 lacks an explicit final contingent statement like \"assuming X, then Y\" and says only \"Move to a managed distributed SQL database only if you truly need the scale/availability model it provides\". Run 3 contains the needed tuning premise in assumption 1, but the recommendation still ends with \"Move to a managed distributed SQL database\" as the blunt answer.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "The responses mostly follow the required two-section shape: a numbered assumptions list and a recommendation section. Each assumption item includes a counterfactual. The main deviation is that the recommendation is not always explicitly contingent on the assumptions just listed, and the assumption section sometimes includes extra commentary or overlong prose beyond a tight encyclopedia-style pattern answer.",
+          "evidence": "Run 1: numbered list under \"Assumptions I\u2019m making\" and a separate \"## Recommendation\" section. Run 2: numbered assumptions 1-5 and \"## Recommendation\". Run 3: numbered assumptions 1-5 and \"## Recommendation\". Deviations: Run 1 includes extended sub-bullets under recommendation and a later \"Practical takeaway\"; Run 2 and Run 3 do not strongly restate the contingency in the recommendation opener.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally pragmatic, direct, and aimed at an engineering audience, which matches the target reasonably well. It is sometimes a bit verbose and repetitive, and several runs hedge more than the requested \"direct and decisive\" style, but it is not inappropriate or misregistered.",
+          "evidence": "Run 1: \"Do not shard Postgres yourself unless you are a database-heavy company with a dedicated team\" is direct and senior-level. Run 2: \"Do not shard Postgres yourselves as the default path.\" Run 3: \"My blunt answer: Move to a managed distributed SQL database. Do not build your own sharding layer unless you absolutely have to.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are safe, non-harmful, and contain no inappropriate content. They discuss infrastructure tradeoffs only.",
+          "evidence": "All three runs confine themselves to database architecture advice; e.g., Run 1 \"choose Spanner if you can accept Google Cloud\" and Run 3 \"Move to a managed distributed SQL database\" contain no unsafe material.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "The answers are longer than necessary for the quality delivered. There is substantial repetition across assumption lists, recommendation summaries, and follow-up caveats. The token counts are high relative to the simple two-part deliverable, and the extra prose does not materially improve the decision quality. Run 3 especially uses 906 tokens to deliver a mostly repetitive answer.",
+          "evidence": "Run 1: 831 tokens; Run 2: 762 tokens; Run 3: 906 tokens. Repeated phrasing includes Run 1 \"managed distributed SQL database\" in both the recommendation and bottom line, Run 2's multiple similar \"choose Spanner/CockroachDB\" bullets, and Run 3's repeated \"Do not shard Postgres yourself\" / \"move to a managed distributed SQL database\" framing.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically aligned and structurally similar overall: each has numbered assumptions, then a recommendation favoring managed distributed SQL over DIY sharding, with Spanner vs CockroachDB as a secondary choice. Differences exist in emphasis and coverage, especially around whether tuning-first is foregrounded and how explicitly contingent the recommendation is, but there are no contradictions or major structural divergences. [lexical similarity ratio: 0.065]",
+          "evidence": "All runs recommend against DIY sharding and toward managed distributed SQL: Run 1 \"move to a managed distributed SQL database\", Run 2 \"pick managed distributed SQL, not self-sharding\", Run 3 \"Move to a managed distributed SQL database.\" Variation is mainly emphasis: Run 1 includes a stronger tuning-first caveat later; Run 2 makes the 'optimize current Postgres first' point explicit; Run 3 foregrounds the tuning assumption in item 1.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          },
+          "lexical_similarity": 0.065
+        }
+      },
+      "judge_summary": "Good structural adherence and generally sound advice, but the set is only moderately aligned with the intended assumption-surfacing pattern because it underplays the most load-bearing assumption: the problem may be a tuned-vs-untuned single Postgres instance rather than a true scaling wall. The recommendation also tends to be insufficiently contingent and too ready to endorse distributed SQL, so this is solid but not a top-score response.",
+      "runs": [
+        {
+          "text": "Assumptions I\u2019m making:\n\n1. **You need a transactional OLTP database** for a product app, not a data warehouse or analytics-only workload.  \n   - If false: I\u2019d recommend something optimized for analytics or a separate OLAP system instead of either sharding Postgres or moving to distributed SQL.\n\n2. **Your main pain is write throughput and peak-hour latency on a single Postgres primary**, not just bad queries, missing indexes, or connection-pool issues.  \n   - If false: I\u2019d recommend tuning Postgres first; neither sharding nor distributed SQL is the first move.\n\n3. **You want a path that is operationally sustainable for a small-to-medium engineering team.**  \n   - If false and you have a strong infra/platform team: self-sharding becomes more plausible.\n\n4. **Your application can tolerate some migration effort, but you want to minimize long-term operational burden.**  \n   - If false and you need the least disruptive short-term fix: scale Postgres vertically and optimize first.\n\n5. **Your data model is at least somewhat multi-tenant or can be partitioned by a clear key.**  \n   - If false: sharding gets much harder; distributed SQL becomes more attractive than hand-rolled sharding, though possibly still not simple.\n\n6. **You are asking for a strategic recommendation for the next several years, not just the cheapest immediate fix.**  \n   - If false: I\u2019d focus on the fastest near-term Postgres scaling options.\n\n7. **You are open to some vendor lock-in if it buys correctness and simpler operations.**  \n   - If false: I\u2019d lean away from Spanner and possibly CockroachDB, and toward staying on Postgres with a more portable scaling approach.\n\n## Recommendation\n\n**Do not shard Postgres yourself unless you are a database-heavy company with a dedicated team willing to own a lot of complexity.**  \nFor most product teams, **self-sharding is the wrong tradeoff**: it solves raw scale but adds major operational complexity, painful cross-shard queries, difficult transactions, rebalancing headaches, and long-term engineering drag.\n\n**My clear recommendation:**\n- If you need **serious scale and strong consistency with minimal operational burden**, **move to a managed distributed SQL database**.\n- **Choose Spanner if you can accept Google Cloud and want the most mature, battle-tested option for global scale and strong consistency.**\n- **Choose CockroachDB if you want a more Postgres-like experience and cloud flexibility, but accept that it can be more operationally nuanced and may require more care in workload tuning than Spanner.**\n\n### Practical takeaway\nFor your situation, I would recommend:\n\n1. **Short term:** optimize the current Postgres setup first if you haven\u2019t already  \n   - indexes, query plans, connection pooling, write amplification, HOT updates, vacuum tuning, primary instance size, read replicas for reads, and batching writes.\n\n2. **If the problem is real headroom, and you expect growth to continue:**  \n   **prefer managed distributed SQL over building your own sharding layer.**\n\n3. **Only shard Postgres yourself if:**\n   - you have a strong database/platform team,\n   - your data access patterns shard cleanly,\n   - you can avoid cross-shard transactions most of the time,\n   - and you\u2019re comfortable owning a custom routing/rebalancing/failure story.\n\n### Bottom line\n**Recommendation: move to a managed distributed SQL database, not self-sharding.**  \nIf you want the safest operational path and can live with the ecosystem tradeoffs, **Spanner is the strongest choice**. If you want something closer to Postgres semantics and more portability, **CockroachDB is the more natural candidate**\u2014but I would still pick a managed distributed SQL system over rolling your own sharding.\n\nIf you want, I can also give you a **decision matrix specifically comparing Postgres sharding vs CockroachDB vs Spanner** across cost, consistency, ops burden, migration risk, and developer ergonomics.",
+          "input_tokens": 113,
+          "output_tokens": 831,
+          "seconds": 8.68,
+          "run": 1
+        },
+        {
+          "text": "1. **Assumption: Your main pain is write throughput and peak-hour contention on one Postgres primary, not a deeper data-model or query-design problem.**  \n   - If false: I\u2019d recommend first focusing on schema/index/query fixes, connection pooling, batching, caching, and maybe read replicas before changing database architecture.\n\n2. **Assumption: You need to preserve a lot of the current Postgres application behavior and don\u2019t want a major rewrite.**  \n   - If false: I\u2019d be more open to recommending a distributed SQL migration, especially if the app can be adapted to a new transaction/consistency model.\n\n3. **Assumption: You expect continued growth, but not so extreme that you already know you need globally distributed, multi-region writes right now.**  \n   - If false: If you already need multi-region active-active writes or strong regional failover guarantees, I\u2019d lean much more toward Spanner or another distributed SQL system.\n\n4. **Assumption: Your team is not already experienced with building and operating sharded Postgres at scale.**  \n   - If false: If you have strong database/platform expertise, sharding Postgres can be a viable path, especially for cost control and Postgres compatibility.\n\n5. **Assumption: You care about minimizing operational risk and avoiding a long, bespoke infrastructure project.**  \n   - If false: If you\u2019re willing to invest heavily in database infrastructure engineering, self-sharding becomes more reasonable.\n\n## Recommendation\n\n**Do not shard Postgres yourselves as the default path.**  \n**Move to a managed distributed SQL database only if you truly need the scale/availability model it provides; otherwise, first try to stretch Postgres with operational and schema improvements.**\n\nMore directly: **if you\u2019re choosing between \u201cbuild your own sharding\u201d and \u201cmigrate to managed distributed SQL,\u201d I recommend the managed distributed SQL option over self-sharding.**  \nBetween **CockroachDB and Spanner**, the better choice depends on your environment:\n\n- **Choose Spanner** if you\u2019re already in Google Cloud, want the most mature managed option, and can accept vendor lock-in and the associated cost.\n- **Choose CockroachDB** if you want more Postgres-like ergonomics and more deployment flexibility, and you\u2019re comfortable validating performance/operational fit carefully.\n\n### Why I\u2019m not recommending self-sharding\nSelf-sharding Postgres usually becomes a long-term tax:\n- You\u2019ll own shard key design, resharding, cross-shard queries, distributed transactions, and failure recovery.\n- Operational complexity rises sharply as soon as the app needs joins, transactions, or analytics across shards.\n- The \u201cdatabase bottleneck\u201d often becomes an application-distribution problem that is hard to unwind later.\n\n### Why managed distributed SQL is the safer strategic bet\nA managed distributed SQL database gives you:\n- horizontal write scaling,\n- built-in replication/failover,\n- less bespoke infrastructure than self-sharding,\n- and a clearer long-term path if your growth continues.\n\n### Practical caveat\nIf your current slowdown is mostly from:\n- bad indexes,\n- lock contention,\n- too many hot rows,\n- write amplification,\n- or unbounded transaction scope,\n\nthen **fix those first**, because switching databases won\u2019t save you from a badly shaped workload.\n\n## Bottom line\n- **Best near-term default:** optimize current Postgres first.\n- **If the real choice is self-shard vs managed distributed SQL:** **pick managed distributed SQL, not self-sharding.**\n- **If you force me to pick one product for a broad recommendation:** **Spanner** for maximum managed reliability at scale; **CockroachDB** if you want more flexibility and a more Postgres-friendly migration path.",
+          "input_tokens": 113,
+          "output_tokens": 762,
+          "seconds": 6.97,
+          "run": 2
+        },
+        {
+          "text": "1. **Assumption:** Your bottleneck is primarily **scale/throughput and write contention** on a single Postgres primary, not a bigger architectural problem like poor query design, missing indexes, long transactions, or app-level hot spots.  \n   **If false:** I would recommend **first fixing Postgres performance and data access patterns**, because sharding or moving databases won\u2019t solve avoidable bottlenecks.\n\n2. **Assumption:** You need a solution that is **reliably available and operational within the next 12 months**, and you care a lot about reducing operational risk.  \n   **If false:** If you have a strong platform team and can tolerate complexity, **self-sharding Postgres becomes more viable**.\n\n3. **Assumption:** Your application has **some transactional consistency requirements** and you\u2019d benefit from a system that preserves SQL semantics better than a hand-rolled sharding scheme.  \n   **If false:** If your workload is mostly partitionable and tolerant of looser consistency, **application-level sharding or specialized storage patterns** could be cheaper and simpler.\n\n4. **Assumption:** You are willing to accept **some migration effort and possible schema/query changes** in exchange for avoiding the long-term burden of operating shards yourself.  \n   **If false:** If you need minimal application change, **staying on Postgres and optimizing/scaling vertically** is the least disruptive near-term choice.\n\n5. **Assumption:** Your team does **not** already have deep expertise in distributed databases, shard rebalancing, cross-shard transactions, and failover automation.  \n   **If false:** If you do have that expertise, **self-sharding Postgres is more defensible**, though still operationally expensive.\n\n## Recommendation\n\n**Do not shard Postgres yourself unless you have a very strong platform/database team and a clear reason you must own the complexity.**  \nFor most teams in your situation, the better choice is to **move to a managed distributed SQL database**\u2014**CockroachDB** if you want multi-region portability and PostgreSQL-like SQL semantics with operational simplicity, or **Spanner** if you are comfortable with Google Cloud and want the most mature global-scale distributed relational system.\n\n### Clear recommendation:\n- **If you want the safest long-term operational path:** choose a **managed distributed SQL database** rather than self-sharding.\n- **If you are already on GCP and can accept its ecosystem lock-in:** **Spanner** is the strongest \u201cdon\u2019t make us run the database ourselves\u201d answer.\n- **If you want more portability / Postgres-adjacent experience:** **CockroachDB** is the more practical default.\n\n### Why I\u2019m recommending that\n- **Self-sharding Postgres is a tax that keeps growing.** You buy scale, but you also buy:\n  - shard key design risk\n  - cross-shard query pain\n  - rebalancing and resharding complexity\n  - operational toil during incidents\n  - harder backups, migrations, analytics, and schema changes\n- **Managed distributed SQL shifts the hardest problems to the database layer.**\n  - You still need to design for distribution.\n  - But you avoid building and operating a sharding platform yourself.\n- **Your stated concern is the next year.** In that horizon, the biggest risk is usually not just raw performance\u2014it\u2019s the engineering and operational drag of the solution you choose.\n\n### Practical rule of thumb\n- Choose **self-sharding Postgres** only if:\n  - you have a very experienced infra/db team,\n  - your data model shards cleanly,\n  - you need maximum control/cost optimization,\n  - and you\u2019re prepared for significant ongoing complexity.\n- Choose **managed distributed SQL** if:\n  - you want to keep moving quickly,\n  - you want fewer operational surprises,\n  - and you\u2019d rather spend engineering time on product than database plumbing.\n\n### My blunt answer\n**Move to a managed distributed SQL database. Do not build your own sharding layer unless you absolutely have to.**  \nIf I had to pick a default without more context: **CockroachDB for a Postgres-oriented team, Spanner for a GCP-centric team that wants the strongest managed option.**\n\nIf you want, I can also give you a **decision matrix** for Postgres sharding vs CockroachDB vs Spanner based on team size, cloud provider, latency, and consistency needs.",
+          "input_tokens": 113,
+          "output_tokens": 906,
+          "seconds": 7.55,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1.43,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy",
+          "completeness",
+          "format_compliance",
+          "efficiency"
+        ],
+        "self_preference_delta": -4
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.3,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "All three runs are factually sound: correct on PgBouncer, pg_stat_statements, CockroachDB Postgres wire-compatibility, Spanner's GCP lock-in, and the operational costs of DIY sharding. Minor imprecision in Run 2 citing Shopify/GitHub as Postgres sharding success stories (Shopify uses Vitess on MySQL), but the underlying point about large infra teams is valid. No material factual errors. Recommendations are appropriate for the scenario described.",
+          "evidence": "Run 1: 'Modern cloud Postgres instances (RDS, Cloud SQL, AlloyDB) go to 96+ vCPUs and hundreds of GB of RAM' \u2014 accurate. Run 2: 'Companies that do it successfully (Shopify, GitHub) had very large infra teams' \u2014 Shopify is actually on MySQL/Vitess, slightly imprecise. Run 3 CockroachDB description as 'PostgreSQL wire-compatible, which meaningfully reduces migration friction' \u2014 accurate.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All three runs cover team size, ACID/shard-key feasibility, read-vs-write split, budget/lock-in, and the 'exhaust optimization first' gate. They miss data volume/growth trajectory as an explicit numbered assumption and downtime tolerance for migration. Critically, the single most important assumption \u2014 that the pain may be from an un-tuned/under-provisioned instance rather than a fundamental throughput wall \u2014 is present but buried (assumption #6 in Runs 1 and 2, not framed as dominant). The recommendation sections correctly pivot to 'optimize first,' which partially compensates, but the assumption framing underweights this axis relative to the expected output's specification.",
+          "evidence": "Run 1 assumption 6: 'Feeling it means seconds-level slowdowns\u2026 If false: You have more runway than you think.' Run 2 assumption 6: 'You haven't yet done serious query optimization\u2026 If false: You're genuinely at the architectural limit.' Both are listed sixth, not first. Data volume/1-year growth trajectory appears nowhere as a numbered assumption across all three runs. Latency/geo-distribution and downtime tolerance absent in all three.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "All three runs correctly implement two clearly separated sections with a numbered assumption list (7-8 items each), each containing an explicit 'if false' counterfactual. No trivially filler assumptions present. The recommendation sections are substantial. One deviation from spec: the recommendations do not explicitly reference the numbered assumptions (e.g., 'per assumption 3, since the team is small\u2026'); contingency is implicit via phased structure rather than explicitly tied back to numbered items as the format spec requires.",
+          "evidence": "Run 1: 8 numbered assumptions each with 'If false:' clause, then '## Recommendation' with Phase 1/Phase 2. Run 2: 7 assumptions each with 'If false' clause, then '## Recommendation' with Steps. Run 3: 7 assumptions, then '## Recommendation.' None of the three recommendation sections say 'given assumption X above, therefore\u2026' \u2014 the linkage is structural/implicit, not explicit as specified.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "All three runs are pitch-perfect for a senior staff engineer audience: direct, decisive framing ('Don't shard Postgres yourself'), concrete next steps with specific tooling named, willingness to make a clear call (CockroachDB over DIY sharding), and honest sequencing without defensive hedging. The assumption list is used to clarify scope, not as protective cover. Run 1's closing caveat about 6-18 month risk and Run 2's Shopify/GitHub reference both read as authoritative senior practitioner voice.",
+          "evidence": "Run 1: 'Right-size your instance. Modern cloud Postgres instances go to 96+ vCPUs. If you're not on the biggest tier, try it. It's a weekend change, not a project.' Run 2: 'DIY sharding is a multi-year operational tax.' Run 3: 'Self-managed sharding trades a performance problem for an operational complexity problem you will carry forever.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is safe: no harmful, abusive, or disallowed material. The answers are technical architectural guidance only.",
+          "evidence": "All three runs discuss Postgres scaling, sharding, and distributed SQL without any unsafe or inappropriate content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "Token counts (1372, 1228, 1111) are reasonable for the depth delivered. Each run earns most of its tokens: tables add value, decision trees clarify, specific tooling references (pg_stat_activity, pg_locks, auto_explain) are concrete. Minor redundancy exists: the operational costs of sharding are stated multiple ways in all three runs. Run 3 is tightest at 1111 tokens while covering the core recommendation. Run 1 at 1372 adds AlloyDB and more specific diagnostics that justify its length.",
+          "evidence": "Run 1 covers the same 'you will rebuild a subset of what CockroachDB solved' point multiple times across the cons list. Run 2's decision tree repeats content from the step-by-step narrative directly above it. These are noticeable but not severe padding.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs share the same broad answer class: caution against DIY sharding, prefer vertical scaling/tuning first, and lean toward managed distributed SQL if distribution becomes necessary. However, they differ materially in recommendation timing and emphasis. Run 1 says 'Neither \u2014 yet' and then 'prefer managed distributed SQL over DIY sharding'; Run 2 says 'Neither yet' and 'architect toward CockroachDB if you must distribute'; Run 3 gives a more direct 'Do not shard Postgres yourself. Move to a managed distributed SQL database.' The semantic core is consistent, but the degree of decisiveness and the sequencing vary enough to count as moderate inconsistency rather than high stability. [lexical similarity ratio: 0.08]",
+          "evidence": "Run 1: 'Neither \u2014 yet. Exhaust vertical and Postgres-native options first, then choose managed distributed SQL over DIY sharding.' Run 2: 'Neither yet. Exhaust the cheaper options first, but architect toward CockroachDB if you must distribute.' Run 3: 'Do not shard Postgres yourself. Move to a managed distributed SQL database, and front-load it with short-term relief tactics.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          },
+          "lexical_similarity": 0.08
+        }
+      },
+      "judge_summary": "The three runs are strong and consistent responses to the assumption-surfacing prompt. They correctly implement the two-section format, surface 7-8 load-bearing assumptions each with specific counterfactuals, avoid trivial filler, and deliver a decisive 'optimize first, then CockroachDB if needed' recommendation in the right senior-engineer register. The primary weaknesses are: (1) the single most important assumption \u2014 that slow writes may reflect an un-tuned/under-provisioned instance rather than a genuine throughput ceiling \u2014 is buried as assumption #6 rather than prominently framed as the dominant axis; (2) data volume/growth trajectory and downtime tolerance are not captured as numbered assumptions in any run; (3) the recommendation sections do not explicitly reference the numbered assumptions by number, making the contingency structural rather than explicit as the format spec requires. These are real gaps against the reference answer but do not undermine the overall quality, which is substantially better than a naive answer that jumps directly to shard-vs-distributed-SQL.",
+      "runs": [
+        {
+          "text": "## Assumptions\n\n**1. Write volume, not read volume, is the primary bottleneck.**\n*If false (reads are the bottleneck):* Read replicas solve this far more cheaply than either option you listed. The whole framing changes.\n\n**2. You don't currently use read replicas.**\n*If false:* You've already exhausted the easy horizontal read scaling, which makes write scaling more urgent and shifts the calculus slightly toward distributed SQL sooner.\n\n**3. Your team is small-to-mid-sized (< ~20 engineers) without a dedicated DBA or distributed systems specialist.**\n*If false (large team, deep Postgres expertise):* Manual sharding becomes more viable because you have the people to own it safely.\n\n**4. You have a relatively normalized, relational schema with joins and foreign keys that matter to your application.**\n*If false (loose schema, few cross-shard joins):* Manual sharding becomes significantly less painful, and document stores might even be worth reconsidering.\n\n**5. You're on commodity cloud infrastructure and not already deep in Google Cloud.**\n*If false (you're Google Cloud native):* Spanner's integration advantages become more compelling and its cost premium is easier to justify.\n\n**6. \"Feeling it\" means seconds-level slowdowns or visible user impact, not just elevated p99 metrics.**\n*If false (you're watching dashboards, not user complaints):* You have more runway than you think and should optimize before re-architecting.\n\n**7. Your data model doesn't have one obvious, clean partition key that would make sharding natural.**\n*If false (e.g., you're a clear tenant-per-customer SaaS):* Manual sharding by tenant becomes quite clean and moves up in ranking.\n\n**8. You need strong consistency and ACID transactions across rows/tables.**\n*If false:* Eventual consistency systems open up, but you mentioned SQL databases so I'm treating this as a hard requirement.\n\n---\n\n## Recommendation: Neither \u2014 yet. Exhaust vertical and Postgres-native options first, then choose managed distributed SQL over DIY sharding.\n\n### Phase 1: Do this before anything else (1\u20133 months)\n\nYou almost certainly have not hit the ceiling of a single Postgres instance. Before re-architecting:\n\n- **Right-size your instance.** Modern cloud Postgres instances (RDS, Cloud SQL, AlloyDB) go to 96+ vCPUs and hundreds of GB of RAM. If you're not on the biggest tier, try it. It's a weekend change, not a project.\n- **Add read replicas and route reads to them.** Even if writes are your stated problem, read traffic on the primary contributes to write slowdowns through lock contention, WAL pressure, and CPU competition.\n- **Audit your write patterns.** Slow writes during peak hours usually have a specific cause: missing indexes on upserts, bloated tables needing VACUUM tuning, lock contention from long transactions, or bulk operations competing with OLTP. Profile with `pg_stat_activity`, `pg_locks`, and `auto_explain` before assuming you've outgrown Postgres.\n- **Connection pooling (PgBouncer).** If you're not pooling aggressively, connection overhead alone can look like a write bottleneck.\n\nThis phase costs almost nothing and frequently buys 12\u201324 months.\n\n---\n\n### Phase 2: If you genuinely exhaust Phase 1 \u2014 choose managed distributed SQL, not DIY sharding\n\nIf you've done the above and still have a real write bottleneck, here's why DIY sharding loses:\n\n**The case against DIY Postgres sharding:**\n- You now own two hard problems simultaneously: your product *and* a distributed database.\n- Cross-shard transactions require application-level sagas or 2PC \u2014 both are painful and error-prone.\n- Re-sharding when your shard key turns out to be wrong is one of the most expensive engineering projects a team can take on.\n- You will rebuild, poorly, a subset of what CockroachDB or Spanner already solved.\n- The \"we'll keep it simple\" sharding plan never stays simple.\n\n**CockroachDB vs. Spanner:**\n\n| | CockroachDB | Spanner |\n|---|---|---|\n| **Postgres compatibility** | High \u2014 often near drop-in | Low \u2014 different dialect, significant migration work |\n| **Operational model** | Self-hosted or managed (CockroachDB Cloud) | Fully managed, Google Cloud only |\n| **Cost** | More predictable | Can be very expensive at scale |\n| **Ecosystem lock-in** | Low | High (Google Cloud) |\n| **Consistency model** | Serializable | External consistency (stronger, globally) |\n\n**My specific pick: CockroachDB (managed/serverless tier) if you're not Google-native.**\n\nThe Postgres wire compatibility means your migration path is realistic rather than a full rewrite. You can move table by table. The managed offering removes operational burden. The consistency model covers your ACID requirements. The cost, while higher than Postgres, is predictable.\n\n**Pick Spanner only if** you're already heavily invested in Google Cloud, have global consistency requirements across continents, and have the engineering resources to handle the dialect/driver migration.\n\n---\n\n### What to actually do this week\n\n1. Pull your `pg_stat_statements` report and find the top 10 write queries by total time.\n2. Check whether your instance is CPU-bound, I/O-bound, or lock-bound during peak hours \u2014 the fix differs for each.\n3. Set a concrete threshold: *\"If we cannot stay under X ms p95 write latency on a fully optimized single instance by [date], we begin CockroachDB migration planning.\"*\n\nRe-architecting your database is a 6\u201318 month project with real risk of extended outages and data integrity bugs if rushed. The cost of being patient and methodical is low. The cost of picking the wrong architecture under pressure is very high.",
+          "input_tokens": 123,
+          "output_tokens": 1372,
+          "seconds": 34.1,
+          "run": 1
+        },
+        {
+          "text": "## Assumptions\n\n**1. Writes are the primary bottleneck, not reads.**\nIf false (reads are actually the bottleneck): Read replicas solve this cheaply without distributional complexity. Recommendation shifts to: add read replicas first, revisit in 6 months.\n\n**2. You have a relatively small engineering team or limited Postgres/distributed systems expertise.**\nIf false (large, experienced infra team): DIY sharding becomes more viable. Recommendation shifts toward: manual sharding is on the table as a serious option.\n\n**3. Your data has a reasonably clean sharding key (e.g., tenant ID, user ID) that would let you partition without massive cross-shard joins.**\nIf false (highly relational, no clean partition boundary): Both sharding options get much harder. Recommendation shifts toward: exhausting vertical scaling and schema/query optimization before any distribution.\n\n**4. You are not yet at Google/Cockroach-scale (i.e., not hundreds of thousands of writes per second).**\nIf false (truly extreme scale): Spanner or CockroachDB become more clearly justified despite cost and latency tradeoffs.\n\n**5. You have strong ACID and relational consistency requirements.**\nIf false (you can tolerate eventual consistency): NoSQL options like DynamoDB or Cassandra open up and may be simpler fits.\n\n**6. You haven't yet done serious query optimization, connection pooling (PgBouncer), or vertical scaling.**\nIf false (already exhausted these): You're genuinely at the architectural limit and need distribution sooner. Recommendation accelerates.\n\n**7. Your budget is meaningful but not unlimited \u2014 you're cost-conscious.**\nIf false (cost is no object): Spanner becomes more attractive immediately. If false the other way (very tight budget): CockroachDB serverless or staying on Postgres longer wins.\n\n---\n\n## Recommendation: **Neither yet. Exhaust the cheaper options first, but architect toward CockroachDB if you must distribute.**\n\nHere's the reasoning in order of what to actually do:\n\n### Step 1: Do these first (weeks, not months)\nThese are almost certainly not fully done and each buys significant headroom:\n\n- **PgBouncer or connection pooling** if not already in place \u2014 connection overhead kills write throughput\n- **Vertical scaling** \u2014 moving to a larger instance is boring and it works; don't dismiss it\n- **Write query audit** \u2014 slow writes are often slow because of missing indexes on FK columns, over-triggering, or synchronous operations that can be async\n- **Partition large tables** by time or natural key within the single instance (Postgres native partitioning, not sharding)\n- **WAL and autovacuum tuning** \u2014 bloat and checkpoint pressure are common culprits at this stage\n\n**Why this matters:** Most teams feeling write pressure at this stage find 40-60% of the problem is here. Skipping this step and jumping to distributed SQL adds enormous complexity before you know your actual ceiling.\n\n---\n\n### Step 2: If you genuinely hit the single-instance ceiling \u2014 choose CockroachDB over DIY sharding\n\n**Don't shard Postgres yourself.** Here's why:\n\n| Concern | DIY Sharding | CockroachDB |\n|---|---|---|\n| Cross-shard transactions | You rebuild distributed transactions manually | Built-in, ACID by default |\n| Operational burden | Extremely high \u2014 you own everything | Managed, much lower |\n| Schema migrations | Painful across shards | Standard SQL |\n| Rebalancing | Manual or complex tooling | Automatic |\n| Time to implement | 3-6+ months minimum | Weeks to migrate |\n| Risk | Very high | Moderate |\n\nDIY sharding is a multi-year operational tax. Companies that do it successfully (Shopify, GitHub) had very large infra teams and specific constraints that forced their hand. You almost certainly don't have that forcing function yet.\n\n**CockroachDB over Spanner because:**\n- Spanner locks you into GCP and has a pricing model that gets expensive unpredictably\n- CockroachDB is Postgres-wire-compatible, so your migration path is far less disruptive\n- You can self-host CockroachDB if needed, giving you an exit ramp\n- Spanner's external consistency comes with real read/write latency costs that hurt unless you need true global distribution\n\n---\n\n### The actual decision tree\n\n```\nAre writes slow? \n  \u2192 Did you try pooling + vertical scaling + query audit?\n      \u2192 No: Do that first.\n      \u2192 Yes, still slow: Is there a clean sharding key?\n          \u2192 No: Your schema needs rethinking before any distribution.\n          \u2192 Yes: Move to CockroachDB. Don't shard Postgres yourself.\n```\n\n---\n\n### What to do this week\n\n1. Profile exactly which writes are slow and why \u2014 don't assume\n2. Confirm PgBouncer is in place and tuned\n3. Run `pg_stat_statements` and `auto_explain` for one peak period\n4. Price out a vertical upgrade\n5. Only if all that fails: run a CockroachDB proof of concept on your heaviest write workload\n\nYou're likely 3-6 months from genuinely needing distributed SQL. Use that time to validate the need rather than paying the complexity cost early.",
+          "input_tokens": 123,
+          "output_tokens": 1228,
+          "seconds": 30.14,
+          "run": 2
+        },
+        {
+          "text": "## Assumptions\n\n**1. Write throughput is the primary bottleneck, not read throughput.**\n*If false (reads are the bottleneck):* Recommendation shifts strongly toward read replicas + connection pooling (PgBouncer), which is dramatically simpler than either sharding option.\n\n**2. You have a relatively small engineering team (under ~20 engineers) without dedicated database infrastructure specialists.**\n*If false (large team, DB experts on staff):* Manual sharding becomes more viable because you have the bodies to operate it safely.\n\n**3. Your data model has meaningful cross-shard relationships (joins, foreign keys, transactions spanning multiple entities).**\n*If false (naturally partition-able data with few cross-shard queries):* Manual sharding becomes significantly more attractive and manageable.\n\n**4. You are earlier in scaling (e.g., not yet at hundreds of thousands of writes/second), meaning you still have runway to migrate thoughtfully.**\n*If false (already in crisis, days not months):* Recommendation shifts toward the fastest relief valve first (vertical scaling, write batching) before any migration.\n\n**5. Your application can tolerate some migration risk and a few months of engineering investment.**\n*If false (extremely risk-averse, frozen roadmap):* Recommendation shifts toward staying on Postgres longer with optimization tactics.\n\n**6. Strong consistency and ACID transactions are important to your application.**\n*If false (eventual consistency is acceptable):* NoSQL options (DynamoDB, Cassandra) re-enter the conversation meaningfully.\n\n**7. You are cloud-hosted or willing to be.**\n*If false (on-premises only):* Spanner is eliminated; CockroachDB on-prem or Citus become the relevant comparisons.\n\n---\n\n## Recommendation: **Do not shard Postgres yourself. Move to a managed distributed SQL database, and front-load it with short-term relief tactics.**\n\nHere is the reasoning in plain terms.\n\n### Why not self-managed sharding\n\nManual Postgres sharding (whether via application-level logic, Citus, or foreign data wrappers) is genuinely one of the hardest operational problems in backend engineering. The costs are not theoretical:\n\n- You now own shard key selection permanently. A bad choice, or a business pivot, causes enormous pain later.\n- Cross-shard transactions require you to implement distributed transaction logic yourself or accept inconsistency. Both options are painful.\n- Schema migrations become coordinated multi-system operations.\n- Rebalancing data when one shard gets hot requires significant tooling you will have to build.\n- Debugging production incidents gets dramatically harder.\n\nSmall and mid-sized teams routinely underestimate this burden until they are drowning in it. The engineering hours consumed by sharding operations are hours not spent on product. This is a well-documented failure mode.\n\n### Why managed distributed SQL is the better path\n\nCockroachDB and Spanner solve the same problem but offload the operational complexity to a system built specifically for it:\n\n- Automatic data rebalancing and shard management are handled for you.\n- You get distributed ACID transactions without writing coordination logic.\n- The SQL interface means your application changes are minimized (mostly connection string + some query adjustments).\n- Both have strong consistency guarantees, so you do not sacrifice correctness.\n\n**Between the two:** If you are on AWS or GCP and want the path of least resistance, **Spanner** (GCP) has the most mature managed offering but locks you into Google. **CockroachDB** is more portable, has a better self-hosted option if you ever go off-cloud, and is PostgreSQL wire-compatible, which meaningfully reduces migration friction from a Postgres codebase. For most companies not already deep in GCP, **CockroachDB is the practical starting point.**\n\n### Do these things first, in parallel\n\nDo not migrate under duress. Buy yourself runway immediately:\n\n1. **Vertical scale your current instance** \u2014 this is underrated and often buys 6\u201312 months cheaply.\n2. **Add PgBouncer or pgpool** for connection pooling if you have not already \u2014 connection overhead is frequently a hidden write bottleneck.\n3. **Audit your slow writes** \u2014 missing indexes, unnecessary synchronous commits, long-running transactions, and lock contention cause a large percentage of \"Postgres is slow\" problems and are fixable without architecture changes.\n4. **Add a read replica** and route read traffic there \u2014 even if writes are the stated problem, relieving read pressure often helps write latency indirectly.\n\nThen execute your CockroachDB migration on a deliberate timeline (typically 3\u20136 months for a non-trivial app), not as an emergency.\n\n### The decision in one sentence\n\nSelf-managed sharding trades a performance problem for an operational complexity problem you will carry forever; a managed distributed SQL database trades a moderate migration cost for a system that scales without you becoming a database infrastructure team.",
+          "input_tokens": 123,
+          "output_tokens": 1111,
+          "seconds": 28.72,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "consistency"
+        ],
+        "self_preference_delta": 3.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.3,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "The factual content about distributed SQL capabilities, sharding complexity, ACID properties, and operational overhead is largely correct. However, all three runs commit the critical analytical error of treating 'genuine throughput bottleneck' as the background assumption while confidently recommending managed distributed SQL \u2014 the dominant assumption per the expected output is that the problem may be an un-tuned or under-provisioned instance, and that case should drive the primary recommendation branch. The framing of the answer is off-task relative to the pattern's intent.",
+          "evidence": "Run 1 Assumption 3 correctly flags 'unoptimized queries, poor indexing, or inefficient schema design' as the alternative, but then the recommendation section ignores it entirely and opens with 'Move to a managed distributed SQL database.' Same flaw in Run 2 Assumption 2 and Run 3 Assumption 1 \u2014 the counterfactual is listed then abandoned.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 2,
+          "justification": "The outputs do include numbered assumptions and a recommendation section, but they do not fully satisfy the required pattern. The prompt required 4-6 load-bearing assumptions that each name a specific alternative path; the runs include several generic or non-load-bearing assumptions (e.g., workload type, strong ACID, future geo-distribution) and often fail to connect them to a concrete reversed recommendation. More importantly, the recommendation is not explicitly contingent on the assumptions in the decisive way requested, and the key assumption about tuning-first is not treated as the primary branch. The assumption list also tends to dwarf the recommendation, especially in Run 3, contrary to the format spec.",
+          "evidence": "Run 1 has 5 assumptions but includes broad/overgeneralized items like \"Your application workload is primarily OLTP...\" and \"High availability, fault tolerance... are critical\"; the recommendation section then gives a standalone verdict: \"Move to a managed distributed SQL database like CockroachDB or Spanner.\" Run 3 spends extensive space on assumptions and justification, while the recommendation is only \"I strongly recommend that you move to a managed distributed SQL database like CockroachDB or Spanner.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The responses largely follow the requested shape\u2014numbered assumptions followed by a recommendation\u2014but they deviate from the exact format intent in meaningful ways. The format spec asked for two clearly separated sections, with the assumption list not dwarfing the recommendation and each item containing the mandatory counterfactual naming the alternative path. Runs 1 and 2 include extra sections like detailed justification, considerations, and conclusions; Run 3 adds \"Why not...\" and \"Next Steps,\" which goes beyond the specified two-section structure. So the shape is mostly right, but not exact.",
+          "evidence": "Run 1 includes \"### Recommendation:\" followed by a long \"### Justification:\" section. Run 2 includes \"**Recommendation:**\" then separate \"**Reasoning:**\" and \"**Considerations:**\" sections. Run 3 includes \"### Recommendation\" plus \"Why not 'shard Postgres ourselves'?\" and \"Next Steps:\". The prompt required: \"Two clearly separated sections. First, a NUMBERED list... Second, a recommendation section...\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally pragmatic, senior-engineer oriented, and direct, which matches the intended audience reasonably well. However, it often becomes overly verbose and hedged, and it leans into generic consultancy language rather than the requested concise, decisive advisory style. Run 3 is closest in directness; Run 1 and Run 2 are more expansive and less punchy than ideal.",
+          "evidence": "Run 3 says \"I strongly recommend that you move to a managed distributed SQL database like CockroachDB or Spanner,\" which is decisive. But Run 1 and Run 2 include broad framing like \"This recommendation is based on the critical need to address current scaling issues\" and \"Based on the assumptions above, I strongly recommend...\" with substantial explanatory padding.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are safe: they concern database architecture advice, contain no harmful content, and avoid disallowed behavior. There is no evident unsafe, abusive, or biased content.",
+          "evidence": "All three runs discuss database scaling, operational tradeoffs, and migration considerations only; e.g., Run 2's \"Cost,\" \"Vendor lock-in,\" and \"Migration Complexity\" sections are normal technical advice.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "Token counts are high (3445, 3610, 5337) and proportionally much of the content is spent re-justifying distributed SQL benefits rather than exercising the assumption-surfacing pattern correctly. The critical analysis (tuning-first as the live branch, explicit contingency) that would actually justify the tokens is absent, while lengthy enumeration of CockroachDB/Spanner feature advantages is present in all runs. Run 3 at 5337 tokens adds a 'Why not shard?' section and 'Next Steps' that repeat already-stated points.",
+          "evidence": "Run 3 'Why not shard Postgres ourselves?' section re-explains sharding complexity with five sub-bullets over ~300 tokens after the same points were already covered in the assumptions and recommendation sections. Run 1 recommendation section has four major sub-headers each with multiple paragraphs repeating the same operational-burden theme.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 1.67,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically stable: all three broadly recommend managed distributed SQL over DIY sharding and all surface similar themes (team expertise, bottleneck, ACID, operational burden, growth). They do differ in coverage and emphasis\u2014Run 1 leans into OLTP/ACID and TCO, Run 2 into geo-distribution and vendor lock-in, Run 3 into tuning-first and partitionability\u2014but these are variations on the same core answer rather than contradictions. Since wording variation alone is not inconsistency, the outputs are mostly consistent, though not identical in structure or quality. [lexical similarity ratio: 0.031]",
+          "evidence": "Run 1: \"Move to a managed distributed SQL database like CockroachDB or Spanner.\" Run 2: \"I strongly recommend moving to a managed distributed SQL database like CockroachDB or Spanner.\" Run 3: \"I strongly recommend that you move to a managed distributed SQL database like CockroachDB or Spanner.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          },
+          "lexical_similarity": 0.031
+        }
+      },
+      "judge_summary": "All three runs correctly apply the two-section format and include numbered assumptions with 'if false' counterfactuals, covering team expertise, ACID requirements, and \u2014 importantly \u2014 the possibility that the bottleneck is a tuning/optimization problem rather than a fundamental scaling wall. However, all three commit the same critical pattern failure: they list the un-tuned-instance case as an assumption then ignore it in the recommendation, confidently recommending managed distributed SQL without making the recommendation explicitly contingent on the assumptions holding. The dominant assumption per the expected output (that the problem may be under-provisioning or missing indexes rather than a true throughput wall, which would flip the recommendation to 'exhaust vertical scaling and tuning first') is acknowledged but not treated as the primary live branch. Additional misses common to all runs: data volume/growth trajectory axis, the natural shard key as a distinct assumption (only Run 3 covers it), Citus as an explicit middle path, and the CockroachDB vs Spanner choice as secondary to the cloud lock-in question. Token efficiency is poor \u2014 substantial volume is spent on distributed SQL feature justification rather than on the pattern's core value of contingent, assumption-grounded reasoning.",
+      "runs": [
+        {
+          "text": "Before giving a recommendation, here are the assumptions I am making to interpret your request, along with how my recommendation would change if each assumption were false:\n\n---\n\n### Assumptions:\n\n1.  **Assumption: Your application workload is primarily OLTP (Online Transactional Processing) with a high mix of reads and writes, requiring strong ACID guarantees (Atomicity, Consistency, Isolation, Durability) across transactions.**\n    *   *If false:* If your workload is primarily OLAP (analytics), a data warehouse solution (e.g., Snowflake, BigQuery, Redshift) might be more appropriate. If ACID guarantees are not strictly necessary for all data (e.g., eventual consistency is acceptable), or if your data model is very simple key-value, other NoSQL solutions could be considered. My recommendation would shift away from distributed relational databases or suggest a hybrid approach.\n\n2.  **Assumption: Your current team has strong application development skills and Postgres operational experience, but limited deep expertise in distributed systems architecture, advanced database sharding internals, and 24/7 SRE/DevOps for building and maintaining highly available custom database clusters from scratch.**\n    *   *If false:* If you have a dedicated, expert SRE/DevOps team with significant experience in designing, building, and operating complex distributed systems (e.g., maintaining large-scale Kafka, Kubernetes, or custom sharded microservices environments), then self-sharding Postgres becomes a more *technically feasible*, albeit still complex and resource-intensive, option. My recommendation would acknowledge this expertise and explore self-sharding Postgres more seriously, potentially starting with simpler sharding patterns.\n\n3.  **Assumption: The \"slowness\" you're experiencing is primarily due to reaching the limits of a single Postgres instance's vertical scalability (CPU, I/O, memory saturation) during peak write operations and contention, and not primarily due to unoptimized queries, poor indexing, or inefficient schema design that could be resolved with tuning.**\n    *   *If false:* If the slowness is due to specific hot queries, poor indexing, or inefficient schema design, these issues should be addressed first. A fundamental architectural shift might be premature and won't solve underlying inefficiencies. My recommendation would be to first conduct a thorough performance audit and optimization effort on your existing Postgres instance before considering sharding or migration.\n\n4.  **Assumption: High availability, fault tolerance, and future horizontal scalability (beyond what a single, larger Postgres instance can economically or practically provide) are critical, non-negotiable requirements for your application's continued growth.**\n    *   *If false:* If your application can tolerate some downtime or data loss, or if your future scaling needs are modest (e.g., a few more years of vertical scaling with read replicas is sufficient), then self-sharding or even a distributed SQL solution might be overkill and too expensive for your current needs. My recommendation would be to continue scaling vertically with a larger Postgres instance, possibly utilizing read replicas for read scaling, and defer a distributed solution.\n\n5.  **Assumption: You are willing to incur potentially higher direct infrastructure costs (monetary) associated with managed distributed SQL in exchange for a significantly reduced operational burden (team effort/time) and improved scalability, reliability, and time-to-market for new features.**\n    *   *If false:* If minimizing direct infrastructure costs is the absolute top priority, even at the expense of significant engineering effort, slower development cycles, and increased operational risk, then self-sharding Postgres (potentially leveraging open-source tools like Citus, but still self-managed) might be preferred. My recommendation would acknowledge the higher Total Cost of Ownership (TCO) of managed distributed SQL and explore ways to minimize direct costs, leaning towards a bare-bones self-sharding approach.\n\n---\n\n### Recommendation:\n\n**Move to a managed distributed SQL database like CockroachDB or Spanner.**\n\n---\n\n### Justification:\n\nThis recommendation is based on the critical need to address current scaling issues, prepare for future growth, and most importantly, optimize your engineering team's focus and resources.\n\n1.  **Unmatched Operational Simplicity (The #1 Reason):**\n    *   **Self-sharding Postgres** is an *extremely* complex undertaking. It requires your team to become experts in distributed systems, network engineering, consensus protocols, data consistency models, and 24/7 SRE support for a custom-built database cluster. You would be solving problems like: designing robust sharding keys and logic, handling distributed transactions (which are notoriously difficult to implement correctly and efficiently across shards), managing data rebalancing as your data grows or shrinks, implementing robust failover and recovery mechanisms across shards, performing schema changes across hundreds or thousands of logical databases, and building comprehensive monitoring, alerting, backup, and upgrade tooling for this bespoke system. This is a monumental effort that will divert significant resources from your core product development.\n    *   **Managed Distributed SQL (CockroachDB, Spanner)** abstracts away almost all of this complexity. They are designed from the ground up to handle horizontal scalability, high availability, replication, sharding, and data rebalancing automatically, often across geographic regions. Your team can focus on writing application code, not managing a distributed database.\n\n2.  **Built-in Scalability and Reliability:**\n    *   Both CockroachDB and Spanner are inherently designed for horizontal scalability, allowing you to add more nodes to handle increased load and storage needs without significant application changes. They provide strong consistency and ACID guarantees across the entire cluster, simplifying application development by eliminating the need to write complex distributed transaction logic.\n    *   They offer high availability and fault tolerance as core features, automatically handling node failures and ensuring data durability and availability, which is incredibly difficult to achieve with a custom-sharded Postgres setup.\n\n3.  **Future-Proofing:**\n    *   These solutions are built to handle massive scale and high demand, making them excellent choices for future growth. If your application ever needs multi-region deployments for lower latency or enhanced disaster recovery, these platforms are designed for it.\n\n4.  **Reduced Total Cost of Ownership (TCO) in the Long Run:**\n    *   While the direct infrastructure costs for managed distributed SQL might appear higher upfront compared to running open-source Postgres, the *total cost of ownership* is almost certainly lower. The engineering effort, specialized hiring, ongoing maintenance, and potential for outages or data inconsistencies with a custom-sharded solution would far outweigh any initial monetary savings. Your engineering team's time is your most valuable resource.\n\n**In summary:** You're feeling the pain of a single Postgres instance, indicating a need for horizontal scaling. Attempting to build your own distributed database system on top of Postgres (self-sharding) is a perilous, resource-intensive, and often unsustainable path for most organizations. Leveraging a battle-tested, managed distributed SQL solution allows your team to achieve the necessary scalability and reliability with significantly less operational burden and risk, freeing them to focus on delivering value through your main application.",
+          "input_tokens": 113,
+          "output_tokens": 3445,
+          "seconds": 18.72,
+          "run": 1
+        },
+        {
+          "text": "Here are the assumptions I'm making to interpret your request, along with how my recommendation would change if each assumption were false:\n\n---\n\n**Assumptions:**\n\n1.  **Team Expertise & Operational Capacity:** Your engineering team is primarily focused on application development, has some Postgres experience, but does *not* have a large, dedicated, and experienced database reliability engineering (DBRE) or SRE team ready to design, implement, and continuously operate a complex distributed database system from scratch.\n    *   **If False (You have a large, expert DBRE/SRE team):** Self-sharding Postgres becomes a much more viable and potentially attractive option. My recommendation would shift to a more balanced \"it depends on your specific priorities for control vs. managed services\" stance, potentially leaning towards self-sharding if extreme customization, vendor avoidance, and granular cost control are paramount and you have the expertise to execute flawlessly.\n\n2.  **Primary Bottleneck is Write Scalability:** The statement \"writes are getting slow during peak hours\" genuinely points to hitting the vertical write limits of a single Postgres instance, indicating a need for horizontal write scaling, rather than merely inefficient queries, poor indexing, or read-heavy loads.\n    *   **If False (Bottleneck is poor queries/indexing/read scaling):** My recommendation would first be to conduct a thorough performance audit, optimize existing queries, add appropriate indexes, and potentially leverage read replicas or caching. This foundational work could significantly delay or even negate the need for either sharding or a distributed SQL database.\n\n3.  **Strong Consistency & ACID Properties Required:** Your application requires transactional integrity and strong data consistency (ACID properties) across its operations, even as the database scales horizontally and data is distributed.\n    *   **If False (Eventual consistency is acceptable for some data):** My recommendation would broaden to include NoSQL solutions or specialized sharding strategies that leverage weaker consistency models for certain parts of the data. These can offer higher performance and lower complexity/cost for specific use cases where strong consistency isn't a strict requirement.\n\n4.  **Value of Operational Simplicity & Developer Experience:** Your team prioritizes minimizing operational overhead for the database, simplifying management, and wants developers to be able to interact with the database using standard SQL patterns without significant application-side sharding logic or complex distributed transaction handling.\n    *   **If False (Operational control & customization are paramount, even with high overhead):** Self-sharding Postgres would be considered more favorably. It offers maximum control and customizability, albeit at a significant operational cost and increased complexity for the development team. My recommendation would emphasize this trade-off.\n\n5.  **Future-proofing for High Availability / Geo-Distribution:** While not explicitly stated as a current pain point, the mention of Spanner implies a potential future need for extreme high availability, disaster recovery across regions, or true geo-distributed capabilities, beyond what a single-region sharded Postgres setup could easily provide.\n    *   **If False (Only single-region horizontal write scaling is needed for the foreseeable future):** The strong multi-region/geo-distribution capabilities of managed distributed SQL might be considered \"overkill\" and potentially more expensive than strictly necessary. My recommendation might lean towards exploring a well-architected self-sharded Postgres solution *first* for single-region scaling, deferring the more complex distributed SQL move unless true geo-distribution becomes a hard requirement.\n\n---\n\n**Recommendation:**\n\nBased on the assumptions above, **I strongly recommend moving to a managed distributed SQL database like CockroachDB or Spanner.**\n\n**Reasoning:**\n\n1.  **Reduced Operational Burden & Risk (Assumption 1 & 4):** Building and maintaining a robust, highly available, and performant sharding solution for Postgres is an extremely complex undertaking. It requires deep expertise in database internals, distributed systems, replication, failover, rebalancing, and data migration. Mistakes can lead to data loss, extended downtime, or corrupt data. Managed distributed SQL databases abstract away this complexity, offering a \"Postgres-like\" interface while handling the distributed challenges (sharding, replication, rebalancing, fault tolerance) transparently. This allows your team to focus on application development rather than becoming a distributed database operations team.\n2.  **True Horizontal Write Scalability (Assumption 2):** Self-sharding Postgres *can* provide horizontal write scalability, but it's achieved by manually splitting your data across independent Postgres instances. This often requires significant application-level changes to route queries, handle cross-shard transactions (if needed), and manage data distribution. Distributed SQL databases are designed from the ground up to scale writes horizontally across many nodes, often without requiring application changes, presenting a single logical database interface.\n3.  **Strong Consistency & ACID at Scale (Assumption 3):** Both CockroachDB and Spanner offer strong ACID guarantees and transactional consistency across the entire distributed cluster, which is critical for many enterprise applications. Achieving this with self-sharded Postgres, especially for transactions spanning multiple shards, is incredibly difficult, often requiring complex two-phase commit implementations or relaxing consistency.\n4.  **Future-Proofing for Availability & Geo-Distribution (Assumption 5):** The built-in replication, fault tolerance, and multi-region capabilities of CockroachDB and Spanner are a significant advantage. They offer robust disaster recovery and the ability to place data closer to users globally, which is extremely challenging and expensive to implement with self-sharded Postgres. This buys you significant scalability and resilience for future growth without another major architectural overhaul.\n5.  **Developer Experience (Assumption 4):** These databases generally offer a familiar SQL interface (often Postgres-compatible), allowing developers to interact with the distributed system as if it were a single, powerful database. This minimizes the learning curve and reduces the need for application-level sharding logic, which can be a major source of bugs and development slowdowns.\n\n**Considerations:**\n\n*   **Cost:** Managed distributed SQL databases are typically more expensive than running self-managed Postgres instances, especially at larger scales. You will need to factor this into your budget. However, compare the direct infrastructure cost with the *total cost of ownership*, including the significant engineering hours required for self-sharding (design, implementation, testing, monitoring, maintenance, debugging).\n*   **Vendor Lock-in:** Moving to a proprietary managed service (like Spanner) or even a specific managed open-source-compatible distributed SQL database carries some degree of vendor lock-in. Evaluate the exit strategy and data portability options. CockroachDB, being Postgres-wire compatible and open-source at its core, generally offers more flexibility than Spanner.\n*   **Migration Complexity:** Migrating from a single Postgres instance to *any* distributed solution will involve downtime or a complex zero-downtime migration strategy. Plan this carefully.\n\nIn conclusion, while self-sharding Postgres offers ultimate control, the immense complexity, operational burden, and high risk associated with building and maintaining such a system usually outweigh the benefits for teams that are not specialized database infrastructure providers. A managed distributed SQL database offers a path to horizontal scalability, high availability, strong consistency, and future-proofing with significantly reduced operational overhead, allowing your team to focus on delivering value in your core application.",
+          "input_tokens": 113,
+          "output_tokens": 3610,
+          "seconds": 19.28,
+          "run": 2
+        },
+        {
+          "text": "Before answering, here are the assumptions I am making to interpret your request:\n\n1.  **The primary bottleneck is horizontal write scalability beyond the capabilities of a single Postgres instance.** This implies that vertical scaling (upgrading hardware), query optimizations, proper indexing, and efficient connection pooling have been thoroughly explored or are deemed insufficient for the anticipated growth.\n    *   *If this assumption is false:* If simple vertical scaling, query optimization, or better indexing/connection pooling could resolve the performance issues for the foreseeable future, my recommendation would shift to focusing on those less disruptive and complex solutions first.\n2.  **The application requires strong transactional consistency (ACID properties) across potentially distributed data.** The \"main app\" often has complex business logic that relies on atomic transactions spanning multiple tables, and compromising on ACID properties can lead to severe data integrity issues.\n    *   *If this assumption is false:* If the application can tolerate eventual consistency or if its data access patterns are highly localized such that cross-shard transactions are rare or easily managed at the application layer, then manual application-level sharding of Postgres becomes a much more viable and potentially simpler/cheaper option.\n3.  **The engineering team is competent with application development and operating a single Postgres instance, but does not possess deep expertise in building, operating, and maintaining highly available, resilient, and performant distributed database systems from scratch.**\n    *   *If this assumption is false:* If the team has significant SRE expertise in distributed systems and a strong desire to own the entire database stack (perhaps for extreme cost control or customization), then building a custom sharding solution on Postgres (potentially using tools like Citus) becomes a more attractive and feasible path.\n4.  **The organization prefers to offload operational burden for critical infrastructure when possible, balancing cost against operational complexity and reliability.** Maintaining complex distributed systems introduces significant overhead in monitoring, backups, upgrades, disaster recovery, scaling operations, and incident response.\n    *   *If this assumption is false:* If the organization has a strong mandate for self-hosting all infrastructure, even when it requires significant internal expertise and operational overhead, then a self-managed, sharded Postgres solution would be favored.\n5.  **Future growth anticipates needing substantial horizontal scalability that might eventually extend to multi-region deployments for resilience, performance, or compliance.** While the current problem is peak hour writes, the \"where this goes in a year\" implies significant and potentially global growth, for which distributed SQL databases are inherently designed.\n    *   *If this assumption is false:* If future growth is strictly single-region and primarily focused on capacity scaling rather than global distribution, then a regionally-focused sharding solution for Postgres (like Citus) might be a more targeted and potentially less expensive alternative to globally distributed SQL databases.\n6.  **The application's data model and query patterns are not trivially partitionable such that all operations can easily be constrained to a single shard.** That is, there are likely complex queries, transactions, or joins that would naturally span multiple shards in a manually sharded environment.\n    *   *If this assumption is false:* If the data model and query patterns naturally lend themselves to very clean partitioning with minimal cross-shard interactions (e.g., each customer's data is fully isolated), then manual application-level sharding becomes much simpler to implement and manage, reducing the appeal of distributed SQL's transparent sharding.\n\n---\n\n### Recommendation\n\nGiven your current challenges with write scalability and your concerns about future growth, combined with the assumptions listed above, I strongly recommend that you **move to a managed distributed SQL database like CockroachDB or Spanner.**\n\n**Justification:**\n\n1.  **Transparent Horizontal Scaling with ACID Guarantees:** Distributed SQL databases are purpose-built to scale writes horizontally across many nodes while maintaining full ACID transactional consistency. This means your application logic generally doesn't need to be aware of sharding, simplifying development and reducing the risk of data integrity issues that are common with manual sharding.\n2.  **Reduced Operational Burden:** By opting for a *managed* distributed SQL service, you offload the immense complexity of operating a distributed database to the provider. This includes handling high availability, backups, upgrades, monitoring, and scaling operations, freeing your engineering team (Assumption 3 & 4) to focus on your core application rather than becoming distributed database experts.\n3.  **Future-Proof for Significant Growth:** These databases are designed for massive scale, including multi-region and global deployments (Assumption 5), offering a robust and resilient platform for your \"main app\" as it continues to grow. You won't face another fundamental scaling rewrite in a year or two.\n4.  **Handles Complex Workloads:** Distributed SQL databases excel at supporting complex data models and queries that span across data, something that becomes incredibly challenging and often compromises consistency in a manually sharded Postgres environment (Assumption 2 & 6).\n5.  **Minimizes Risk:** While any database migration carries risk, adopting a mature, managed distributed SQL solution mitigates the significant risks associated with building and operating a bespoke sharding solution in-house, which often leads to complex, fragile, and difficult-to-maintain systems.\n\n**Why not \"shard Postgres ourselves\"?**\n\n\"Sharding Postgres ourselves\" is a massive undertaking that, for most organizations, quickly devolves into building and maintaining a custom distributed database system. This typically involves:\n\n*   **Immense Complexity:** Manually managing sharding keys, application-level routing, cross-shard joins/transactions, schema migrations, rebalancing, and operational tools for many Postgres instances. This effectively means building your own database layer.\n*   **High Operational Cost:** You'll need a dedicated team of highly skilled SREs with deep distributed systems knowledge to build, operate, and maintain this system reliably.\n*   **Loss of ACID Properties:** Achieving strong transactional consistency across multiple manually sharded Postgres instances is extremely difficult, often requiring significant compromises at the application level that can introduce data integrity risks.\n*   **Vendor Lock-in (to your own solution):** You become locked into your unique sharding implementation, making it hard to leverage community tools or switch to different solutions later.\n\nWhile tools like Citus (a Postgres extension for distributed Postgres) exist, managing a Citus cluster yourself still introduces significant operational complexity compared to a fully managed distributed SQL solution, especially when considering the global scale hinted at by the option of Spanner.\n\n**Next Steps:**\n\n1.  **Evaluate CockroachDB and Spanner (or other Managed Distributed SQL solutions like YugabyteDB):** Conduct a proof of concept with a representative subset of your data and workload. Compare their features, performance characteristics, SQL compatibility (CockroachDB is highly Postgres-compatible, Spanner has its own dialect), operational models, and pricing.\n2.  **Data Model and Application Review:** Analyze your existing data model and query patterns to identify any potential adjustments needed for optimal performance on the chosen distributed SQL platform.\n3.  **Develop a Phased Migration Plan:** Plan a strategy for migrating your data and application, aiming to minimize downtime and risk.\n4.  **Cost Analysis:** Get detailed quotes and understand the total cost of ownership, factoring in not just direct database costs but also the saved operational overhead and increased developer velocity.",
+          "input_tokens": 113,
+          "output_tokens": 5337,
+          "seconds": 27.38,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1.29,
+        "max_spread": 3,
+        "contested_dims": [
+          "accuracy",
+          "tone_style"
+        ],
+        "self_preference_delta": 5.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

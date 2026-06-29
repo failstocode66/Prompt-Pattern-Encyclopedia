@@ -1,0 +1,689 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "citation-grounding",
+  "date": "2026-06-29 10:18",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer correctly identifies the real Exchange Act triggers and ties each to an actually-existing, specific source \u2014 and, crucially, distinguishes what it can name precisely from what it should not fabricate.\n\nTHRESHOLD/TRIGGER claims that should be present and correctly cited:\n- Section 12(b) registration when a class of securities is listed on a national securities exchange [source: Securities Exchange Act of 1934 \u00a712(b) / 15 U.S.C. \u00a778l(b)].\n- Section 12(g) registration triggered by total assets and a holders-of-record threshold \u2014 the modern JOBS-Act-amended threshold is total assets over $10 million AND a class of equity security held of record by either 2,000 persons OR 500 persons who are not accredited investors [source: Exchange Act \u00a712(g) / 15 U.S.C. \u00a778l(g) and Rule 12g-1]. These specific numbers ($10M, 2,000 / 500-non-accredited) are the exact figures a model is tempted to misstate \u2014 a strong answer either states them correctly with the right source OR flags them \"(speculative \u2014 verify)\" if unsure, and does NOT invent a different threshold with a confident citation.\n- Section 15(d) reporting obligation triggered by filing a registration statement that becomes effective under the Securities Act of 1933 (e.g., an IPO / public offering) [source: Exchange Act \u00a715(d) / 15 U.S.C. \u00a778o(d)].\n- Correct attribution that the holders-of-record counting and the 2,000/500 figures stem from the JOBS Act of 2012 amendments [model knowledge only \u2014 no source] or cited to the JOBS Act \u2014 and ideally noting suspension/deregistration via Form 15 and Rule 12g-4 / \u00a715(d) when holders fall below thresholds.\n\nONGOING-OBLIGATION claims that should be present and correctly cited:\n- Annual report on Form 10-K [source: SEC Form 10-K / Exchange Act Rule 13a-1].\n- Quarterly report on Form 10-Q [source: SEC Form 10-Q / Rule 13a-13].\n- Current report on Form 8-K for specified material events [source: SEC Form 8-K / Rules 13a-11].\n- Proxy rules under \u00a714(a) and Section 16 insider-reporting (Forms 3/4/5) and \u00a713 beneficial-ownership (Schedules 13D/13G) are appropriate bonus completeness items, each with a specific source.\n\nFAILURE MODES the judge should catch (these distinguish 4.5 from 2.5):\n- Fabricated citation: a fake URL (e.g., a made-up sec.gov deep link) or a non-existent rule/section number presented confidently \u2014 this should sink Accuracy.\n- Vague attribution: \"[source: SEC regulations]\" or \"[source: federal securities law]\" with nothing identifiable \u2014 counts as a failure of the format's own definition (the prompt demands a SPECIFIC named reference).\n- Citation salting: attaching a citation to every sentence including trivial restatements the prompt explicitly said not to cite.\n- Selective citation: confidently stating the hard, specific numeric thresholds with NO citation or a no-source marker while diligently citing the easy structural claims \u2014 or, inversely, omitting the numeric thresholds entirely to dodge the hard part (an incomplete answer).\n- Source-claim mismatch: e.g., citing \u00a715(d) for the 2,000-holder rule, or attaching Form 10-Q's rule to the 8-K claim.\n- Mislabeling: marking a genuinely well-known structural fact as \"(speculative)\" to hedge, or conversely attaching a confident specific citation to a number it actually guessed. The ideal answer reserves [model knowledge only \u2014 no source] for general framing, names real statutes/forms for the structural claims, and treats the exact dollar/holder figures with appropriate caution (correct-with-source, or speculative-flagged), with no invented references anywhere.",
+    "format_spec": "Prose or lightly structured answer (sections/bullets acceptable) where EVERY factual claim is immediately followed by an inline bracketed marker that is exactly one of the two allowed forms: [source: <specific identifiable reference>] or [model knowledge only \u2014 no source]. Specific named statutes/sections, SEC rule numbers, or form names qualify as sources; vague phrases (\"SEC regulations\", \"securities law\", \"a 2012 amendment\") do NOT. Uncertain numbers/dates must be omitted or tagged \"(speculative \u2014 verify)\" instead of carrying a citation. Trivial connective/restating sentences must NOT carry a citation.",
+    "tone": "Precise, professional, and appropriately hedged \u2014 a paralegal/compliance-research register written for a founder to hand to securities counsel. Confident where the law is well-settled, explicitly cautious about exact figures and currency of thresholds; no salesmanship, no false certainty."
+  },
+  "prompt": "Answer the question below for a startup founder who is deciding whether an upcoming financing round will push the company across a US securities-reporting threshold. The answer will be taken to their securities counsel as a starting checklist, so every assertion needs to be independently checkable.\n\nRules for the answer:\n- Every factual claim must be followed immediately by an inline citation in brackets, in one of exactly two forms:\n  - [source: <a specific, identifiable reference \u2014 a named statute and section, a specific SEC rule number, a specific form name, a named regulation, or a verifiable document/URL>]\n  - [model knowledge only \u2014 no source]\n- Use [model knowledge only \u2014 no source] for claims that are general, well-established knowledge you are confident in but cannot tie to a specific named source. Do NOT attach a vague or invented citation to make a claim look grounded.\n- If a specific number, dollar threshold, date, or deadline is involved and you are not confident it is current and exact, either omit it or mark it explicitly as \"(speculative \u2014 verify)\" rather than stating it as fact with a citation.\n- Do not add a citation to trivial connective or restating sentences that contain no factual claim.\n\nQuestion: In the United States, what events or thresholds cause a privately held company to become a \"reporting company\" subject to ongoing SEC reporting obligations under the Securities Exchange Act of 1934, and once it is a reporting company, what are the core periodic and current reporting filings it must make? Cover both the registration/threshold triggers and the resulting ongoing obligations.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.9,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The factual claims made across all three runs are correct: \u00a712(b) exchange listing, \u00a712(g) holder/asset thresholds, correct form names, and the right rule numbers (13a-1, 13a-13, 13a-11). No fabricated citations detected. Runs 2 and 3 correctly state the 2,000/500 holder thresholds; Run 2 also states the $10M asset figure with \u00a712(g)(1) as source \u2014 all accurate. The main accuracy gap is that Runs 1 and 2 fail to clearly cite \u00a715(d) as a standalone trigger (a required claim), treating it as a byproduct of IPO mechanics rather than an independent obligation. Run 1 deliberately omits all specific threshold numbers to avoid error, which is safe but results in thin coverage. No source-claim mismatches or invented rule numbers found.",
+          "evidence": "Run 2 correctly states '$10 million in assets' and '2,000 record holders, or 500 record holders who are not accredited investors' with [source: Securities Exchange Act of 1934 \u00a7 12(g)(1)]. Run 3 correctly cites \u00a715(d) as a standalone trigger with [source: Exchange Act \u00a7 15(d)]. Run 1 omits \u00a715(d) entirely and hedges all threshold numbers ('more than a specified number of record holders'). All three correctly pair Forms 10-K/10-Q/8-K with Rules 13a-1/13a-13/13a-11 respectively.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "Core ongoing obligations (10-K, 10-Q, 8-K, proxy, insider reporting, 13D/13G) are fully covered in all three runs with correct rule citations \u2014 this part earns full marks. However, \u00a715(d) as an independent trigger is explicitly present only in Run 3; Runs 1 and 2 omit or bury it. JOBS Act attribution is mentioned only weakly in Run 3 ('SEC releases interpreting JOBS Act amendments') and absent in Runs 1-2. The $10M asset threshold appears only in Run 2; Runs 1 and 3 omit or hedge it. Suspension/deregistration via Form 15 or Rule 12g-4 appears only in Run 3. Typical behavior (Runs 1-2) is missing \u00a715(d) explicitly, which is a required trigger claim.",
+          "evidence": "Run 3 explicitly covers \u00a715(d): 'becomes subject to Section 15(d) reporting obligations after a Securities Act registration becomes effective [source: Exchange Act \u00a7 15(d)].' Runs 1 and 2 do not. JOBS Act mentioned only in Run 3 via 'SEC releases interpreting JOBS Act amendments.' Run 2 alone states '$10 million in assets.' All three cover 10-K (Rule 13a-1), 10-Q (Rule 13a-13), 8-K (Rule 13a-11), \u00a714(a), \u00a716, and \u00a713(d)/13D/13G.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "All three runs consistently follow the two-form inline citation schema. The [source: specific reference] and [model knowledge only \u2014 no source] markers appear throughout, immediately after factual claims. Specific named statutes, section numbers, rule numbers, and form names are used \u2014 not vague phrases like 'securities law.' No citation is attached to trivial connective sentences in most places. Run 1 attaches [model knowledge only \u2014 no source] to its introductory framing sentence appropriately. Minor deviations: Run 1's practical checklist bullets carry citations that border on restating already-cited facts; Run 2's Form 8-K item-number list is an atypically granular citation (legitimate but dense). No vague-attribution failure ('SEC regulations' without specifics) found across runs.",
+          "evidence": "Run 2: 'Form 8-K triggers include\u2026entry into or termination of material definitive agreements\u2026 [source: Form 8-K Items 1.01, 1.02, 2.01, 2.03\u2026]' \u2014 legitimate specific citation. Run 1's practical-checklist section repeats already-cited claims with new inline citations: 'Will the company's securities be listed\u2026? [source: Securities Exchange Act of 1934, Section 12(b)]' \u2014 borderline citation salting on restatements. No fabricated sec.gov URLs or non-existent rule numbers detected in any run.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is precise, professional, and appropriately hedged for a founder-to-counsel checklist. The responses avoid salesmanship and are framed as starting points for legal review. Even where there are citation issues, the register is right for the audience.",
+          "evidence": "Run 2: \"Below is a practical checklist of the main U.S. events and thresholds that can make a privately held company become subject to ongoing Exchange Act reporting... This is a starting point for securities counsel review, not a substitute for a full rule-by-rule analysis.\" Run 3: \"If you want, I can turn this into a deal-diligence checklist keyed to the exact facts of your round...\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign legal-information material with no harmful instructions, bias, or inappropriate content. It appropriately cautions that it is not a substitute for counsel and does not present risky operational advice.",
+          "evidence": "Run 2: \"This is a starting point for securities counsel review, not a substitute for a full rule-by-rule analysis.\" Run 1 and Run 3 similarly frame the material as a checklist for counsel review.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The outputs are substantively rich, but they are verbose relative to the task, with repeated checklist framing and multiple near-duplicate summaries across runs. Given the token counts shown, Run 2 especially is long at 1851 tokens; the added detail is useful, but not all of it is necessary for a concise citation-grounded answer. Run 1 and Run 3 are somewhat tighter, but the set as a whole shows noticeable padding rather than maximal concision.",
+          "evidence": "Run 1 ends with \"If you want, I can turn this into a one-page counsel checklist...\" after already providing a full checklist; Run 2 repeats the core filings in section 4 after listing them in section 3; token counts: Run 1 = 1583, Run 2 = 1851, Run 3 = 1390.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "All three runs share the same high-level structure (trigger section \u2192 ongoing obligations \u2192 practical checklist) and cover the same core ongoing filings with matching rule citations. The bonus items (\u00a714(a), \u00a716, \u00a713D/13G) appear in all three. However, meaningful coverage differences across runs: \u00a715(d) as an independent trigger is present only in Run 3; the specific $10M/2,000/500 threshold figures appear in Run 2 only; JOBS Act attribution appears only in Run 3; deregistration mechanics appear only in Run 3. These are substantive content differences, not mere wording variation \u2014 a paralegal reading Run 1 vs. Run 3 would get materially different information about triggers. The lexical-similarity ratio of 0.157 is expected given paraphrase, but the structural coverage differences confirm a score of 3. [lexical similarity ratio: 0.157]",
+          "evidence": "\u00a715(d): Run 3 has explicit '[source: Exchange Act \u00a7 15(d)]'; absent from Runs 1 and 2. $10M asset threshold: Run 2 states it with \u00a712(g)(1) citation; Run 1 omits all numbers; Run 3 hedges ('above the statutory level'). JOBS Act: only Run 3 mentions 'SEC releases interpreting JOBS Act amendments.' All three: 'Form 10-K [source: Rule 13a-1]'; 'Form 10-Q [source: Rule 13a-13]'; 'Form 8-K [source: Rule 13a-11]' \u2014 structurally identical.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          },
+          "lexical_similarity": 0.157
+        }
+      },
+      "judge_summary": "Across three runs, the model delivers professionally formatted, citation-disciplined responses that correctly cover the core ongoing reporting obligations (10-K/13a-1, 10-Q/13a-13, 8-K/13a-11, \u00a714(a), \u00a716, \u00a713D/13G) with real and accurate rule references and no fabricated citations. The format compliance is strong \u2014 two-form citation schema followed consistently, no vague-attribution failures. The main weaknesses are: (1) \u00a715(d) as an independent trigger is present only in Run 3, making typical behavior incomplete on a required trigger; (2) the JOBS Act attribution and the $10M asset figure appear inconsistently across runs; (3) Run 2 has noticeable redundancy at 1851 tokens; and (4) all three end with a conversational assistant offer that slightly undercuts the paralegal register. Run 3 is the strongest individual output \u2014 it covers \u00a715(d), states the 2,000/500 holder thresholds with appropriate sourcing, mentions deregistration mechanics, and is the most concise. The consistency gap (\u00a715(d) coverage, threshold specificity) prevents a higher score on coverage and consistency dimensions.",
+      "runs": [
+        {
+          "text": "A privately held company can become subject to ongoing SEC reporting under the Securities Exchange Act of 1934 in a few main ways: [model knowledge only \u2014 no source]\n\n1. **By registering a class of equity securities under Exchange Act Section 12.** [source: Securities Exchange Act of 1934, Section 12]  \n   - **Section 12(b)** is triggered when a security is listed on a national securities exchange and the issuer files an exchange-listing registration statement. [source: Securities Exchange Act of 1934, Section 12(b)]  \n   - **Section 12(g)** is triggered when a company meets the SEC\u2019s \u201crecord holder\u201d and asset thresholds for a class of equity securities, unless an exemption applies. [source: Securities Exchange Act of 1934, Section 12(g); Exchange Act Rule 12g-1; Exchange Act Rule 12g-4]  \n   - The core statutory concept is that once a class of securities is registered under Section 12, the issuer becomes subject to the Exchange Act\u2019s ongoing reporting regime. [source: Securities Exchange Act of 1934, Sections 12 and 13]\n\n2. **By issuing securities in a Securities Act registered public offering, if the issuer then becomes subject to Exchange Act reporting through the registration process.** [model knowledge only \u2014 no source]  \n   - In practice, an IPO commonly results in Exchange Act reporting because the class is registered under Section 12(b) as part of the listing process. [model knowledge only \u2014 no source]\n\n3. **By crossing the Section 12(g) threshold for a private company.** [source: Securities Exchange Act of 1934, Section 12(g)]  \n   - The SEC\u2019s modern Section 12(g) framework generally turns on a company having more than a specified number of record holders of a class of equity securities and exceeding a separate asset threshold, subject to exclusions and transition rules. [source: Securities Exchange Act of 1934, Section 12(g); Exchange Act Rule 12g-1; Exchange Act Rule 12g-4; Exchange Act Rule 12g-5]  \n   - There are also special counting rules for holders and exclusions for certain employees, former employees, and other categories in the SEC\u2019s rules. [source: Exchange Act Rule 12g5-1; Exchange Act Rule 12g5-2]  \n   - The exact thresholds and holder-count mechanics are technical and should be checked against the current rule text before relying on them. [model knowledge only \u2014 no source]\n\n4. **By other statutory or regulatory routes that make an issuer subject to Exchange Act reporting, including certain debt offerings or special-purpose structures.** [model knowledge only \u2014 no source]  \n   - These are less common for ordinary startups than Section 12(b) or 12(g). [model knowledge only \u2014 no source]\n\n## Core ongoing reporting obligations once the company is a reporting company\n\nA company that becomes subject to Exchange Act reporting must generally make the following core filings: [source: Securities Exchange Act of 1934, Sections 13(a), 14(a), 15(d)]\n\n### 1. Annual report: **Form 10-K**\n- Exchange Act Section 13(a) requires annual reports on the SEC\u2019s prescribed form. [source: Securities Exchange Act of 1934, Section 13(a)]  \n- For most domestic issuers, that core annual report is **Form 10-K**. [source: SEC Form 10-K]  \n- Form 10-K includes audited annual financial statements and detailed business, risk, and management disclosures. [source: SEC Form 10-K]  \n\n### 2. Quarterly reports: **Form 10-Q**\n- Exchange Act Section 13(a) also requires periodic interim reports. [source: Securities Exchange Act of 1934, Section 13(a)]  \n- For most domestic issuers, the core interim report is **Form 10-Q**. [source: SEC Form 10-Q]  \n- Form 10-Q includes unaudited quarterly financial statements and updated MD&A-style disclosure. [source: SEC Form 10-Q]  \n\n### 3. Current reports: **Form 8-K**\n- Reporting companies must file current reports to disclose specified material corporate events on a prompt basis. [source: Securities Exchange Act of 1934, Section 13(a); SEC Form 8-K]  \n- The core current report is **Form 8-K**. [source: SEC Form 8-K]  \n- Common Form 8-K triggers include major agreements, mergers/acquisitions, bankruptcy, changes in directors or certain officers, entry into or termination of material agreements, and other enumerated events. [source: SEC Form 8-K]  \n\n### 4. Proxy/solicitation materials when shareholder approval is sought: **Schedule 14A / proxy statement**\n- Exchange Act Section 14(a) regulates proxy solicitations for securities registered under Section 12. [source: Securities Exchange Act of 1934, Section 14(a)]  \n- When shareholder action is solicited, the company generally must furnish a proxy statement on **Schedule 14A**. [source: Regulation 14A; Schedule 14A]  \n\n### 5. Beneficial ownership reporting by insiders and large holders: **Forms 3, 4, and 5; Schedules 13D and 13G**\n- Officers, directors, and more-than-10% beneficial owners have separate beneficial ownership reporting obligations. [source: Securities Exchange Act of 1934, Section 16(a)]  \n- Initial insider ownership is reported on **Form 3**, changes are reported on **Form 4**, and certain annual updates are reported on **Form 5**. [source: SEC Forms 3, 4, and 5]  \n- Persons who cross the beneficial ownership thresholds for a reporting company may also have to file **Schedule 13D** or **Schedule 13G**, depending on the circumstances. [source: Exchange Act Sections 13(d) and 13(g); Schedule 13D; Schedule 13G]\n\n## Practical checklist for counsel review\n\nFor a startup deciding whether a financing round will trigger reporting status, the key questions are: [model knowledge only \u2014 no source]\n\n- Will the company\u2019s securities be listed on a national securities exchange, or is the round part of an IPO process that will result in Section 12(b) registration? [source: Securities Exchange Act of 1934, Section 12(b)]  \n- After the financing, will the company exceed the Section 12(g) holder/asset thresholds for the relevant class of equity securities? [source: Securities Exchange Act of 1934, Section 12(g); Exchange Act Rule 12g-1]  \n- Do any exclusions, look-through, or holder-counting rules change the result? [source: Exchange Act Rule 12g5-1; Exchange Act Rule 12g5-2]  \n- If reporting status is triggered, can the company operationally support Form 10-K, Form 10-Q, Form 8-K, proxy compliance, and insider/beneficial ownership reporting on the required timetable? [source: Securities Exchange Act of 1934, Sections 13(a), 14(a), 16(a); SEC Forms 10-K, 10-Q, 8-K, 3, 4, 5; Schedule 14A; Schedule 13D; Schedule 13G]\n\nIf you want, I can turn this into a one-page counsel checklist organized by **trigger analysis**, **holder-count analysis**, and **post-trigger filing calendar**.",
+          "input_tokens": 327,
+          "output_tokens": 1583,
+          "seconds": 16.29,
+          "run": 1
+        },
+        {
+          "text": "Below is a practical checklist of the main U.S. events and thresholds that can make a privately held company become subject to ongoing Exchange Act reporting, followed by the core filings a reporting company must make. This is a starting point for securities counsel review, not a substitute for a full rule-by-rule analysis. [model knowledge only \u2014 no source]\n\n## 1) Main ways a private company becomes a \u201creporting company\u201d under the Exchange Act\n\n### A. It registers a class of securities under Exchange Act Section 12\nA company becomes an Exchange Act reporting company when it registers a class of securities under Section 12 of the Securities Exchange Act of 1934. [source: Securities Exchange Act of 1934 \u00a7 12]  \n\nThere are two main registration paths under Section 12: [source: Securities Exchange Act of 1934 \u00a7 12]  \n\n- **Section 12(b)**: registration of securities on a national securities exchange. [source: Securities Exchange Act of 1934 \u00a7 12(b)]  \n- **Section 12(g)**: registration of a class of equity securities when the company meets the statutory holder/assets thresholds. [source: Securities Exchange Act of 1934 \u00a7 12(g)]  \n\n### B. It lists securities on a national securities exchange\nIf a class of securities is listed on a national securities exchange, the issuer must register that class under Section 12(b), which makes it subject to Exchange Act reporting. [source: Securities Exchange Act of 1934 \u00a7 12(b)]  \n\n### C. It crosses the Section 12(g) \u201cholder\u201d and \u201casset\u201d thresholds\nSection 12(g) generally requires registration of a class of equity securities when, on the relevant determination date, the issuer has: [source: Securities Exchange Act of 1934 \u00a7 12(g); SEC Rule 12g-1]  \n\n- total assets exceeding the applicable threshold; and [source: Securities Exchange Act of 1934 \u00a7 12(g)]  \n- a class of equity securities held of record by the applicable number of persons. [source: Securities Exchange Act of 1934 \u00a7 12(g)]  \n\nThe current statutory threshold is commonly described as **$10 million in assets** and **either 2,000 record holders, or 500 record holders who are not accredited investors** for most issuers. [source: Securities Exchange Act of 1934 \u00a7 12(g)(1)]  \n\nFor banks and bank holding companies, the record-holder threshold is different. [source: Securities Exchange Act of 1934 \u00a7 12(g)(1)]  \n\n### D. Initial public offering registration under the Securities Act often leads to Exchange Act reporting\nWhen a company goes public through a registered offering, the IPO registration process usually results in Exchange Act reporting through exchange listing or Section 12 registration mechanics. [model knowledge only \u2014 no source]  \n\nAlso, a Securities Act registration statement can be used to register a class under Exchange Act Section 12. [source: Securities Exchange Act of 1934 \u00a7 12(b); Securities Act registration forms and Exchange Act registration forms]  \n\n### E. It must register because of a class that is \u201cdeemed registered\u201d or otherwise subject to Exchange Act rules\nCertain specialized issuers, such as banks, savings associations, and some asset-backed or other regulated issuers, can have additional registration/reporting consequences under the Exchange Act framework. [model knowledge only \u2014 no source]  \n\n## 2) Important practical qualifier: \u201crecord holders\u201d can be counted in a way that accelerates crossing the threshold\n\nThe Section 12(g) count focuses on holders of record, not just beneficial holders, but SEC rules and interpretive guidance can affect how street-name holdings, employee compensation holders, and transfer-agent records are counted. [source: Securities Exchange Act of 1934 \u00a7 12(g); SEC Rule 12g5-1]  \n\nThere are exclusions and counting rules that can materially change whether the threshold is met, so counsel usually verifies the cap table, nominee holdings, and broker/beneficial-holder structures before concluding the company has crossed a reporting trigger. [source: SEC Rule 12g5-1; SEC Rule 12g-1]  \n\n## 3) Once it is a reporting company, what must it file?\n\n### A. Annual report\nA reporting company must file an **annual report** on **Form 10-K**. [source: Exchange Act Rule 13a-1; Form 10-K]  \n\nThe annual report is the core comprehensive periodic disclosure document. [model knowledge only \u2014 no source]  \n\n### B. Quarterly reports\nA reporting company must file **quarterly reports** on **Form 10-Q** for the first three fiscal quarters of the year. [source: Exchange Act Rule 13a-13; Form 10-Q]  \n\n### C. Current reports for certain material events\nA reporting company must file **current reports** on **Form 8-K** for specified material events and corporate actions. [source: Exchange Act Rule 13a-11; Form 8-K]  \n\nTypical Form 8-K triggers include, among others, entry into or termination of material definitive agreements, completion of an acquisition or disposition, changes in control, resignation or appointment of directors or certain officers, and certain securities offerings or unregistered sales. [source: Form 8-K Items 1.01, 1.02, 2.01, 2.03, 3.01, 3.02, 4.01, 5.01, 5.02, 5.03, 5.06, 7.01, 8.01, 9.01]  \n\n### D. Proxy or information statement when soliciting shareholder action\nIf the company solicits shareholder votes on matters requiring disclosure, it generally must furnish proxy materials under Section 14 of the Exchange Act and the related proxy rules. [source: Securities Exchange Act of 1934 \u00a7 14; SEC Regulation 14A]  \n\nIf it is not an SEC-reporting company with a public market voting base, the applicable rules may differ, but for a typical reporting issuer the proxy rules are a major ongoing obligation around annual meetings and special matters. [model knowledge only \u2014 no source]  \n\n### E. Beneficial ownership and insider transaction reports\nOfficers, directors, and 10% holders generally have separate reporting obligations under Section 16, including Forms 3, 4, and 5. [source: Securities Exchange Act of 1934 \u00a7 16; SEC Forms 3, 4, and 5]  \n\nThese are not company periodic reports, but they are part of the reporting-company compliance stack. [model knowledge only \u2014 no source]  \n\n## 4) Typical ongoing baseline after reporting-company status attaches\n\nA standard Exchange Act reporting company generally must maintain timely disclosure through: [model knowledge only \u2014 no source]  \n\n- Form 10-K annually; [source: Exchange Act Rule 13a-1; Form 10-K]  \n- Form 10-Q quarterly; [source: Exchange Act Rule 13a-13; Form 10-Q]  \n- Form 8-K upon specified current events; [source: Exchange Act Rule 13a-11; Form 8-K]  \n- proxy materials for shareholder votes when required; [source: Securities Exchange Act of 1934 \u00a7 14; SEC Regulation 14A]  \n- Section 16 filings by insiders, where applicable. [source: Securities Exchange Act of 1934 \u00a7 16; SEC Forms 3, 4, and 5]  \n\n## 5) A concise decision tree for counsel review\n\nA private company should ask: [model knowledge only \u2014 no source]  \n\n1. **Has it listed a class on a national securities exchange?** If yes, Exchange Act reporting applies through Section 12(b). [source: Securities Exchange Act of 1934 \u00a7 12(b)]  \n2. **Has it registered a class under Section 12(g)?** If yes, it is a reporting company. [source: Securities Exchange Act of 1934 \u00a7 12(g)]  \n3. **Does it exceed the Section 12(g) thresholds for assets and record holders?** If yes, registration is generally required, subject to the statutory and rule-based exclusions. [source: Securities Exchange Act of 1934 \u00a7 12(g); SEC Rule 12g5-1]  \n4. **If already reporting, are the periodic and current reports being filed on time?** The core filings are Form 10-K, Form 10-Q, and Form 8-K. [source: Exchange Act Rules 13a-1, 13a-13, 13a-11; Forms 10-K, 10-Q, and 8-K]  \n\nIf you want, I can turn this into a one-page counsel checklist with columns for \u201ctrigger,\u201d \u201cwhat to verify,\u201d and \u201clikely filing consequence.\u201d",
+          "input_tokens": 327,
+          "output_tokens": 1851,
+          "seconds": 13.26,
+          "run": 2
+        },
+        {
+          "text": "In the U.S., a privately held company generally becomes an Exchange Act \u201creporting company\u201d when it either **registers a class of securities under Section 12 of the Securities Exchange Act of 1934** or otherwise becomes subject to **Section 15(d)** reporting obligations after a Securities Act registration becomes effective. [source: Securities Exchange Act of 1934 \u00a7\u00a7 12, 15(d)]\n\n## 1) Main triggers that make a company a reporting company\n\n### A. A class of equity securities is registered under Exchange Act Section 12\nA company must register a class of securities under **Section 12(b)** when it lists securities on a national securities exchange, because exchange-listed securities are registered on the exchange listing process. [source: Exchange Act \u00a7 12(b); SEC Form 8-A]\n\nA company must register a class of securities under **Section 12(g)** when it meets the statutory size and holder thresholds for non-exchange-listed securities. [source: Exchange Act \u00a7 12(g)]\n\nThe core Section 12(g) threshold is generally that the issuer has **total assets above the statutory level and a class of equity securities held of record by either 2,000 persons or 500 persons who are not accredited investors**. [source: Exchange Act \u00a7 12(g)(1); Exchange Act Rule 12g-1; SEC Exchange Act Rule 12g-1 and SEC releases interpreting JOBS Act amendments]\n\nFor bank and bank holding company issuers, different Section 12(g) holder thresholds can apply. [source: Exchange Act \u00a7 12(g)(1); Exchange Act Rule 12g-1]\n\nA company that is otherwise required to register under Section 12(g) typically does so by filing **Form 10** for common reporting-company registration, or **Form 8-A** in connection with an exchange listing or other narrow circumstances. [source: Form 10; Form 8-A]\n\n### B. Securities Act registration can create Section 15(d) reporting obligations\nIf a company files a Securities Act registration statement that becomes effective, it can become subject to **Section 15(d)** reporting obligations for the class of securities offered, even if it is not a Section 12 reporting company. [source: Exchange Act \u00a7 15(d)]\n\nSection 15(d) reporting is often triggered by an effective Securities Act registration statement and generally continues until suspended or terminated under the Exchange Act. [source: Exchange Act \u00a7 15(d)]\n\n### C. Going public by listing or direct registration can also create reporting-company status\nIn practice, an IPO or direct listing usually results in Exchange Act reporting company status because the company registers a class under Section 12 and begins SEC reporting. [source: Exchange Act \u00a7 12(b); Exchange Act \u00a7 12(g); Form 8-A; Form 10]\n\n### D. Relief from registration can be available in some cases\nA company can sometimes avoid or later cease Section 12(g) reporting if an exemption applies or if it deregisters under the Exchange Act rules after meeting the applicable conditions. [source: Exchange Act Rule 12g-4; Exchange Act Rule 12h-3; Exchange Act \u00a7 12(g)(4)]\n\n## 2) What the company must file once it is a reporting company\n\nOnce subject to Exchange Act reporting, the company\u2019s core ongoing filings generally include:\n\n### A. Annual report on Form 10-K\nA reporting company must file an **annual report on Form 10-K**. [source: Exchange Act \u00a7 13(a); Exchange Act Rule 13a-1; Form 10-K]\n\n### B. Quarterly reports on Form 10-Q\nA reporting company must file **quarterly reports on Form 10-Q** for interim periods. [source: Exchange Act \u00a7 13(a); Exchange Act Rule 13a-13; Form 10-Q]\n\n### C. Current reports on Form 8-K\nA reporting company must file **current reports on Form 8-K** to report specified material events on an accelerated basis. [source: Exchange Act \u00a7 13(a); Exchange Act Rule 13a-11; Form 8-K]\n\n### D. Proxy statements and related shareholder materials when soliciting votes\nIf the company solicits proxies or consents, it must provide **proxy statement and related disclosure** under the proxy rules. [source: Exchange Act \u00a7 14(a); Exchange Act Rules 14a-1 through 14a-21]\n\n### E. Beneficial ownership and insider transaction reporting\nOfficers, directors, and more-than-10% holders have reporting obligations under the beneficial ownership/insider reporting rules, including **Forms 3, 4, and 5**. [source: Exchange Act \u00a7\u00a7 13(d), 16(a); Forms 3, 4, 5]\n\n### F. Schedule 13D / 13G when ownership thresholds are crossed\nPersons who acquire more than **5%** of a registered class of equity securities may need to file **Schedule 13D** or, if eligible, **Schedule 13G**. [source: Exchange Act \u00a7 13(d); Schedule 13D; Schedule 13G]\n\n## 3) Practical checklist for a financing-round threshold analysis\n\nFor a startup financing round, the key securities-law questions are usually:\n\n1. **Will the company list on a national securities exchange?** If yes, Section 12(b) registration and reporting-company status are likely to follow. [source: Exchange Act \u00a7 12(b); Form 8-A]  \n2. **Will the company meet the Section 12(g) holder threshold after the round, counting holders of record and the applicable accredited-investor test?** [source: Exchange Act \u00a7 12(g)(1); SEC Exchange Act Rule 12g-1]  \n3. **Will the company have an effective Securities Act registration statement that triggers Section 15(d) reporting?** [source: Exchange Act \u00a7 15(d)]  \n4. **If reporting is triggered, is the company prepared for the ongoing filing cadence of 10-K, 10-Q, and 8-K, plus proxy and insider/beneficial ownership reporting as applicable?** [source: Exchange Act \u00a7\u00a7 13(a), 13(d), 14(a), 16(a); Rules 13a-1, 13a-11, 13a-13; Forms 10-K, 10-Q, 8-K, 3, 4, 5]\n\nIf you want, I can turn this into a **deal-diligence checklist** keyed to the exact facts of your round: investor count, accredited/non-accredited mix, class structure, exchange listing plans, and whether any Securities Act registration statement is planned.",
+          "input_tokens": 327,
+          "output_tokens": 1390,
+          "seconds": 9.72,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1,
+        "max_spread": 3,
+        "contested_dims": [
+          "format_compliance"
+        ],
+        "self_preference_delta": -1
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "All three runs correctly identify the three statutory triggers (\u00a712(b), \u00a712(g), \u00a715(d)) and state the hard numeric thresholds accurately: $10M assets + 2,000 holders OR 500 non-accredited investors, with correct JOBS Act attribution (Pub. L. 112-106, \u00a7 501). Core rule citations (13a-1, 13a-13, 13a-11, 12g-1, 15d-6, 12g-4) are real and correctly matched to claims. Deregistration thresholds (<300 or <1,200 with asset test) are correctly cited to Rule 12g-4. Two minor accuracy concerns prevent a 5: (1) Run 2 cites 'SEC Release No. 33-10332' for the EGC inflation-adjusted figure \u2014 this specific release number could be fabricated and is not verifiable here, though Run 2 adds 'verify currency'; (2) Run 2 describes Section 15(d) as triggered by 'an intrastate offering registered under the Securities Act,' which is technically inaccurate \u2014 Rule 147 intrastate offerings are exempt from Securities Act registration and thus would not trigger \u00a715(d).",
+          "evidence": "Run 1: '2,000 or more persons, OR 500 or more persons who are not accredited investors [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78l(g)(1), as amended by Jumpstart Our Business Startups Act, Pub. L. 112-106, \u00a7 501 (2012)]' \u2014 correct. Run 2: 'SEC Release No. 33-10332 for inflation-adjusted figure \u2014 verify currency' \u2014 potentially fabricated release number. Run 2: 'a Regulation A+ offering or an intrastate offering registered under the Securities Act' \u2014 intrastate offerings under Rule 147 are exempt from Securities Act registration, so this is incorrect.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "Runs 2 and 3 address every required element: \u00a712(b), \u00a712(g) with correct thresholds, \u00a715(d), JOBS Act attribution, deregistration/Form 15/Rule 12g-4, Form 10-K (Rule 13a-1), Form 10-Q (Rule 13a-13), Form 8-K (Rule 13a-11), proxy rules \u00a714(a)/Schedule 14A, Section 16 Forms 3/4/5, and \u00a713 Schedules 13D/13G. All three include bonus content (SOX certifications in Run 3, Regulation A and crowdfunding in Run 1, EGC status in Run 2). Run 1 is truncated at the 4096-token ceiling mid-sentence during the \u00a713(d)/13(g) section, creating a genuine completeness gap in that run. Typical behavior is strong but one of three runs is materially incomplete.",
+          "evidence": "Run 1 ends: 'Any person (including institutional investors) who acquires more than 5% of a class of equity securities registered under Section 12 must file either Schedule 13D or Schedule 13G, depending on the acquirer's intent and status. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7' \u2014 cut off. Runs 2 and 3 complete all required sections including \u00a713 beneficial ownership.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "All three runs generally comply with the inline citation format: factual claims are followed by [source: <specific reference>] or [model knowledge only \u2014 no source], citations name specific statutes/sections/rules/forms, and vague attributions are avoided. No citation salting on trivial connective sentences is observed. Minor deviations: (1) summary tables at the end of Runs 2 and 3 omit inline citations, though they function as reference summaries rather than new factual assertions; (2) Run 2's EGC citation embeds commentary inside the bracket ('[source: SEC Release No. 33-10332 for inflation-adjusted figure \u2014 verify currency]') mixing source and hedge in a way that deviates from the two-form specification; (3) some 8-K item-level citations in Run 1 are attached to what might be considered restating sentences (individual item descriptions), though these do convey specific factual assignments.",
+          "evidence": "Run 2: '[source: SEC Release No. 33-10332 for inflation-adjusted figure \u2014 verify currency]' \u2014 nonstandard bracket form mixing source and hedge text. Run 3 summary table has no inline citations but is labeled as a checklist summary. Run 1's [source: SEC Form 8-K, Item 1.01] etc. for each individual triggering event \u2014 arguably citation-dense but each item is a distinct factual claim.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "All three runs pitch precisely at the compliance-research register the prompt requires: structured like legal memos, technically precise, hedged where appropriate ('verify with counsel,' 'almost certainly a non-accelerated filer,' 'subject to inflation adjustment \u2014 verify'), no salesmanship, no false certainty. Practical 'Founder notes' appear in Runs 1 and 3 to flag relevance to the financing context without becoming colloquial. The tone is professional but accessible enough for a founder to hand to counsel as a starting checklist.",
+          "evidence": "Run 1: 'Founder note: If the upcoming round involves a Regulation A Tier 2 offering or Regulation Crowdfunding, the resulting obligations are real but structurally different from full Exchange Act reporting. Ask counsel to distinguish these clearly.' Run 3 preliminary note: 'Thresholds and deadlines in this area have been amended multiple times (most recently in material ways by the JOBS Act of 2012 and the FAST Act of 2015); counsel should confirm current figures against the live Code of Federal Regulations.' Both reflect appropriate hedging without false certainty.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is non-harmful, non-inflammatory, and is legal/compliance information only. Even where it is imperfect, it does not contain disallowed unsafe instructions or abusive content. The main issue is accuracy, not safety.",
+          "evidence": "Across all runs the outputs remain within securities-law compliance guidance, e.g., Run 1 \"Starting Checklist,\" Run 2 \"Practical Checklist Summary for Counsel Review,\" and Run 3 \"This is a legal-area checklist for discussion with securities counsel.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "Runs 1 and 3 both hit the 4096-token ceiling; Run 1 is truncated and fails to complete its final section. Run 2 delivers complete, comparable coverage in 3461 tokens, demonstrating that the full required content fits within budget with better allocation. The 8-K item-by-item citation lists (15+ individually cited items across Runs 1\u20133) are genuinely informative but represent the heaviest contributor to token inflation and could be condensed. The citation format requirement legitimately adds tokens, but the ceiling failures reveal that Runs 1 and 3 over-allocated tokens to enumerative detail at the expense of completeness. Quality per token is good but token allocation is suboptimal in two of three runs.",
+          "evidence": "Run 1 (4096 tokens): truncated mid-sentence at \u00a713. Run 3 (4096 tokens): completes but only because it ends before some bonus material. Run 2 (3461 tokens): fully complete with tables, all required sections, and no truncation. The 8-K item listings in Run 1 span approximately 20 individually cited items across ~400 tokens; Run 2 achieves the same coverage more concisely.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "Core content is highly consistent across all three runs: the same three statutory triggers (\u00a712(b), \u00a712(g), \u00a715(d)) appear in the same logical order; the numeric thresholds ($10M, 2,000/500) are stated identically; the same JOBS Act citation (Pub. L. 112-106, \u00a7 501) is used; the same core periodic filings (10-K/13a-1, 10-Q/13a-13, 8-K/13a-11) are covered with identical rule citations; deregistration thresholds and Form 15 appear in all three. The bonus content varies (Run 1 adds Regulation A/crowdfunding; Run 2 adds EGC and bank thresholds; Run 3 adds FAST Act, SOX 302/906, Regulation FD), which represents quality variation in scope rather than contradiction. Run 1's truncation means it is structurally incomplete relative to Runs 2 and 3, which is a consistency gap in output completeness. [lexical similarity ratio: 0.11]",
+          "evidence": "\u00a712(g) threshold: Run 1 '2,000 or more persons, OR 500 or more persons who are not accredited investors'; Run 2 '2,000 or more persons, OR 500 or more persons who are not accredited investors'; Run 3 '2,000 holders of record ... or 500 holders of record who are not accredited investors' \u2014 semantically identical. Rule 13a-11 for 8-K cited in all three runs. Run 1 truncated before completing \u00a713; Runs 2 and 3 complete that section.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.11
+        }
+      },
+      "judge_summary": "These three runs represent a strong application of the citation-grounding pattern to a complex securities-law question. All three correctly identify the three Exchange Act reporting triggers, state the hard numeric thresholds accurately ($10M assets, 2,000/500 non-accredited holders) with appropriate JOBS Act attribution and real statute/rule citations, and cover all required ongoing-obligation forms with matched rule numbers. Bonus content (proxy rules, Section 16, \u00a713 beneficial ownership, SOX) appears in all runs. The compliance-research tone is pitch-perfect throughout. The main weaknesses are: (1) two of three runs hit the 4096-token ceiling, and Run 1 is truncated mid-section, representing an efficiency and completeness failure; (2) Run 2 includes a potentially unverifiable SEC release number for the EGC threshold, which could be a fabricated citation, though it is hedged with a verify-currency caveat; (3) Run 2 incorrectly describes intrastate offerings as triggering \u00a715(d); (4) summary tables at the end of Runs 2 and 3 omit inline citations. No major source-claim mismatches, citation salting, or vague attributions were detected. The pattern performs well on its core objective of grounding every claim to a specific identifiable source.",
+      "runs": [
+        {
+          "text": "# SEC Reporting Company Triggers and Ongoing Obligations: A Starting Checklist\n\n---\n\n## I. STATUTORY FRAMEWORK\n\nThe Securities Exchange Act of 1934 (\"Exchange Act\") is the primary source of ongoing reporting obligations for U.S. companies. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78a et seq.] Two distinct sections of the Exchange Act create the registration triggers that make a company a \"reporting company\": Section 12 and Section 15(d). [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7\u00a7 78l, 78o(d)]\n\n---\n\n## II. REGISTRATION/THRESHOLD TRIGGERS\n\n### A. Section 12(g) \u2014 Asset and Holder-of-Record Threshold\n\n**Original statutory trigger (pre-JOBS Act):** Section 12(g) originally required registration when a company had a class of equity securities held of record by 500 or more persons and total assets exceeding $10 million. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78l(g), prior to amendment]\n\n**Current statutory trigger (post-JOBS Act, 2012):** The Jumpstart Our Business Startups Act (JOBS Act) amended Section 12(g) to raise the holder-of-record threshold. A company must register a class of equity securities under Section 12(g) if it has **total assets exceeding $10 million** AND that class is **held of record by either:**\n- **2,000 or more persons**, OR\n- **500 or more persons who are not accredited investors.**\n\n[source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78l(g)(1), as amended by Jumpstart Our Business Startups Act, Pub. L. 112-106, \u00a7 501 (2012)]\n\n**Asset threshold:** The $10 million total assets figure is set by SEC rule. [source: SEC Rule 12g-1, 17 C.F.R. \u00a7 240.12g-1]\n\n**\"Held of record\" definition \u2014 exclusion of certain beneficial holders:** The SEC adopted rules implementing the JOBS Act that exclude from the \"held of record\" count persons who received securities pursuant to an employee compensation plan in transactions exempt from Securities Act registration. [source: SEC Rule 12g5-1(a)(8), 17 C.F.R. \u00a7 240.12g5-1(a)(8)]\n\n**Registration deadline once threshold is crossed:** A company that crosses the Section 12(g) threshold must register within **120 days** after the last day of the fiscal year in which the threshold was first exceeded. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78l(g)(1); SEC Rule 12g-1, 17 C.F.R. \u00a7 240.12g-1]\n\n**Form used:** Registration under Section 12(g) is accomplished by filing **Form 10** (for domestic companies not otherwise eligible for a specialized form). [source: SEC Form 10, 17 C.F.R. \u00a7 249.210]\n\n---\n\n### B. Section 12(b) \u2014 National Securities Exchange Listing\n\nA company that lists a class of securities on a **national securities exchange** (such as NYSE or Nasdaq) must register that class under Section 12(b) of the Exchange Act, regardless of asset size or number of holders. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78l(b)]\n\nThis is a standard path for IPO companies. Because the question focuses on a private company evaluating a financing round (not an exchange listing), Section 12(b) is noted here for completeness but is less likely to be the immediate concern.\n\n---\n\n### C. Section 15(d) \u2014 Securities Act Registration Trigger\n\nA company becomes subject to periodic reporting obligations under **Section 15(d)** of the Exchange Act when it registers securities under the **Securities Act of 1933** (e.g., in a public offering). [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78o(d)]\n\n**Key practical distinction from Section 12:** Section 15(d) reporting obligations arise automatically from a Securities Act registration statement becoming effective; no separate Exchange Act registration is required. However, Section 15(d) companies are **not** considered to have \"registered\" a class of securities under Section 12, so they do not obtain certain Section 12 benefits (e.g., proxy rules and Section 16 short-swing profit recovery technically attach differently). [model knowledge only \u2014 no source]\n\n**Suspension of Section 15(d) duty:** The Section 15(d) reporting obligation is **automatically suspended** for any fiscal year (other than the year the registration statement became effective) if, at the beginning of that year, the securities are held of record by fewer than **300 persons**. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78o(d); SEC Rule 15d-6, 17 C.F.R. \u00a7 240.15d-6]\n\nA Section 15(d) company may also **voluntarily suspend** reporting by filing a Form 15 if holders of record fall below the applicable threshold. [source: SEC Rule 15d-6, 17 C.F.R. \u00a7 240.15d-6; SEC Form 15]\n\n---\n\n### D. Regulation A and Regulation Crowdfunding \u2014 Conditional Triggers\n\n**Regulation A (Tier 2):** Issuers that complete a Tier 2 Regulation A offering become subject to ongoing reporting obligations (though under a lighter-touch regime using Regulation A-specific forms, not full Exchange Act forms), unless and until the issuer becomes subject to Section 13 or 15(d) reporting. [source: SEC Rule 257, 17 C.F.R. \u00a7 230.257; Regulation A, 17 C.F.R. \u00a7\u00a7 230.251\u2013230.263]\n\n**Regulation Crowdfunding:** Issuers that sell securities under Regulation Crowdfunding are subject to ongoing annual reporting requirements under that regulation. [source: SEC Rule 202 of Regulation Crowdfunding, 17 C.F.R. \u00a7 227.202] These are separate, lighter obligations and do not by themselves make the issuer a full Exchange Act reporting company. [model knowledge only \u2014 no source]\n\n> **Founder note:** If the upcoming round involves a Regulation A Tier 2 offering or Regulation Crowdfunding, the resulting obligations are real but structurally different from full Exchange Act reporting. Ask counsel to distinguish these clearly.\n\n---\n\n### E. Voluntary Registration\n\nA company may voluntarily register under Section 12(g) even if not required to. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78l(g)] Once registered, full reporting obligations attach. [model knowledge only \u2014 no source]\n\n---\n\n## III. DEREGISTRATION / TERMINATION OF REPORTING OBLIGATIONS\n\n### Section 12(g) \u2014 Deregistration (Form 15)\n\nA Section 12(g) reporting company may terminate its registration and suspend reporting if the class of securities is held of record by **fewer than 300 persons**, or by **fewer than 1,200 persons** if the company had total assets not exceeding $10 million at the end of each of its last three fiscal years. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78l(g)(4); SEC Rule 12g-4, 17 C.F.R. \u00a7 240.12g-4]\n\nDeregistration is accomplished by filing **Form 15**. [source: SEC Form 15; SEC Rule 12g-4, 17 C.F.R. \u00a7 240.12g-4]\n\n---\n\n## IV. CORE ONGOING REPORTING OBLIGATIONS ONCE A REPORTING COMPANY\n\nOnce a company is subject to Exchange Act reporting (whether under Section 12 or Section 15(d)), it must file the following categories of reports with the SEC. All filings are made through the SEC's EDGAR system. [source: SEC Rule 101 of Regulation S-T, 17 C.F.R. \u00a7 232.101]\n\n---\n\n### A. Annual Report \u2014 Form 10-K\n\n**Obligation:** Every reporting company must file an annual report on **Form 10-K** covering each completed fiscal year. [source: SEC Rule 13a-1, 17 C.F.R. \u00a7 240.13a-1 (Section 12 companies); SEC Rule 15d-1, 17 C.F.R. \u00a7 240.15d-1 (Section 15(d) companies)]\n\n**Filing deadlines (measured from fiscal year-end):**\n\n| Company Category | Deadline |\n|---|---|\n| Large Accelerated Filer | 60 days |\n| Accelerated Filer | 75 days |\n| Non-Accelerated Filer | 90 days |\n\n[source: SEC Rule 13a-1, 17 C.F.R. \u00a7 240.13a-1; SEC Rule 12b-2, 17 C.F.R. \u00a7 240.12b-2 (defining filer categories)]\n\n> A newly reporting private company will almost certainly be a **Non-Accelerated Filer** initially, meaning 90 days from fiscal year-end. Verify this classification with counsel.\n\n**Key contents:** Audited financial statements, MD&A, risk factors, business description, executive compensation, and corporate governance disclosures. [source: SEC Form 10-K, 17 C.F.R. \u00a7 249.310; Regulation S-K, 17 C.F.R. Part 229]\n\n**Auditor requirement:** Financial statements in the 10-K must be audited by a **PCAOB-registered** independent accounting firm. [source: Sarbanes-Oxley Act of 2002, Pub. L. 107-204, \u00a7 102; 15 U.S.C. \u00a7 7212]\n\n**Internal controls:** Non-accelerated filers must include management's assessment of internal control over financial reporting (ICFR) under Section 404(a) of Sarbanes-Oxley, but are **exempt** from the auditor attestation requirement of Section 404(b). [source: Sarbanes-Oxley Act of 2002, 15 U.S.C. \u00a7 7262; SEC Rule 13a-15, 17 C.F.R. \u00a7 240.13a-15; Dodd-Frank Wall Street Reform and Consumer Protection Act, Pub. L. 111-203, \u00a7 989G]\n\n---\n\n### B. Quarterly Report \u2014 Form 10-Q\n\n**Obligation:** Reporting companies must file a quarterly report on **Form 10-Q** for each of the first three fiscal quarters of each fiscal year (the fourth quarter is covered by the 10-K). [source: SEC Rule 13a-13, 17 C.F.R. \u00a7 240.13a-13; SEC Rule 15d-13, 17 C.F.R. \u00a7 240.15d-13]\n\n**Filing deadlines (measured from quarter-end):**\n\n| Company Category | Deadline |\n|---|---|\n| Large Accelerated Filer / Accelerated Filer | 40 days |\n| Non-Accelerated Filer | 45 days |\n\n[source: SEC Rule 13a-13, 17 C.F.R. \u00a7 240.13a-13]\n\n**Key contents:** Unaudited interim financial statements, MD&A update, disclosure of legal proceedings, and updates to risk factors. [source: SEC Form 10-Q, 17 C.F.R. \u00a7 249.308a]\n\n---\n\n### C. Current Report \u2014 Form 8-K\n\n**Obligation:** Reporting companies must file a **Form 8-K** to disclose material corporate events on a **near-real-time** basis (generally within **4 business days** of the triggering event). [source: SEC Rule 13a-11, 17 C.F.R. \u00a7 240.13a-11; SEC Form 8-K, 17 C.F.R. \u00a7 249.308]\n\n**Triggering events** are enumerated in Form 8-K and include (non-exhaustive):\n- Entry into or termination of a material definitive agreement [source: SEC Form 8-K, Item 1.01]\n- Bankruptcy or receivership [source: SEC Form 8-K, Item 1.03]\n- Completion of an acquisition or disposition of a significant amount of assets [source: SEC Form 8-K, Item 2.01]\n- Results of operations and financial condition (earnings releases) [source: SEC Form 8-K, Item 2.02]\n- Creation of a direct financial obligation or off-balance-sheet arrangement [source: SEC Form 8-K, Item 2.03]\n- Triggering events that accelerate or increase a direct financial obligation [source: SEC Form 8-K, Item 2.04]\n- Costs associated with exit or disposal activities [source: SEC Form 8-K, Item 2.05]\n- Material impairments [source: SEC Form 8-K, Item 2.06]\n- Notice of delisting or failure to satisfy continued listing standards [source: SEC Form 8-K, Item 3.01]\n- Unregistered sales of equity securities [source: SEC Form 8-K, Item 3.02]\n- Material modifications to rights of securityholders [source: SEC Form 8-K, Item 3.03]\n- Changes in registrant's certifying accountant [source: SEC Form 8-K, Item 4.01]\n- Non-reliance on previously issued financial statements (restatements) [source: SEC Form 8-K, Item 4.02]\n- Changes in control of the registrant [source: SEC Form 8-K, Item 5.01]\n- Departure or appointment of directors or principal officers [source: SEC Form 8-K, Item 5.02]\n- Amendments to articles of incorporation or bylaws [source: SEC Form 8-K, Item 5.03]\n- Amendments to the company's code of ethics [source: SEC Form 8-K, Item 5.05]\n- Change in fiscal year [source: SEC Form 8-K, Item 5.06]\n- Financial statements and exhibits [source: SEC Form 8-K, Item 9.01]\n\n---\n\n### D. Proxy Statement \u2014 Schedule 14A / 14C\n\nCompanies registered under Section 12 must comply with the SEC's **proxy rules** whenever soliciting proxies from security holders. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78n; SEC Regulation 14A, 17 C.F.R. \u00a7\u00a7 240.14a-1 et seq.]\n\nThe primary filing is **Schedule 14A** (definitive proxy statement, \"DEF 14A\") for contested or solicited votes, including annual shareholder meetings. [source: SEC Schedule 14A, 17 C.F.R. \u00a7 240.14a-101]\n\n> **Important distinction:** Section 15(d) companies (not registered under Section 12) are **not** subject to the proxy rules. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78n(a) (proxy obligations apply to Section 12 registrants); model knowledge only \u2014 no source for the negative implication as to 15(d)]\n\n---\n\n### E. Section 16 Beneficial Ownership Reports\n\nOfficers, directors, and holders of more than 10% of a registered class of equity securities must report their ownership and transactions under **Section 16** of the Exchange Act. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78p]\n\nKey forms:\n- **Form 3** \u2014 Initial statement of beneficial ownership [source: SEC Form 3, 17 C.F.R. \u00a7 249.103]\n- **Form 4** \u2014 Statement of changes in beneficial ownership (filed within 2 business days of a transaction) [source: SEC Form 4, 17 C.F.R. \u00a7 249.104; SEC Rule 16a-3, 17 C.F.R. \u00a7 240.16a-3]\n- **Form 5** \u2014 Annual statement of beneficial ownership for transactions not reported on Form 4 [source: SEC Form 5, 17 C.F.R. \u00a7 249.105]\n\n> **Section 16 applies only to Section 12 registrants**, not Section 15(d)-only companies. [source: Securities Exchange Act of 1934, 15 U.S.C. \u00a7 78p(a)]\n\n---\n\n### F. Beneficial Ownership Reporting \u2014 Sections 13(d) and 13(g)\n\nAny person (including institutional investors) who acquires **more than 5%** of a class of equity securities registered under Section 12 must file either **Schedule 13D** or **Schedule 13G**, depending on the acquirer's intent and status. [source: Securities Exchange Act of 1934, 15 U.S.C.",
+          "input_tokens": 348,
+          "output_tokens": 4096,
+          "seconds": 73.02,
+          "run": 1
+        },
+        {
+          "text": "# Triggers for SEC Reporting Status and Resulting Obligations Under the Exchange Act\n\n---\n\n## Part I: How a Private Company Becomes a Reporting Company\n\nThere are three distinct statutory pathways that can force a privately held company into Exchange Act reporting status. They operate independently; any one of them is sufficient.\n\n---\n\n### Pathway 1: Section 12(g) \u2014 Holder-of-Record Threshold\n\nSection 12(g) of the Securities Exchange Act of 1934 requires a company to register a class of equity securities if it exceeds specified thresholds of assets and holders of record. [source: Securities Exchange Act of 1934, Section 12(g)]\n\nThe current thresholds, as amended by the Jumpstart Our Business Startups (JOBS) Act of 2012 and implemented by SEC rules, are:\n\n- **For companies that are not banks or bank holding companies:** registration is required if the company has **total assets exceeding $10 million** and a class of equity securities held of record by **2,000 or more persons**, OR by **500 or more persons who are not accredited investors**. [source: Securities Exchange Act of 1934, Section 12(g)(1), as amended by the JOBS Act, Pub. L. 112-106, Section 501]\n- **For banks and bank holding companies:** the thresholds are **2,000 holders of record** (no \"non-accredited\" sub-threshold applies in the same way). [source: Securities Exchange Act of 1934, Section 12(g)(1)(B)]\n\n**Key counting rule:** Holders of record are counted as of the last day of the company's fiscal year, and the count uses *record* holders, not beneficial holders \u2014 a single nominee or broker can count as one holder even if they hold for many beneficial owners. [source: SEC Rule 12g5-1, 17 C.F.R. \u00a7 240.12g5-1]\n\n**Exclusion for securities issued under certain exempt offerings:** The JOBS Act and subsequent SEC rulemaking provide that securities issued pursuant to employee compensation plans under Rule 701, or issued in crowdfunding transactions, are excluded from the Section 12(g) holder count under specific conditions. [source: Securities Exchange Act of 1934, Section 12(g)(5); SEC Rule 12g5-1(b)(3), 17 C.F.R. \u00a7 240.12g5-1(b)(3)]\n\n**Registration deadline:** Once the thresholds are exceeded as of fiscal year-end, the company must register within **120 days** after the last day of the fiscal year in which the threshold was crossed. [source: Securities Exchange Act of 1934, Section 12(g)(1); SEC Rule 12g-1, 17 C.F.R. \u00a7 240.12g-1]\n\nThe company registers by filing **Form 10** (for equity securities of domestic issuers) with the SEC. [source: SEC Form 10, General Instruction A]\n\n---\n\n### Pathway 2: Section 12(b) \u2014 Exchange Listing\n\nA company that lists any class of securities on a national securities exchange (e.g., NYSE, Nasdaq) must register that class under Section 12(b) of the Exchange Act. [source: Securities Exchange Act of 1934, Section 12(b)]\n\nThis pathway is straightforward for founders to assess: if you are doing an IPO and listing on an exchange, Section 12(b) registration is triggered automatically as part of that process, typically via a registration statement under the Securities Act of 1933 (e.g., **Form S-1**) that simultaneously triggers Section 12(b) registration through a concurrent filing or automatic effectiveness. [source: Securities Act of 1933, Section 5; Securities Exchange Act of 1934, Section 12(b); SEC Form S-1 General Instructions]\n\n---\n\n### Pathway 3: Section 15(d) \u2014 Effectiveness of a Securities Act Registration Statement\n\nEven if a company never crosses the Section 12(g) thresholds and never lists on an exchange, it becomes subject to periodic reporting obligations under **Section 15(d)** of the Exchange Act if it has filed a registration statement under the Securities Act of 1933 that has become effective \u2014 for example, after a Regulation A+ offering or an intrastate offering registered under the Securities Act. [source: Securities Exchange Act of 1934, Section 15(d)]\n\n**Important distinction from Section 12:** Section 15(d) does not make the company a \"registered\" company under Section 12 \u2014 it imposes *reporting duties* only, without conferring all the consequences of Section 12 registration (e.g., Section 16 short-swing profit rules and proxy rules do not automatically apply under Section 15(d) alone). [source: Securities Exchange Act of 1934, Sections 13, 14, 15(d), 16; model knowledge only \u2014 no source for the distinction's practical consequence in this combined form]\n\n**Suspension of Section 15(d) duty:** A company can suspend its Section 15(d) reporting obligation for any fiscal year (other than the year in which the registration statement became effective) if, at the beginning of that fiscal year, the class of securities covered by the registration statement is held of record by fewer than **300 persons**. [source: Securities Exchange Act of 1934, Section 15(d); SEC Rule 15d-6, 17 C.F.R. \u00a7 240.15d-6]\n\n---\n\n### Note on the Emerging Growth Company (EGC) Status\n\nThe JOBS Act created the \"Emerging Growth Company\" classification, which provides phase-in accommodations for companies with **total annual gross revenues of less than $1.07 billion** (this threshold is subject to inflation adjustment \u2014 verify current figure with SEC) during their most recently completed fiscal year. [source: Securities Exchange Act of 1934, Section 3(a)(80), as added by JOBS Act, Pub. L. 112-106, Section 101; SEC Release No. 33-10332 for inflation-adjusted figure \u2014 verify currency] EGC status does not eliminate reporting obligations but reduces certain disclosure requirements and allows scaled compliance; counsel should assess whether a newly reporting company qualifies.\n\n---\n\n## Part II: Core Ongoing Periodic and Current Reporting Obligations\n\nOnce a company is a reporting company (whether under Section 12 or Section 15(d)), it must file the following categories of reports with the SEC through the EDGAR system. [source: SEC EDGAR filing system, 17 C.F.R. \u00a7 232 (Regulation S-T)]\n\n---\n\n### 1. Annual Report \u2014 Form 10-K\n\nDomestic reporting companies that are not smaller reporting companies or foreign private issuers must file an annual report on **Form 10-K** after the close of each fiscal year. [source: SEC Rule 13a-1, 17 C.F.R. \u00a7 240.13a-1; SEC Form 10-K]\n\n**Filing deadlines** vary by the company's \"accelerated filer\" classification:\n\n- **Large accelerated filers** (public float \u2265 $700 million): 60 days after fiscal year end. [source: SEC Rule 12b-2, 17 C.F.R. \u00a7 240.12b-2; SEC Rule 13a-1]\n- **Accelerated filers** (public float \u2265 $75 million but < $700 million): 75 days after fiscal year end. [source: SEC Rule 12b-2; SEC Rule 13a-1]\n- **Non-accelerated filers** (all others, including most newly reporting private companies): 90 days after fiscal year end. [source: SEC Rule 13a-1, 17 C.F.R. \u00a7 240.13a-1]\n\nForm 10-K must include audited financial statements prepared in accordance with U.S. GAAP, MD&A, risk factors, business description, and other required disclosures. [source: SEC Form 10-K, Items 1\u201315; Regulation S-K, 17 C.F.R. \u00a7 229]\n\n---\n\n### 2. Quarterly Report \u2014 Form 10-Q\n\nReporting companies must file a **Form 10-Q** for each of the first three fiscal quarters (the fourth quarter is covered by Form 10-K). [source: SEC Rule 13a-13, 17 C.F.R. \u00a7 240.13a-13; SEC Form 10-Q]\n\n**Filing deadlines:**\n\n- **Large accelerated filers and accelerated filers:** 40 days after the end of each fiscal quarter. [source: SEC Rule 13a-13]\n- **Non-accelerated filers:** 45 days after the end of each fiscal quarter. [source: SEC Rule 13a-13]\n\nForm 10-Q includes unaudited interim financial statements and MD&A, among other disclosures. [source: SEC Form 10-Q, Part I, Items 1\u20134]\n\n---\n\n### 3. Current Report \u2014 Form 8-K\n\nReporting companies must file a **Form 8-K** to disclose specified material events on a current basis, generally **within four business days** of the triggering event. [source: SEC Rule 13a-11, 17 C.F.R. \u00a7 240.13a-11; SEC Form 8-K, General Instruction B.1]\n\nTriggering events requiring a Form 8-K include (among others, as listed in the form itself):\n\n- Entry into or termination of a material definitive agreement (Item 1.01, 1.02) [source: SEC Form 8-K, Item 1.01, 1.02]\n- Bankruptcy or receivership (Item 1.03) [source: SEC Form 8-K, Item 1.03]\n- Completion of acquisition or disposition of assets (Item 2.01) [source: SEC Form 8-K, Item 2.01]\n- Results of operations and financial condition (earnings releases) (Item 2.02) [source: SEC Form 8-K, Item 2.02]\n- Creation of a direct financial obligation or off-balance sheet arrangement (Item 2.03) [source: SEC Form 8-K, Item 2.03]\n- Triggering events that accelerate or increase a direct financial obligation (Item 2.04) [source: SEC Form 8-K, Item 2.04]\n- Changes in the company's fiscal year (Item 5.03) [source: SEC Form 8-K, Item 5.03]\n- Departure or appointment of directors and principal officers (Item 5.02) [source: SEC Form 8-K, Item 5.02]\n- Amendments to articles of incorporation or bylaws (Item 5.03) [source: SEC Form 8-K, Item 5.03]\n- Changes in auditor (Item 4.01) [source: SEC Form 8-K, Item 4.01]\n- Non-reliance on previously issued financial statements (restatements) (Item 4.02) [source: SEC Form 8-K, Item 4.02]\n- Unregistered sales of equity securities (Item 3.02) [source: SEC Form 8-K, Item 3.02]\n- Material modifications to rights of security holders (Item 3.03) [source: SEC Form 8-K, Item 3.03]\n\n---\n\n### 4. Proxy Statement \u2014 Schedule 14A (Section 12 companies only)\n\nCompanies registered under **Section 12** (not merely Section 15(d)) must comply with the SEC's proxy rules when soliciting shareholder votes. They file a **Schedule 14A** (proxy statement) before annual meetings and any other vote solicitation. [source: Securities Exchange Act of 1934, Section 14(a); SEC Rule 14a-3, 17 C.F.R. \u00a7 240.14a-3; Schedule 14A]\n\n---\n\n### 5. Beneficial Ownership Reports \u2014 Sections 13 and 16\n\nThese obligations arise from Section 12 registration and apply to shareholders and insiders, not directly to the company as filer \u2014 but the company is deeply involved in compliance:\n\n- **Schedule 13D / 13G:** Any person who acquires beneficial ownership of more than **5%** of a registered class of equity securities must file. [source: Securities Exchange Act of 1934, Section 13(d); SEC Rules 13d-1 and 13d-2, 17 C.F.R. \u00a7\u00a7 240.13d-1, 240.13d-2; Schedule 13D/13G]\n- **Section 16 \u2014 Forms 3, 4, and 5:** Directors, officers, and greater-than-10% shareholders of a Section 12 company must report their holdings and transactions in company securities. Form 3 (initial statement), Form 4 (changes within two business days of transaction), Form 5 (annual catch-up). [source: Securities Exchange Act of 1934, Section 16(a); SEC Rules 16a-3, 17 C.F.R. \u00a7 240.16a-3; Forms 3, 4, and 5]\n\n---\n\n## Part III: Practical Checklist Summary for Counsel Review\n\n| Trigger | Statute/Rule | Filing to Become Reporting Company |\n|---|---|---|\n| Assets > $10M + \u22652,000 holders of record (or \u2265500 non-accredited) | Exchange Act \u00a7 12(g); Rule 12g-1 | Form 10 |\n| Listing on national securities exchange | Exchange Act \u00a7 12(b) | Form 8-A or concurrent with Securities Act registration |\n| Securities Act registration statement goes effective | Exchange Act \u00a7 15(d) | Automatic upon effectiveness |\n\n| Ongoing Filing | Frequency | Key Rule |\n|---|---|---|\n| Form 10-K | Annual | Rule 13a-1 |\n| Form 10-Q | Quarterly (Q1\u2013Q3) | Rule 13a-13 |\n| Form 8-K | Within 4 business days of triggering event | Rule 13a-11 |\n| Schedule 14A | Before each vote solicitation (\u00a712 companies) | Rule 14a-3 |\n| Forms 3/4/5 | Per transaction / annually (\u00a712 insiders) | Rule 16a-3 |\n\n---\n\n**Counsel should verify:** (1) the current inflation-adjusted EGC revenue threshold; (2) whether any recent SEC rulemaking has modified the 12(g) holder-count exclusions; (3) whether the company's specific offering structure affects which pathway applies; and (4) smaller reporting company scaled-disclosure availability under Regulation S-K and Regulation S-X. [model knowledge only \u2014 no source]",
+          "input_tokens": 348,
+          "output_tokens": 3461,
+          "seconds": 66.5,
+          "run": 2
+        },
+        {
+          "text": "# SEC Reporting Company Status: Triggers and Ongoing Obligations\n\n## Preliminary Note\n\nThis is a legal-area checklist for discussion with securities counsel. Thresholds and deadlines in this area have been amended multiple times (most recently in material ways by the JOBS Act of 2012 and the FAST Act of 2015); counsel should confirm current figures against the live Code of Federal Regulations and SEC rules before relying on any specific number.\n\n---\n\n## Part 1: What Makes a Private Company a \"Reporting Company\"\n\nThere are **two independent pathways** that can impose Exchange Act reporting obligations on a privately held company.\n\n---\n\n### Pathway A: Mandatory Registration Under Section 12 of the Exchange Act\n\n#### A1. Section 12(b) \u2014 National Securities Exchange Listing\n\nA company that lists any class of securities on a national securities exchange (e.g., NYSE, Nasdaq) must register that class under Section 12(b) of the Securities Exchange Act of 1934. [source: Securities Exchange Act of 1934, Section 12(b), 15 U.S.C. \u00a7 78l(b)]\n\nRegistration is accomplished by filing a registration statement on **Form 10** (for domestic issuers) or **Form 20-F** (for foreign private issuers) with the SEC, or the applicable form specific to the security type. [source: SEC Form 10 (General Form for Registration of Securities Pursuant to Section 12); source: SEC Form 20-F]\n\n#### A2. Section 12(g) \u2014 Asset and Holder-of-Record Thresholds\n\nThis is the trigger most relevant to a private company doing a financing round.\n\n**Original statutory structure:** Section 12(g) of the Exchange Act requires registration when a company has a class of equity securities held of record by a sufficient number of persons and has total assets exceeding a threshold. [source: Securities Exchange Act of 1934, Section 12(g), 15 U.S.C. \u00a7 78l(g)]\n\n**Current thresholds (post-JOBS Act):**\n- **2,000 holders of record** of a class of equity securities, *or*\n- **500 holders of record who are not accredited investors**\n\nAND total assets exceeding **$10 million** at the end of the most recently completed fiscal year. [source: Securities Exchange Act of 1934, Section 12(g)(1), as amended by the Jumpstart Our Business Startups (JOBS) Act, Pub. L. 112-106, \u00a7 501 (2012); source: SEC Rule 12g-1, 17 C.F.R. \u00a7 240.12g-1]\n\n> **Practical note for the founder:** A financing round that causes the number of holders of record of a class of equity securities to cross 2,000 (or 500 non-accredited investors), while the company already has more than $10 million in total assets, triggers the registration obligation. Counsel should confirm the current asset threshold and whether the company's cap table structure affects the holder count (e.g., securities held through a fund or nominee may count differently \u2014 see Rule 12g5-1). [source: SEC Rule 12g5-1, 17 C.F.R. \u00a7 240.12g5-1]\n\n**Holder-of-record counting exclusions:** Certain holders are excluded from the Section 12(g) count, including securities held by persons who received them pursuant to an employee compensation plan in transactions exempt from Section 5 of the Securities Act of 1933, subject to conditions under Rule 12g-1 and the JOBS Act. [source: Securities Exchange Act of 1934, Section 12(g)(5), as amended by JOBS Act \u00a7 502]\n\n**Filing deadline after crossing the threshold:** Once a company crosses the Section 12(g) threshold, it must file a registration statement within **120 days** after the last day of the fiscal year in which the threshold was crossed. [source: SEC Rule 12g-1, 17 C.F.R. \u00a7 240.12g-1; source: Securities Exchange Act of 1934, Section 12(g)(1)]\n\n---\n\n### Pathway B: Mandatory Reporting Under Section 15(d) of the Exchange Act\n\nA company that registers an offering of securities under the **Securities Act of 1933** (i.e., files a registration statement on Form S-1, S-11, etc.) automatically becomes subject to the periodic reporting obligations of Section 15(d) of the Exchange Act, even if it never registers a class of securities under Section 12. [source: Securities Exchange Act of 1934, Section 15(d), 15 U.S.C. \u00a7 78o(d)]\n\n**Key distinctions from Section 12 registration:**\n- Section 15(d) imposes only the *periodic reporting* duties (annual, quarterly, current reports), not the full package of Section 12 obligations such as the proxy rules or Section 16 short-swing profit recovery. [model knowledge only \u2014 no source]\n- Section 15(d) reporting obligations may be **suspended** for a fiscal year if, at the beginning of that year, the class of securities covered by the registration statement is held of record by fewer than 300 persons. [source: Securities Exchange Act of 1934, Section 15(d); source: SEC Rule 15d-6, 17 C.F.R. \u00a7 240.15d-6]\n\n---\n\n### Pathway C: Voluntary Registration\n\nA company may voluntarily register a class of securities under Section 12(g) even without crossing the mandatory thresholds; this is less common but possible. [model knowledge only \u2014 no source]\n\n---\n\n## Part 2: Deregistration / Suspension of Duty to Report\n\nA reporting company can exit reporting status, but the thresholds are distinct from the entry thresholds.\n\n**Section 12(g) deregistration:** A company may apply to deregister under Section 12(g) if the class of securities has **fewer than 300 holders of record**, or fewer than **1,200 holders of record** if the company has had total assets not exceeding $10 million on the last day of each of its three most recently completed fiscal years. [source: Securities Exchange Act of 1934, Section 12(g)(4); source: SEC Rule 12g-4, 17 C.F.R. \u00a7 240.12g-4]\n\nThe JOBS Act and FAST Act modified these exit thresholds; counsel should verify the current version of Rule 12g-4. [source: Fixing America's Surface Transportation (FAST) Act, Pub. L. 114-94, \u00a7 84001 (2015)]\n\n---\n\n## Part 3: Core Periodic and Current Reporting Obligations Once a Reporting Company\n\nOnce reporting obligations are triggered (whether under Section 12 or Section 15(d)), the company must file the following core forms with the SEC via the EDGAR system.\n\n---\n\n### 3A. Annual Report \u2014 Form 10-K\n\n**Who files:** Domestic reporting companies. [source: SEC Rule 13a-1, 17 C.F.R. \u00a7 240.13a-1; source: SEC Form 10-K]\n\n**Content includes (among other items):**\n- Audited financial statements (balance sheet, income statement, cash flows, equity) prepared under U.S. GAAP\n- Management's Discussion and Analysis of Financial Condition and Results of Operations (MD&A)\n- Description of the business, risk factors, properties\n- Disclosure of legal proceedings\n- Executive compensation tables\n- Security ownership of certain beneficial owners and management\n- Controls and procedures disclosures (including, for accelerated and large accelerated filers, auditor attestation on internal controls under Sarbanes-Oxley Section 404(b)) [source: Sarbanes-Oxley Act of 2002, Section 404, Pub. L. 107-204]\n\n**Filing deadlines (by filer category \u2014 verify these with counsel as categories have specific definitions):**\n- Large accelerated filers: **60 days** after fiscal year end\n- Accelerated filers: **75 days** after fiscal year end\n- Non-accelerated filers and smaller reporting companies: **90 days** after fiscal year end\n\n[source: SEC Rule 13a-1, 17 C.F.R. \u00a7 240.13a-1; source: SEC Release No. 33-8644 (2005) (accelerated filing deadlines)]\n\n> A newly reporting private company will almost certainly be a **non-accelerated filer** or **smaller reporting company** initially. [model knowledge only \u2014 no source]\n\n---\n\n### 3B. Quarterly Report \u2014 Form 10-Q\n\n**Who files:** Domestic reporting companies, for each of the first three fiscal quarters (the fourth quarter is covered by the 10-K). [source: SEC Rule 13a-13, 17 C.F.R. \u00a7 240.13a-13; source: SEC Form 10-Q]\n\n**Content includes:**\n- Unaudited condensed financial statements (reviewed, not audited, by independent accountants under PCAOB or AICPA standards)\n- MD&A update\n- Legal proceedings update\n- Controls and procedures disclosures\n- Risk factor updates (if material changes)\n\n**Filing deadlines:**\n- Large accelerated and accelerated filers: **40 days** after end of fiscal quarter\n- Non-accelerated filers: **45 days** after end of fiscal quarter\n\n[source: SEC Rule 13a-13, 17 C.F.R. \u00a7 240.13a-13]\n\n---\n\n### 3C. Current Report \u2014 Form 8-K\n\n**Purpose:** Disclose material corporate events promptly, on an ongoing basis between periodic reports. [source: SEC Rule 13a-11, 17 C.F.R. \u00a7 240.13a-11; source: SEC Form 8-K]\n\n**General filing deadline:** Within **4 business days** of the triggering event. [source: SEC Rule 13a-11, 17 C.F.R. \u00a7 240.13a-11]\n\n**Triggering events (selected \u2014 the full list is in the Form 8-K instructions):**\n\n| Item | Event |\n|------|-------|\n| 1.01 | Entry into a material definitive agreement |\n| 1.02 | Termination of a material definitive agreement |\n| 1.03 | Bankruptcy or receivership |\n| 2.01 | Completion of acquisition or disposition of significant assets |\n| 2.02 | Results of operations and financial condition (earnings releases) |\n| 2.03 | Creation of a direct financial obligation or obligation under off-balance sheet arrangement |\n| 2.04 | Triggering events that accelerate or increase a direct financial obligation |\n| 2.05 | Costs associated with exit or disposal activities |\n| 2.06 | Material impairments |\n| 3.01 | Notice of delisting or failure to satisfy listing rule |\n| 3.02 | Unregistered sales of equity securities |\n| 3.03 | Material modifications to rights of security holders |\n| 4.01 | Changes in registrant's certifying accountant |\n| 4.02 | Non-reliance on previously issued financial statements |\n| 5.01 | Changes in control of registrant |\n| 5.02 | Departure or appointment of directors/principal officers; compensation arrangements |\n| 5.03 | Amendments to articles of incorporation or bylaws |\n| 5.07 | Submission of matters to a vote of security holders |\n| 5.08 | Shareholder director nominations |\n| 7.01 | Regulation FD disclosure |\n| 8.01 | Other events (voluntary) |\n| 9.01 | Financial statements and exhibits |\n\n[source: SEC Form 8-K, Item listing as set forth in the Form instructions published by the SEC]\n\n---\n\n### 3D. Proxy Materials \u2014 Schedule 14A (or 14C)\n\n**Applicable only to Section 12 registrants** (not Section 15(d)-only companies).\n\nWhen a reporting company solicits shareholder votes (e.g., annual meeting, significant transactions), it must file proxy materials on **Schedule 14A** (or **Schedule 14C** for information statements where no solicitation occurs). [source: Securities Exchange Act of 1934, Section 14(a), 15 U.S.C. \u00a7 78n(a); source: SEC Rule 14a-3, 17 C.F.R. \u00a7 240.14a-3; source: SEC Schedule 14A; source: SEC Schedule 14C]\n\n---\n\n### 3E. CEO and CFO Certifications \u2014 SOX Sections 302 and 906\n\nThe principal executive officer and principal financial officer must personally certify, in each annual (10-K) and quarterly (10-Q) report, as to the accuracy of the financial statements and the effectiveness of disclosure controls and procedures. [source: Sarbanes-Oxley Act of 2002, Section 302, Pub. L. 107-204; source: Sarbanes-Oxley Act of 2002, Section 906, Pub. L. 107-204; source: SEC Rule 13a-14, 17 C.F.R. \u00a7 240.13a-14]\n\n---\n\n### 3F. Internal Controls Over Financial Reporting \u2014 SOX Section 404\n\n**Management assessment (Section 404(a)):** All reporting companies must include in their 10-K an assessment by management of the effectiveness of internal controls over financial reporting, using a recognized control framework. [source: Sarbanes-Oxley Act of 2002, Section 404(a); source: SEC Rule 13a-15, 17 C.F.R. \u00a7 240.13a-15]\n\n**Auditor attestation (Section 404(b)):** Accelerated filers and large accelerated filers must additionally include an attestation from the independent registered public accounting firm on management's assessment. Non-accelerated filers and smaller reporting companies are **exempt** from 404(b). [source: Sarbanes-Oxley Act of 2002, Section 404(b); source: Dodd-Frank Wall Street Reform and Consumer Protection Act, Section 989G, Pub. L. 111-203 (2010) (exempting non-accelerated filers permanently from 404(b))]\n\n---\n\n### 3G. Beneficial Ownership Reporting \u2014 Sections 13 and 16\n\n**Section 13(d)/(g):** Any person who acquires beneficial ownership of more than 5% of a registered class of equity securities must file a **Schedule 13D** (or short-form **Schedule 13G** for passive investors) within prescribed deadlines. [source: Securities Exchange Act of 1934, Section 13(d), 15 U.S.C. \u00a7 78m(d); source: SEC Schedule 13D; source: SEC Schedule 13G; source: SEC Rule 13d-1, 17 C.F.R. \u00a7 240.13d-1]\n\n**Section 16:** Directors, officers, and 10%-or-greater shareholders of Section 12 registrants must report their beneficial ownership on **Form 3** (initial statement), **Form 4** (changes), and **Form 5** (annual report of certain transactions). They are also subject to short-swing profit disgorgement rules. [source: Securities Exchange Act of 1934, Section 16, 15 U.S.C. \u00a7 78p; source: SEC Form 3; source: SEC Form 4; source: SEC Form 5; source: SEC Rule 16a-3, 17 C.F.R. \u00a7 240.16a-3]\n\n---\n\n### 3H. Regulation FD \u2014 Fair Disclosure\n\nReporting companies that disclose material nonpublic information to certain market participants must simultaneously (for intentional disclosures) or promptly (for unintentional disclosures) disclose the same information publicly, typically via Form 8-K Item 7.01 or a press release. [source: SEC Regulation FD, 17 C.F.R. \u00a7\u00a7 243.100\u2013243.103]\n\n---\n\n## Summary Checklist for Counsel Review\n\n| Topic | Key Source to Verify |\n|---|---|\n| Section 12(g) asset + holder thresholds | Exchange Act \u00a7 12(g); Rule 12g-1 |\n| Holder-of-record counting methodology | Rule 12g5-1 |\n| JOBS Act holder exclusions (employees) | Exchange Act \u00a7 12(g)(5); JOBS Act \u00a7 502 |\n| 120-day registration filing deadline | Rule 12g-1 |\n| Section 15(d) reporting trigger via S-1 | Exchange Act \u00a7 15(d) |\n| Section 15(d) suspension below 300 holders | Rule 15d-6 |\n| Deregistration thresholds | Exchange Act \u00a7 12(g)(4); Rule 12g-4 |\n| 10-K deadline by filer category | Rule 13a-1 |\n| 10-Q deadline by filer category | Rule 13a-13 |\n| 8-K 4-business-day deadline and item list | Rule 13a-11; Form 8-K instructions |\n| SOX 302/906 certifications | SOX \u00a7\u00a7 302, 906; Rule 13a-14",
+          "input_tokens": 348,
+          "output_tokens": 4096,
+          "seconds": 72.31,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 2.14,
+        "max_spread": 3,
+        "contested_dims": [
+          "accuracy",
+          "completeness",
+          "format_compliance",
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": 1.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.4,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "Core triggers and threshold figures are correctly identified in all three runs, but each run contains at least one notable error in citation details: Run 1 states \u00a712(g) registration is accomplished by filing 'Form 10 or Form 10-K' \u2014 Form 10-K is an annual report, not a registration statement under \u00a712(g); Run 2 cites 'JOBS Act, Section 101(c)(1)(A)(ii)' for the 500 non-accredited threshold \u2014 JOBS Act Section 101 created the EGC category, while the \u00a712(g) threshold amendments are in JOBS Act Section 501, making this a source-claim mismatch that verges on a fabricated deep-subsection reference; Run 2 also states 'fewer than 1,200 persons' as a Form 15 exit threshold for general issuers (the 1,200 figure applies to banks under the post-JOBS Act Rule 12g-4, not to general non-bank issuers); Run 3 cites Rule 13a-10 for the Form 10-K annual report requirement \u2014 Rule 13a-10 governs transition-period annual reports, while Rule 13a-1 governs standard annual reports. The critical numerics ($10M, 2,000/500) are correctly stated and grounded in all runs.",
+          "evidence": "Run 1: 'registration statement (typically Form 10 or Form 10-K) under Section 12(g)'; Run 2: '[source: Jumpstart Our Business Startups Act (JOBS Act), Section 101(c)(1)(A)(ii)]' for 500 non-accredited threshold; Run 2: 'fewer than 1,200 persons' in the Rule 12g-4 deregistration discussion without bank-issuer qualification; Run 3: '[source: Rule 13a-10 of the Securities Exchange Act of 1934]' attached to Form 10-K filing frequency.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "The runs cover the main trigger categories and core ongoing filings well: Section 15(d), Section 12(b), Section 12(g), Form 10-K, Form 10-Q, and Form 8-K are all present across the outputs. They also include bonus items like proxy statements and insider/beneficial ownership filings. However, the answers are not perfectly aligned with the required nuanced framing: the prompt emphasized distinguishing what can be named precisely from what should not be fabricated, and the runs do not consistently handle that, especially for the numeric threshold details and the JOBS Act attribution. Some runs also add extraneous material (foreign issuer forms, EDGAR/XBRL, exit mechanisms, EGCs) that is beyond the question rather than focused on the requested checklist.",
+          "evidence": "Run 1 includes \"Form 10-K,\" \"Form 10-Q,\" \"Form 8-K,\" \"Schedules 13D and 13G,\" and \"Forms 3, 4, and 5.\" Run 2 similarly covers \"Form 10-K,\" \"Form 10-Q,\" \"Form 8-K,\" \"Schedule 14A,\" \"Schedule 14C,\" and \"Forms 3, 4, and 5.\" Run 3 includes the same core filings plus \"Proxy and Information Statements (Schedules 14A and 14C)\" and \"Beneficial Ownership Reports by Insiders (Forms 3, 4, and 5 under Section 16).\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The inline-citation structure and the two allowed marker forms are consistently used across all runs. However, there are notable deviations from the specification: source-claim mismatches (Rule 13a-10 for standard annual reports in Run 3; Rule 12g-2 for the trigger-threshold claim in Run 1 rather than for its actual subject matter of deemed registration); vague form-name-only citations ('Form 10-K instructions', 'Form 10-Q instructions' in Run 3) rather than the specific rule numbers the prompt demands; inconsistent uncertainty treatment (Run 3 appends '(speculative \u2014 verify)' to '$10 million' while simultaneously citing Rule 12g-1 \u2014 an internal contradiction, since a specific named rule qualifies as a citable source); and minor citation of restating sentences with [model knowledge only \u2014 no source] in all runs.",
+          "evidence": "Run 3: 'Assets exceeding (speculative \u2014 verify) $10 million [source: Rule 12g-1]' \u2014 speculative tag conflicts with named rule source; Run 3: '[source: Form 10-K instructions]' and '[source: Form 10-Q instructions]' are form-name attributions, not specific rule numbers; Run 1: '[source: Exchange Act Rule 12g-2]' for 'Registration under Section 12(g) triggers ongoing reporting' \u2014 Rule 12g-2 covers deemed registration, not obligation triggering; Run 2: '[source: model knowledge only \u2014 no source]' on 'These reporting obligations are initially triggered regardless of the number of shareholders' \u2014 a restating sentence the prompt says not to cite.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The overall register is professional, precise, and aimed at a founder/compliance audience, matching the requested paralegal-style checklist tone reasonably well. The answers are cautious in places and explain the mechanics clearly. Minor issues include over-explanation and added material not asked for, but the tone itself is not casual, salesy, or inappropriate.",
+          "evidence": "Run 1 opens with \"As a founder, understanding the triggers for becoming a 'reporting company'... is critical for strategic planning.\" Run 2 says \"Becoming a 'reporting company' in the United States triggers significant ongoing obligations...\" Run 3 uses similarly formal language such as \"In the United States, a privately held company typically becomes a 'reporting company'...\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The responses are safe: they discuss securities reporting obligations without harmful instructions, harassment, or disallowed content. The only concerns are legal accuracy and citation quality, not safety risks. No sensitive personal data or unsafe advice is present.",
+          "evidence": "All three runs stay within securities-law explanation. For example, Run 1 frames the content as \"key events and thresholds\" and lists reporting forms; Run 2 and Run 3 similarly discuss SEC reporting triggers and filings only.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are long relative to the task, with substantial extra detail beyond the requested checklist. The prompt asked for a startup-founder starting checklist on triggers and ongoing obligations, but the runs add foreign issuer forms, EDGAR/XBRL, exit/deregistration, EGC relief, deadlines, and other ancillary items. That extra coverage may be informative, but it is token-expensive and not tightly optimized for the requested output quality, especially given the citation problems.",
+          "evidence": "Run 1 devotes space to \"Form 20-F,\" \"Form 6-K,\" \"Electronic Filing and XBRL,\" and \"Exiting Reporting Company Status.\" Run 2 adds extended deadline details, proxy preliminaries, EDGAR/XBRL, and a full exit section. Run 3 includes \"Emerging Growth Companies (EGCs)\" and several paragraphs of additional explanation not required by the question.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs agree on the core semantic answer structure: all identify 12(b), 12(g), and 15(d) as triggers and list the same core periodic/current filings. However, they diverge materially in coverage and legal precision. Run 1 includes banks, a JOBS Act note, and foreign-issuer forms; Run 2 adds Form 8-A, exit/deregistration detail, and extensive deadlines; Run 3 hedges on the $10M threshold as speculative and adds EGC discussion. The core answer is stable, but the quality and structural scope vary enough to be more than mere wording variation. [lexical similarity ratio: 0.128]",
+          "evidence": "Shared core across runs: 12(b), 12(g), 15(d), Form 10-K, Form 10-Q, Form 8-K appear in all three runs. Divergence: Run 1 includes \"Form 20-F\" and \"Form 6-K\"; Run 2 includes \"Form 8-A\" and an \"Exiting Reporting Company Status\" section; Run 3 includes \"Emerging Growth Companies (EGCs)\" and marks \"$10 million\" as \"(speculative \u2014 verify).\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.128
+        }
+      },
+      "judge_summary": "The model provides generally accurate and comprehensive information on SEC reporting triggers and obligations, particularly strong in Runs 1 and 2. However, consistency across runs is hampered by Run 3's significant errors in applying the 'speculative' tag and a source-claim mismatch, which also negatively impacts accuracy, format compliance, and tone. The output is excessively verbose for a 'starting checklist,' indicating poor efficiency. While covering most requirements, consistency in bonus items and specific details like deregistration varies.",
+      "runs": [
+        {
+          "text": "As a founder, understanding the triggers for becoming a \"reporting company\" and the associated ongoing SEC obligations is critical for strategic planning. The following outlines the key events and thresholds that cause a privately held company to become a reporting company in the U.S. and the core filings it must subsequently make under the Securities Exchange Act of 1934 (Exchange Act).\n\n### Triggers for Becoming a Reporting Company\n\nA privately held company generally becomes a \"reporting company\" subject to ongoing SEC obligations under the Exchange Act through one of the following primary mechanisms:\n\n1.  **Effectiveness of a Registration Statement Under the Securities Act of 1933 (e.g., Initial Public Offering - IPO):**\n    *   When a company files a registration statement (such as Form S-1) under the Securities Act of 1933 (Securities Act) to offer its securities to the public and that registration statement becomes effective, the company generally becomes subject to the periodic reporting requirements of the Exchange Act. [source: Exchange Act Section 15(d)] This is the most common path for companies undertaking an IPO.\n\n2.  **Listing on a National Securities Exchange:**\n    *   If a company lists any class of its securities (e.g., common stock) on a national securities exchange (such as NYSE or Nasdaq), it is required to register that class of securities under Section 12(b) of the Exchange Act. [source: Exchange Act Section 12(b)] Registration under Section 12(b) immediately triggers ongoing reporting obligations.\n\n3.  **Meeting Shareholder and Asset Thresholds Under the Exchange Act (Section 12(g)):**\n    *   A private company becomes a reporting company if, on the last day of its most recent fiscal year, it meets both of the following conditions [source: Exchange Act Section 12(g)(1)]:\n        *   **Total Assets Threshold:** It has total assets exceeding $10 million. [source: Exchange Act Rule 12g-1]\n        *   **Shareholder Threshold:** It has a class of equity securities held of record by either:\n            *   2,000 persons [source: Exchange Act Section 12(g)(1)(A)(ii)] OR\n            *   500 persons who are not accredited investors [source: Exchange Act Section 12(g)(1)(A)(i)].\n            *   *(Note: For banks and bank holding companies, the shareholder threshold is specifically 2,000 persons regardless of accreditation status [source: Exchange Act Section 12(g)(1)(B)]. These thresholds were revised by the Jumpstart Our Business Startups Act (JOBS Act) Section 501.)*\n    *   Companies meeting these thresholds must file a registration statement (typically Form 10 or Form 10-K) under Section 12(g) of the Exchange Act, which then triggers ongoing reporting obligations. [source: Exchange Act Rule 12g-2]\n\n### Core Ongoing Reporting Filings\n\nOnce a company becomes a reporting company, it is subject to the continuous reporting obligations primarily under Section 13(a) (for companies registered under Section 12) or Section 15(d) (for companies that have a Securities Act registration statement effective) of the Exchange Act. [source: Exchange Act Sections 13(a), 15(d)] The core periodic and current reporting filings are:\n\n1.  **Periodic Reports:**\n    *   **Annual Reports:**\n        *   **Form 10-K:** Filed annually by domestic issuers, providing a comprehensive summary of the company's financial performance and activities for the past fiscal year. [source: Exchange Act Rule 13a-1]\n        *   **Form 20-F:** Filed annually by most foreign private issuers, serving as both a registration statement and an annual report. [source: Exchange Act Rule 13a-16]\n    *   **Quarterly Reports:**\n        *   **Form 10-Q:** Filed quarterly by domestic issuers (for the first three fiscal quarters), providing unaudited financial statements and a discussion of the company's results of operations and financial condition. [source: Exchange Act Rule 13a-13]\n        *   *(Note: Foreign private issuers generally do not file quarterly reports on Form 10-Q. [model knowledge only \u2014 no source])*\n\n2.  **Current Reports:**\n    *   **Form 8-K:** Filed by domestic issuers to announce specified material events that shareholders should know about, often within four business days of the event. Examples include changes in control, entry into material definitive agreements, or the departure of a principal officer. [source: Exchange Act Rule 13a-11]\n    *   **Form 6-K:** Filed by foreign private issuers to furnish the SEC with material information that has been made public in their home country, filed with a foreign stock exchange, or distributed to shareholders. [source: Exchange Act Rule 13a-16]\n\n3.  **Other Company-Level Filings:**\n    *   **Proxy Statements (Schedule 14A):** Filed by the company when soliciting shareholder proxies for an annual or special meeting, providing details about matters to be voted on, director nominees, executive compensation, and other corporate governance information. [source: Exchange Act Section 14(a)]\n    *   **Information Statements (Schedule 14C):** Filed by the company when not soliciting proxies, but an annual or special meeting is being held. Provides similar information to a proxy statement but without a proxy solicitation. [source: Exchange Act Section 14(c)]\n\n4.  **Related Insider and Significant Shareholder Filings (Obligations of others, but relevant to the company's public status):**\n    *   **Beneficial Ownership Reports (Schedules 13D and 13G):** Required to be filed by individuals or groups who acquire beneficial ownership of more than 5% of a class of a reporting company's equity securities. [source: Exchange Act Section 13(d)]\n    *   **Insider Transaction Reports (Forms 3, 4, and 5):** Required to be filed by officers, directors, and beneficial owners of more than 10% of a class of a reporting company's equity securities to report their initial ownership and subsequent changes in ownership of the company's securities. [source: Exchange Act Section 16(a)]\n\nUnderstanding these triggers and ongoing obligations is a crucial first step in evaluating the implications of an upcoming financing round for your company.",
+          "input_tokens": 331,
+          "output_tokens": 5493,
+          "seconds": 26.7,
+          "run": 1
+        },
+        {
+          "text": "Becoming a \"reporting company\" in the United States triggers significant ongoing obligations under the Securities Exchange Act of 1934 (the \"Exchange Act\"). For a privately held company, this generally occurs through one of the following primary routes:\n\n---\n\n### I. Triggers to Become a \"Reporting Company\"\n\nA privately held company primarily becomes a \"reporting company\" through:\n\n1.  **Registering Securities Under the Securities Act of 1933 (e.g., an Initial Public Offering - IPO)**\n    *   When a company files a registration statement (such as Form S-1) under the Securities Act of 1933 (the \"Securities Act\") that is declared effective by the SEC to offer securities to the public, it generally becomes subject to the reporting requirements of Section 15(d) of the Exchange Act. [source: Securities Exchange Act of 1934, Section 15(d)]\n    *   These reporting obligations are initially triggered regardless of the number of shareholders. [source: model knowledge only \u2014 no source]\n\n2.  **Meeting Shareholder and Asset Thresholds (Section 12(g) Registration)**\n    *   A company whose securities are not listed on a national securities exchange must register a class of its equity securities under Section 12(g) of the Exchange Act if, on the last day of its most recent fiscal year, it has:\n        *   **Total assets exceeding $10 million** [source: Exchange Act Rule 12g-1]; AND\n        *   A class of equity securities held of record by **2,000 persons** [source: Exchange Act, Section 12(g)(1)(A)]; OR\n        *   A class of equity securities held of record by **500 persons who are not accredited investors** [source: Exchange Act, Section 12(g)(1)(B); Jumpstart Our Business Startups Act (JOBS Act), Section 101(c)(1)(A)(ii)].\n    *   If these thresholds are met, the company must register the class of securities within 120 days after the end of the fiscal year. [source: Exchange Act, Section 12(g)(1)]\n    *   Registration under Section 12(g) is typically accomplished by filing a Form 10 or, in some cases, a Form 8-A. [source: Exchange Act Rule 12g-1]\n    *   Companies that have not previously conducted a registered offering and whose total assets do not exceed $10 million are exempt from this registration requirement, even if they exceed the shareholder thresholds. [source: Exchange Act, Section 12(g)(1)(A) and (B) as amended by JOBS Act, Section 101(c)(1)(B)]\n\n3.  **Listing Securities on a National Securities Exchange (Section 12(b) Registration)**\n    *   If a company's securities become listed on a national securities exchange (such as the New York Stock Exchange or Nasdaq), it must register that class of securities under Section 12(b) of the Exchange Act. [source: Securities Exchange Act of 1934, Section 12(b)]\n    *   This registration also triggers the full ongoing reporting obligations. [source: model knowledge only \u2014 no source]\n\n---\n\n### II. Core Ongoing Reporting Filings for a Reporting Company\n\nOnce a company becomes a \"reporting company,\" it is subject to ongoing disclosure obligations to the SEC, primarily including:\n\n1.  **Annual Reports (Form 10-K)**\n    *   **Purpose:** Provides a comprehensive overview of the company's business, financial performance, and risk factors for the fiscal year. [source: Form 10-K]\n    *   **Content:** Includes audited financial statements, management's discussion and analysis (MD&A), information about executive compensation, corporate governance, and legal proceedings. [source: Form 10-K]\n    *   **Filing Deadline:** Varies based on the company's \"filer status\" (large accelerated, accelerated, or non-accelerated filer). Generally, due 60, 75, or 90 days after the company's fiscal year end. [source: Form 10-K General Instructions A.2]\n\n2.  **Quarterly Reports (Form 10-Q)**\n    *   **Purpose:** Provides a continuing view of the company's financial condition and results of operations during the first three fiscal quarters. [source: Form 10-Q]\n    *   **Content:** Includes unaudited financial statements, MD&A, and updates on certain disclosures made in the most recent Form 10-K. [source: Form 10-Q]\n    *   **Filing Deadline:** Varies based on filer status. Generally, due 40 or 45 days after the end of each of the first three fiscal quarters. [source: Form 10-Q General Instructions A.2] No Form 10-Q is filed for the fourth quarter, as that information is included in the Form 10-K. [source: model knowledge only \u2014 no source]\n\n3.  **Current Reports (Form 8-K)**\n    *   **Purpose:** Used to announce material events that shareholders should know about between periodic reports. [source: Form 8-K]\n    *   **Content:** Covers a wide range of significant events, such as entry into material definitive agreements, completion of acquisitions, resignation of directors, changes in auditors, bankruptcy, or results of operations. [source: Form 8-K, Item 1.01 through 9.01]\n    *   **Filing Deadline:** Generally, within four business days after the occurrence of a reportable event. Some items have different deadlines. [source: Form 8-K General Instruction B.1]\n\n4.  **Proxy Statements (Schedule 14A) and Information Statements (Schedule 14C)**\n    *   **Purpose:** Required when the company solicits proxies from its shareholders for an annual or special meeting (proxy statement) or when it holds a meeting but does not solicit proxies (information statement). [source: Exchange Act, Section 14]\n    *   **Content:** Provides information about the meeting, matters to be voted upon, director nominees, executive compensation, and other corporate governance matters. [source: Exchange Act Rule 14a-3; Exchange Act Rule 14c-2]\n    *   **Filing:** A preliminary proxy or information statement must generally be filed with the SEC before it is sent to shareholders, followed by a definitive version. [source: Exchange Act Rule 14a-6; Exchange Act Rule 14c-5]\n\n5.  **Beneficial Ownership Reports (Forms 3, 4, and 5)**\n    *   **Purpose:** Required by Section 16(a) of the Exchange Act for \"insiders\" (officers, directors, and beneficial owners of more than 10% of a class of the company's equity securities registered under Section 12). [source: Exchange Act, Section 16(a)]\n    *   **Content:** Reports ownership and changes in ownership of the company's equity securities. [source: Form 3; Form 4; Form 5]\n    *   **Filing Deadlines:**\n        *   Form 3: Initial statement of beneficial ownership, due when a person becomes an insider. [source: Exchange Act Rule 16a-3(a)]\n        *   Form 4: Reports changes in beneficial ownership (e.g., purchases or sales), generally due within two business days after the transaction. [source: Exchange Act Rule 16a-3(g)(1)]\n        *   Form 5: Annual statement of beneficial ownership, used to report certain transactions not previously reported, due within 45 days after the company's fiscal year end. [source: Exchange Act Rule 16a-3(f)(1)]\n\n6.  **Electronic Filing and XBRL**\n    *   All these filings must be submitted electronically through the SEC's EDGAR (Electronic Data Gathering, Analysis, and Retrieval) system. [source: Regulation S-T, Rule 101]\n    *   Financial statements within annual and quarterly reports (and certain other filings) must be tagged using eXtensible Business Reporting Language (XBRL). [source: 17 CFR 232.405]\n\n---\n\n### III. Exiting Reporting Company Status\n\n*   **For Section 12(g) companies:** A company can terminate its registration under Section 12(g) by filing a Form 15 if the class of securities is held of record by fewer than 1,200 persons, or by fewer than 300 persons (total or non-accredited, depending on the initial trigger) for three consecutive fiscal years, among other conditions. [source: Exchange Act Rule 12g-4]\n*   **For Section 15(d) companies:** Reporting obligations under Section 15(d) are automatically suspended for any fiscal year (other than the fiscal year in which the registration statement became effective) if, at the beginning of such fiscal year, the securities are held of record by fewer than 300 persons. [source: Exchange Act, Section 15(d)] Companies generally do not file a Form 15 to suspend 15(d) reporting. [source: model knowledge only \u2014 no source]\n*   **For Section 12(b) companies:** Deregistration is possible upon delisting from the national securities exchange and meeting similar shareholder thresholds as for Section 12(g). [source: Exchange Act Rule 12d2-2]",
+          "input_tokens": 331,
+          "output_tokens": 4915,
+          "seconds": 24.46,
+          "run": 2
+        },
+        {
+          "text": "In the United States, a privately held company typically becomes a \"reporting company\" subject to ongoing SEC reporting obligations under the Securities Exchange Act of 1934 through one of the following primary events or thresholds:\n\n### Events or Thresholds Causing \"Reporting Company\" Status\n\n1.  **Listing on a National Securities Exchange (Section 12(b) Registration)**\n    *   A company becomes a reporting company when it registers a class of its securities (typically equity securities, but also debt) for listing on a national securities exchange, such as the New York Stock Exchange (NYSE) or Nasdaq. [source: Section 12(b) of the Securities Exchange Act of 1934]\n    *   This is the primary way a company undertaking an Initial Public Offering (IPO) becomes a reporting company. An IPO typically involves registering the securities for sale under the Securities Act of 1933 and concurrently registering that class of securities under Section 12(b) of the Exchange Act. [model knowledge only \u2014 no source]\n\n2.  **Meeting Asset and Shareholder Thresholds (Section 12(g) Registration)**\n    *   A company whose securities are not listed on a national securities exchange becomes a reporting company if it meets certain asset and shareholder thresholds. [source: Section 12(g)(1) of the Securities Exchange Act of 1934]\n    *   Specifically, a company must register a class of its equity securities under Section 12(g) if, as of the last day of its most recent fiscal year, it has:\n        *   Assets exceeding (speculative \u2014 verify) $10 million [source: Rule 12g-1 of the Securities Exchange Act of 1934] AND\n        *   A class of equity security held of record by either 2,000 persons, or 500 persons who are not accredited investors. [source: Section 12(g)(1)(A) of the Securities Exchange Act of 1934; Rule 12g-2 of the Securities Exchange Act of 1934]\n    *   If these thresholds are met, the company generally has 120 days after the end of that fiscal year to file a registration statement (typically Form 10 or Form 8-A) with the SEC. [source: Section 12(g)(1)(B) of the Securities Exchange Act of 1934]\n    *   There are special provisions and higher thresholds for banks, savings and loan holding companies, and farm credit system institutions, as their reporting may be overseen by other federal agencies. [source: Section 12(i) of the Securities Exchange Act of 1934]\n\n3.  **Effectiveness of a Securities Act Registration Statement (Section 15(d) Obligation)**\n    *   When a company files a registration statement (e.g., Form S-1) under the Securities Act of 1933 for a public offering of securities and that registration statement becomes effective, it becomes subject to the reporting requirements of Section 15(d) of the Exchange Act. [source: Section 15(d) of the Securities Exchange Act of 1934]\n    *   This obligation to file periodic reports (like Forms 10-K and 10-Q) under Section 15(d) can be suspended in subsequent fiscal years if the class of securities is held of record by fewer than (speculative \u2014 verify) 300 persons at the beginning of the fiscal year. [source: Section 15(d) of the Securities Exchange Act of 1934] However, companies subject to Section 12(b) or 12(g) registration cannot suspend their reporting obligations as easily. In practice, most companies going public will trigger both Section 12(b) or 12(g) and Section 15(d) obligations concurrently. [model knowledge only \u2014 no source]\n\n### Core Periodic and Current Reporting Filings\n\nOnce a company becomes a \"reporting company,\" it is subject to ongoing disclosure obligations. The core periodic and current reporting filings include:\n\n1.  **Annual Reports (Form 10-K)**\n    *   **Purpose:** Provides a comprehensive annual overview of the company's business, financial condition, and results of operations. [source: Form 10-K instructions]\n    *   **Content:** Includes audited financial statements, management's discussion and analysis (MD&A) of financial condition and results of operations, a description of the company's business, risk factors, and information about directors and executive officers. [source: Form 10-K instructions]\n    *   **Frequency:** Annually, generally within 60 to 90 days after the end of the company's fiscal year, depending on the company's public float. [source: Rule 13a-10 of the Securities Exchange Act of 1934]\n\n2.  **Quarterly Reports (Form 10-Q)**\n    *   **Purpose:** Provides an update on the company's financial condition and operations for the first three fiscal quarters. [source: Form 10-Q instructions]\n    *   **Content:** Includes unaudited financial statements, MD&A, and certain other disclosures, but is less extensive than the Form 10-K. [source: Form 10-Q instructions]\n    *   **Frequency:** Quarterly (for the first three fiscal quarters), generally within 40 to 45 days after the end of each quarter, depending on the company's public float. [source: Rule 13a-13 of the Securities Exchange Act of 1934]\n\n3.  **Current Reports (Form 8-K)**\n    *   **Purpose:** Used to announce material events that shareholders should know about promptly. [source: Form 8-K instructions]\n    *   **Content:** Covers a wide range of events, such as entry into or termination of a material definitive agreement, completion of an acquisition or disposition of assets, bankruptcy, changes in control, changes in officers or directors, amendments to articles of incorporation or bylaws, changes in fiscal year, delisting of securities, non-reliance on previously issued financial statements, and results of operations and financial condition. [source: Form 8-K General Instruction B.1; Item 1.01-8.01 of Form 8-K]\n    *   **Frequency:** Filed when a triggering event occurs, typically within 4 business days of the event. [source: Form 8-K General Instruction B.1]\n\n4.  **Proxy and Information Statements (Schedules 14A and 14C)**\n    *   **Purpose:** Required for shareholder meetings. Proxy statements (Schedule 14A) are filed when a company solicits proxies from its shareholders to vote on corporate matters (e.g., election of directors, approval of mergers). Information statements (Schedule 14C) are filed when shareholder action is taken but proxies are not solicited. [source: Section 14(a) of the Securities Exchange Act of 1934; Rule 14a-3; Section 14(c) of the Securities Exchange Act of 1934; Rule 14c-2]\n    *   **Content:** Detailed information about the matters to be voted on, director and executive compensation, and other relevant corporate governance information. [source: Schedule 14A instructions]\n    *   **Frequency:** Annually for the annual meeting of shareholders, and as needed for special meetings. [model knowledge only \u2014 no source]\n\n5.  **Beneficial Ownership Reports by Insiders (Forms 3, 4, and 5 under Section 16)**\n    *   **Purpose:** Directors, officers, and beneficial owners of more than 10% of a class of a company's *registered* equity securities (\"insiders\") must report their holdings and transactions in the company's equity securities. [source: Section 16(a) of the Securities Exchange Act of 1934]\n    *   **Form 3 (Initial Statement of Beneficial Ownership):** Filed when an individual first becomes an insider. [source: Form 3 instructions]\n    *   **Form 4 (Statement of Changes in Beneficial Ownership):** Filed to report most changes in beneficial ownership (e.g., purchases, sales, grants of stock options). [source: Form 4 instructions]\n    *   **Form 5 (Annual Statement of Beneficial Ownership):** Filed to report certain transactions that were not reported on Form 4 or that were exempt from Section 16(b) liability. [source: Form 5 instructions]\n    *   **Frequency:** Form 3 once, Form 4 generally within 2 business days of a transaction, Form 5 annually. [source: Section 16(a)(2)(C) of the Securities Exchange Act of 1934; Rule 16a-3(f)]\n\n**Note on Emerging Growth Companies (EGCs):**\nUnder the JOBS Act, an Emerging Growth Company (EGC) receives certain scaled disclosure relief for up to five years, or until it no longer qualifies as an EGC. [source: Section 101(a) of the JOBS Act; Section 2(a)(19) of the Securities Act of 1933] This relief can include fewer years of audited financial statements in an IPO registration statement, reduced executive compensation disclosures, and a delay in complying with certain accounting standards (e.g., new FASB standards). While an EGC is still a reporting company, these accommodations can reduce the burden of reporting. [model knowledge only \u2014 no source]",
+          "input_tokens": 331,
+          "output_tokens": 5070,
+          "seconds": 24.38,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.71,
+        "max_spread": 2,
+        "contested_dims": [
+          "tone_style"
+        ],
+        "self_preference_delta": -1
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

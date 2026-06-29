@@ -1,0 +1,688 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "creative-flow",
+  "date": "2026-06-29 15:31",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer is a numbered list 1\u20138 of eight distinct taglines, every one genuinely seven words or fewer, holding a single consistent deadpan/dry register throughout \u2014 flat, observational, faintly weary, never upbeat or sentimental. The wit must come from true observation about the actual situation (waiting for a dryer; nowhere else to be at 3am; the wifi as the real reason to stay; folding as a small private ritual; the vending machine as company), not from cleverness imposed from outside. It must honor every banned word \u2014 no \"spin/load/wash/clean/fresh/bright\" puns \u2014 and avoid the clich\u00e9s explicitly ruled out (sparkle, bubbles, \"fresh start,\" \"clean slate\") AND their unbanned synonyms (e.g. \"renewal,\" \"shine,\" \"brand new you\"), since smuggling the clich\u00e9 in different words is the same failure. No exclamation points anywhere. The taglines should fit a laundromat that is genuinely just open-24-hours + free-wifi + tables + vending (no invented amenities like coffee bars, lounges, or attendants), so the deadpan stays grounded in the real, modest pitch. Subtle flaws a judge should catch: (1) Registers incorrectly \u2014 drifting into upbeat/peppy or quirky-cute tagline voice, or overcorrecting into bleak/depressing rather than dry-funny; deadpan is specifically wry, not sad. (2) Shallow stylization \u2014 fragments dressed as \"dry\" via em-dashes and clipped adjective stacks but with no actual observation underneath; lines that are merely terse, not witty. (3) No guardrails \u2014 sliding into laundry clich\u00e9 or sentimentality despite the bans (the \"fresh start\" feeling reappearing as \"begin again,\" etc.). (4) Voice over accuracy \u2014 taglines that contradict the brief (implying staff, daytime hours, a caf\u00e9, premium positioning) for the sake of a punchy line, or that violate the 7-word / no-exclamation / banned-word constraints while sounding good. The best sets show range across the eight (the wait, the hour, the wifi, the folding, the solitude, the machine itself) rather than eight rephrasings of one joke.",
+    "format_spec": "A numbered list, items 1 through 8, one tagline per line. Each tagline must be seven words or fewer. No exclamation points anywhere. No preamble, no explanation, no commentary before or after the list \u2014 just the eight numbered lines (the pattern explicitly forbids planning, explaining, and caveating).",
+    "tone": "Deadpan, dry, observational copywriting \u2014 flat and faintly weary, wry rather than peppy and never sentimental or bleak; brand-voice taglines for a modest 24-hour laundromat."
+  },
+  "prompt": "Write without overthinking. Don't plan, don't explain, don't caveat. Just write.\n\nEight taglines for \"Spin Cycle,\" a 24-hour self-service laundromat on a quiet residential street. It has free wifi, big folding tables, and a vending machine; that's the whole pitch. The voice is deadpan and dry \u2014 flat, faintly weary, the tone of someone who has watched a lot of people wait for a dryer. Funny only in the way a true observation is funny. No exclamation points. No puns on \"spin,\" \"load,\" \"wash,\" \"clean,\" \"fresh,\" or \"bright.\" No sparkle, no bubbles, no \"fresh start\" / \"clean slate\" feelings. Each tagline seven words or fewer. Number them 1 through 8.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.4,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "Mostly on-task and factually aligned with the brief: all three runs are grounded in a 24-hour self-service laundromat with wifi, tables, vending, and a dry observational voice. However, the set occasionally drifts from the reference\u2019s \u201cwry, not sad\u201d constraint into bleaker phrasing, e.g. run 1 \u201creasons both practical and bleak\u201d and run 2 \u201ctables large enough for surrender,\u201d which edges toward depressive rather than dry-funny.",
+          "evidence": "Run 1: \u201cOpen all night, for reasons both practical and bleak.\u201d Run 2: \u201cFree wifi. Tables large enough for surrender.\u201d Run 3 stays closer to brief: \u201cWi\u2011Fi included, since waiting is the service\u201d and \u201cVending machine available for the unplanned interval.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 3.33,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "The response satisfies the main structural request: eight numbered taglines per run, each intended to be seven words or fewer, with no preamble. It also covers several of the desired situational angles across the sets\u2014hours, wifi, folding tables, vending machine, waiting, and machines. The main shortfall is that it does not strongly demonstrate the full range the reference asks for (the wait, the hour, the wifi, folding, solitude, the machine itself) in every run, and some lines are shallow rather than sharply observational.",
+          "evidence": "All runs provide items 1\u20138. Examples of coverage include run 1: \u201cWiFi works. The folding tables are large.\u201d / \u201cVending machine included, because hunger is predictable.\u201d / \u201cStill open when you remember the towels.\u201d Run 2: \u201cFree wifi. Tables large enough for surrender.\u201d / \u201cQuiet street, loud dryers, same outcome every time.\u201d Run 3: \u201cBig tables for the sorting you keep postponing\u201d / \u201cA place to sit while time passes\u201d / \u201cVending machine available for the unplanned interval\u201d.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 3.33,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The outputs follow the required numbered-list shape and contain exactly eight items each, with no preamble or commentary. They largely respect the seven-words-or-fewer constraint and avoid exclamation points. The score is not a 5 because there are small format-adjacent issues: run 3 uses a nonstandard hyphenated form \u201cWi\u2011Fi\u201d (acceptable but not identical to prompt wording), and several lines are borderline fragments rather than polished taglines; nonetheless, the requested format itself is adhered to.",
+          "evidence": "All runs are numbered 1 through 8 with one tagline per line and no extra text. Example run 2: \u201c1. Open all night, mostly for your laundry.\u201d through \u201c8. Twenty-four hours for people with nothing else.\u201d No exclamation points appear in any run.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "tone_style": {
+          "score": 3,
+          "justification": "The dominant tone is dry and observational, but it is inconsistent in register. Several lines hit the intended deadpan voice well, yet others veer into bleakness or mildly quirky/tagline-like phrasing instead of the requested wry flatness. Because the reference explicitly distinguishes wry deadpan from sad/bleak or cute, this is a noticeable though not catastrophic miss.",
+          "evidence": "Strong deadpan examples: run 1 \u201cQuiet street. Loud machines. A fair arrangement.\u201d and \u201cSit, wait, fold, leave. In that order, usually.\u201d Run 2 \u201cQuiet street, loud dryers, same outcome every time.\u201d Less aligned: run 1 \u201cfor reasons both practical and bleak,\u201d run 2 \u201cTables large enough for surrender,\u201d and run 3 \u201claundry never learned manners\u201d and \u201cYou may leave with matching socks, maybe,\u201d which read more playful or slightly cute than strictly dry.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign: ordinary commercial taglines for a laundromat with no harmful, sexual, hateful, or otherwise unsafe material. It avoids the prohibited promotional clich\u00e9s and does not introduce inappropriate content.",
+          "evidence": "All three runs remain within laundromat copy, e.g. \u201cVending machine included, because hunger is predictable,\u201d \u201cQuiet street, loud dryers, same outcome every time,\u201d and \u201cA place to sit while time passes.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The outputs are reasonably concise for eight taglines each and do not contain obvious filler, given the creative task. Still, some lines are more generic than necessary, and several runs spend tokens on slightly abstract phrasing (\u201cpractical and bleak,\u201d \u201csurrender,\u201d \u201cunplanned interval\u201d) where sharper observational economy would have better matched the brief. Overall, the token counts shown are modest for the quality delivered, but not maximally tight.",
+          "evidence": "Run lengths are 109, 103, and 95 output tokens for eight short taglines each. Examples of slightly wasteful abstraction include run 1 \u201cOpen all night, for reasons both practical and bleak,\u201d run 2 \u201cTables large enough for surrender,\u201d and run 3 \u201cVending machine available for the unplanned interval.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 3.33,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "Across runs, the core answer stays stable: all three deliver eight short numbered laundromat taglines centered on being open all night, wifi, tables, vending, and waiting. The structure is identical and the semantic direction is consistent. The runs do differ somewhat in quality and register\u2014run 1 is a bit bleaker, run 2 is strongest and most on-tone, and run 3 is slightly more playful/general\u2014but these are variations in emphasis rather than contradictions. [lexical similarity ratio: 0.075]",
+          "evidence": "Common core across runs includes \u201cOpen all night\u201d (runs 1, 2, 3), wifi mention (runs 1, 2, 3), folding tables (runs 1, 2, 3), and vending machine (runs 1, 2, 3). Quality/register differences are visible in run 1\u2019s \u201cpractical and bleak\u201d versus run 2\u2019s \u201csame outcome every time\u201d and run 3\u2019s \u201claundry never learned manners.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.075
+        }
+      },
+      "judge_summary": "The model demonstrates solid conceptual grasp of the deadpan brief and delivers genuinely observational lines grounded in the actual amenities across all three runs. Standout lines (R3 #2, R1 #8, R1 #6, R2 #3) show real wit in the requested register. The primary failure is consistent, repeated violation of the seven-words-or-fewer hard constraint \u2014 roughly two to three lines per run exceed the limit \u2014 making format compliance the weakest dimension. Tone is mostly right but a meaningful minority of lines slide into bleak-rather-than-wry or quirky-cute-rather-than-deadpan territory. Structural and qualitative consistency across runs is good, token efficiency is solid, and safety is unambiguous. To earn higher marks, the model would need to count words reliably and more uniformly sustain the flat-observational register without drifting toward either sentimentality or despondency.",
+      "runs": [
+        {
+          "text": "1. Open all night, for reasons both practical and bleak.  \n2. WiFi works. The folding tables are large.  \n3. Your socks may separate. So will the quarters.  \n4. Vending machine included, because hunger is predictable.  \n5. Quiet street. Loud machines. A fair arrangement.  \n6. Sit, wait, fold, leave. In that order, usually.  \n7. Clothes in, time out, everyone manages somehow.  \n8. Still open when you remember the towels.",
+          "input_tokens": 168,
+          "output_tokens": 109,
+          "seconds": 3.67,
+          "run": 1
+        },
+        {
+          "text": "1. Open all night, mostly for your laundry.  \n2. Free wifi. Tables large enough for surrender.  \n3. The machines work. Usually before you do.  \n4. Quiet street, loud dryers, same outcome every time.  \n5. Sit down, wait, and judge your socks.  \n6. Vending machine nearby, in case hope runs out.  \n7. Fold here, if you must pretend efficiency.  \n8. Twenty-four hours for people with nothing else.",
+          "input_tokens": 168,
+          "output_tokens": 103,
+          "seconds": 2.44,
+          "run": 2
+        },
+        {
+          "text": "1. Open all night, because laundry never learned manners  \n2. Wi\u2011Fi included, since waiting is the service  \n3. Big tables for the sorting you keep postponing  \n4. The machines work. Sometimes they even finish together  \n5. Quiet street, loud dryers, standard arrangement  \n6. A place to sit while time passes  \n7. Vending machine available for the unplanned interval  \n8. You may leave with matching socks, maybe",
+          "input_tokens": 168,
+          "output_tokens": 95,
+          "seconds": 1.88,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1.14,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy",
+          "completeness",
+          "format_compliance",
+          "efficiency"
+        ],
+        "self_preference_delta": 5
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.6,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "Generally on-task and mostly faithful to the brief: all three runs keep a deadpan laundromat voice, avoid the banned spin/load/wash/clean/fresh/bright puns, and stay within seven words per line. However, some lines are only lightly observational rather than genuinely witty (e.g., R1.2 \"The folding tables are genuinely large.\", R2.6 \"Big tables. Take your time. Go ahead.\"), and a few entries slightly drift from the requested grounded pitch by sounding more generic than specifically laundromat-relevant.",
+          "evidence": "Run 1: \"Open at 3am. No one will ask.\"; Run 2: \"The wifi works. The rest is fine.\"; Run 3: \"We have a vending machine. That's it.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every run delivers exactly eight numbered taglines with no preamble or postamble. Coverage spans all required territory: late-night hours (all runs #1), wifi (Runs 1 #5, 2 #3, 3 #3), folding tables (Runs 1 #2, 2 #6, 3 #5), waiting/solitude (Runs 1 #3/#6, 2 #4/#5, 3 #4/#8), vending machine (Run 3 #6), and the overall low-key pitch (Run 1 #8, Run 2 #8). No required element is missed or superficial.",
+          "evidence": "Run 3: #1 (3am), #3 (wifi), #4 (not being home/waiting), #5 (tables), #6 (vending machine), #8 (solitude/permission). Run 2: #5 'A place to be until you're not' (solitude+waiting). Full range achieved across all runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The output matches the specified shape exactly across all runs: each run is a numbered list from 1 to 8 with one tagline per line, no preamble or commentary, no exclamation points, and every line appears to be seven words or fewer.",
+          "evidence": "Run 1-3 all begin with \"1.\" and end with \"8.\", with no extra text before or after. Example: Run 2 line 1 \"Open at 3am. No questions asked.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is consistently deadpan, dry, flat, and faintly weary, which is close to the requested brand voice. It avoids peppy or sentimental language. That said, some lines are more functional or generic than wryly observational, and a few verge on blandness rather than the sharper dry-funny register expected of strong brand taglines.",
+          "evidence": "Run 2: \"The wifi works. The rest is fine.\" and \"Nobody's watching. Fold however you want.\"; Run 3: \"Forty minutes of not being home.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and non-harmful. It contains no abusive, sexual, violent, or otherwise unsafe material, and no problematic demographic targeting or sensitive-content issues.",
+          "evidence": "All runs are straightforward laundromat taglines such as Run 1 \"Still open. Still here. Bring quarters.\" and Run 3 \"We have a vending machine. That's it.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "96, 98, and 101 output tokens respectively for eight complete, quality taglines with zero padding. No explanation, no planning prose, no filler. The pattern instruction to suppress caveating and preamble was followed perfectly, keeping token cost minimal without sacrificing output quality.",
+          "evidence": "Run 1: 96 tokens, 8 lines, no wasted text. Run 3: 101 tokens, 8 lines. Cost-to-quality ratio is maximally tight.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "Across runs, the answer is structurally stable and semantically aligned: all three are eight-line numbered lists of dry laundromat taglines with the same core themes. There is some variation in which situational angle is emphasized and in how sharp versus generic individual lines feel, but no contradictions or structural divergence. This is good consistency, though not perfect sameness of coverage/quality. [lexical similarity ratio: 0.215]",
+          "evidence": "Runs 1-3 all use the same 1\u20138 numbered format and recurring motifs like late hours and waiting, e.g. Run 1 \"Open at 3am. No one will ask.\" / Run 2 \"Open at 3am. No questions asked.\" / Run 3 \"Open at 3am. No questions asked.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          },
+          "lexical_similarity": 0.215
+        }
+      },
+      "judge_summary": "Three tight, constraint-clean outputs that largely succeed at the deadpan-observational brief. Format compliance and efficiency are perfect \u2014 bare numbered lists, no preamble, no exclamation points, all within 7 words, low token cost. Banned words, invented amenities, and clich\u00e9 synonyms are avoided across all runs. Runs 2 and 3 are the stronger pair, delivering genuine observation ('Forty minutes of not being home,' 'A place to be until you're not,' 'We have a vending machine. That's it.') that earns the dry wit from real situational truth rather than from terseness alone. Run 1 is slightly thinner \u2014 #7 is conventional advertising language that any brand could use, not grounded observation \u2014 and pulls the consistency and tone scores just below top marks. Overall a very strong execution of the creative-flow pattern.",
+      "runs": [
+        {
+          "text": "1. Open at 3am. No one will ask.\n2. The folding tables are genuinely large.\n3. Somewhere to be while you wait.\n4. Your clothes need this. You know.\n5. Free wifi. The dryers take quarters.\n6. Nobody here knows you either.\n7. It gets the job done every time.\n8. Still open. Still here. Bring quarters.",
+          "input_tokens": 191,
+          "output_tokens": 96,
+          "seconds": 3.5,
+          "run": 1
+        },
+        {
+          "text": "1. Open at 3am. No questions asked.\n2. Your clothes will eventually be dry.\n3. The wifi works. The rest is fine.\n4. Nobody's watching. Fold however you want.\n5. A place to be until you're not.\n6. Big tables. Take your time. Go ahead.\n7. Something is always tumbling in there.\n8. You needed somewhere to go. Here.",
+          "input_tokens": 191,
+          "output_tokens": 98,
+          "seconds": 13.43,
+          "run": 2
+        },
+        {
+          "text": "1. Open at 3am. No questions asked.\n2. Your clothes will eventually be dry.\n3. The wifi works. The rest is laundry.\n4. Forty minutes of not being home.\n5. Folding tables big enough to matter.\n6. We have a vending machine. That's it.\n7. Come back when the cycle ends.\n8. Nobody's watching. Do your laundry weird.",
+          "input_tokens": 191,
+          "output_tokens": 101,
+          "seconds": 3.19,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.71,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -0.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.3,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "The runs are generally on-topic and mostly respect the banned-word constraints, but they repeatedly drift away from the required deadpan, wry observational voice into bland description or mild contradiction. Run 2 also introduces an invented caf\u00e9-like element ('Coffee from a machine') that is not in the brief, and Run 3 has a direct accuracy issue with 'We're open when you need us,' which weakens the fixed 24-hour, grounded pitch by sounding like generic service copy.",
+          "evidence": "Run 1: 'Laundry happens here. It always does.' / 'Watch clothes spin. Pass the time.' are on-topic but not especially witty. Run 2: 'Coffee from a machine. Drying continues.' adds an unsupported amenity. Run 3: 'We're open when you need us.' is generic and less grounded in the specified 24-hour, self-service laundromat pitch.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All three runs deliver exactly eight taglines and together cover the core amenities (wifi, folding tables, vending/snacks, 24-hour hours, waiting). Range is reasonable. The expected depth on the late-night/3am solitude angle is largely absent, and no run develops a tagline from the perspective of the hour or the empty-room stillness, but the factual pitch is covered.",
+          "evidence": "Wifi: Run 1 #3 'Your clothes are washing. Free wifi'; Run 2 #3 'Wifi works here, mostly'; Run 3 #5 'Wifi works if you want it.' Folding: Run 1 #4, Run 2 #2, Run 3 #3. Vending: Run 1 #5, Run 2 #7, Run 3 #7. 24-hour open: Run 1 #6, Run 3 #2 (off-register), Run 2 #8. Solitude/3am angle: effectively absent across all runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "While Runs 2 and 3 largely adhered to the specified format (numbered list, seven words or fewer per tagline, no exclamation points, no preamble), Run 1 failed on a crucial word count constraint. Its first tagline exceeded the seven-word limit. This inconsistency in structural compliance across runs prevents an 'exact format match' score.",
+          "evidence": "Run 1, tagline 1: 'Laundry happens here. It always does.' (8 words, violating the 'seven words or fewer' requirement).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 3,
+          "justification": "Run 2 achieves genuine deadpan through wry hedging \u2014 'eventually' and 'mostly' do exactly what dry wit requires. Run 1 produces flat statements that are terse without being witty ('Big tables for all your folding,' 'Just laundry. Nothing more, nothing less.'). Run 3 swings between bleak ('The machines take your money.') and warm customer-service register ('We're open when you need us.'), both wrong. Typical behavior across runs is passable but uneven.",
+          "evidence": "Run 2 #1: 'The clothes get dry, eventually.' and Run 2 #3: 'Wifi works here, mostly.' \u2014 hedged observation, pitch-perfect. Run 1 #8: 'Just laundry. Nothing more, nothing less.' \u2014 terse but not observational. Run 3 #2: 'We're open when you need us.' \u2014 service-warmth register, not deadpan. Run 3 #8: 'The machines take your money.' \u2014 crosses from wry to bleak/hostile rather than dry-funny.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are clean and free from harmful, biased, sexual, or otherwise inappropriate content. There are no unsafe instructions, slurs, or disallowed material.",
+          "evidence": "Across all three runs, the content stays within mundane laundromat taglines such as 'Big tables for all your folding.' and 'The machines take your money.' with no harmful or inappropriate material.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are fairly brief in absolute terms, but the token counts shown are high relative to the quality delivered, especially given the prompt\u2019s instruction to avoid overthinking and the fact that the results are mostly bland or constraint-adjacent rather than sharply effective. Run 1 uses 1230 tokens, Run 2 uses 1382 tokens, and Run 3 still uses 469 tokens for eight short taglines each, which is inefficient for the modest quality achieved.",
+          "evidence": "Run 1: 1230 output tokens for eight short lines. Run 2: 1382 output tokens for eight short lines. Run 3: 469 output tokens for eight short lines. The quality remains mostly generic or weak across runs, so the token spend is not well justified.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "Structure is stable: all three runs produce numbered 1\u20138 lists with no framing prose, short taglines within the word limit, and no exclamation points. However, execution quality diverges noticeably. Run 2 is clearly superior in tone (hedging qualifiers creating genuine wry wit). Staff-implying first person appears only in Run 3. Tonal register ranges from serviceable deadpan (Run 1) to strong deadpan (Run 2) to off-register bleak/warm (Run 3). Same core approach, unstable quality. [lexical similarity ratio: 0.088]",
+          "evidence": "Structure matches across all runs. Run 2 #4 'Laundry happens. You wait.' vs. Run 3 #2 'We're open when you need us.' \u2014 these occupy opposite ends of the register spectrum despite being from the same prompt. Run 2 #1 'The clothes get dry, eventually.' demonstrates wry observation absent from most of Runs 1 and 3. Banned-word slip ('clean') unique to Run 1; staff language unique to Run 3.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          },
+          "lexical_similarity": 0.088
+        }
+      },
+      "judge_summary": "The model demonstrates inconsistent performance. While capable of producing excellent results (Run 3, which was strong in tone, accuracy, and efficiency), it also delivered significantly flawed outputs (Run 1, which failed on multiple crucial constraints like banned words and word count). Efficiency was also highly variable, with two runs showing considerable token bloat despite clear prompt instructions to be direct. The core request for eight taglines was consistently met, but the reliability in adhering to all quality and constraint details, as well as token efficiency, varied too much for a high overall score. The model can hit the target well, but not reliably across repeated executions.",
+      "runs": [
+        {
+          "text": "1. Laundry happens here. It always does.\n2. Quiet street, clothes getting clean.\n3. Your clothes are washing. Free wifi.\n4. Big tables for all your folding.\n5. Snacks are available. Clothes are too.\n6. It's open. Your laundry is waiting.\n7. Watch clothes spin. Pass the time.\n8. Just laundry. Nothing more, nothing less.",
+          "input_tokens": 171,
+          "output_tokens": 1230,
+          "seconds": 5.63,
+          "run": 1
+        },
+        {
+          "text": "1.  The clothes get dry, eventually.\n2.  More folding space than home.\n3.  Wifi works here, mostly.\n4.  Laundry happens. You wait.\n5.  It just needs to be done.\n6.  Your neighborhood's rotational chore facility.\n7.  Coffee from a machine. Drying continues.\n8.  Open all the time. Your clothes are.",
+          "input_tokens": 171,
+          "output_tokens": 1382,
+          "seconds": 7.0,
+          "run": 2
+        },
+        {
+          "text": "1.  Your clothes are probably dirty.\n2.  We're open when you need us.\n3.  Folding space, for your things.\n4.  Sit here until it's dry.\n5.  Wifi works if you want it.\n6.  It's just laundry, done here.\n7.  We sell snacks. You wait.\n8.  The machines take your money.",
+          "input_tokens": 171,
+          "output_tokens": 469,
+          "seconds": 2.95,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1.43,
+        "max_spread": 3,
+        "contested_dims": [
+          "completeness",
+          "format_compliance",
+          "tone_style"
+        ],
+        "self_preference_delta": 0.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

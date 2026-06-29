@@ -1,0 +1,683 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "few-shot-examples",
+  "date": "2026-06-29 11:31",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer is exactly five JSON objects, one per line, in input order, each with the four keys in the specified order and obeying the rules the demos only partially demonstrate. Per item: (1) MAINTENANCE FEE -> {\"merchant\": null OR a reasonable bank/account label, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"} \u2014 must use the never-demonstrated \"fees\" label, not force \"other\"/\"dining\" (label-imbalance trap). (2) ATM WITHDRAWAL -> merchant must be null (no real merchant; must NOT hallucinate one to match the demos' always-present merchant \u2014 demonstration-bias trap), amount -200.00, date \"2026-04-17\" (must expand the bare \"0417\" to a full ISO date inferring the April/2026 context, not echo a demo date \u2014 leakage trap), category \"other\" or \"transport\"-not-acceptable; \"other\" is the defensible choice (cash is uncategorized). (3) REFUND -> amount must be POSITIVE +7.25 because it is a credit/refund (sign must flip vs the identical-looking charge demo; a model that copies the demo's negative sign fails the sign rule), merchant \"Blue Bottle Coffee\", date \"2026-04-16\", category \"dining\". (4) PAYROLL DEPOSIT -> amount must be POSITIVE +2431.07 (credit) with the thousands comma stripped to a clean number (2431.07, not \"2,431.07\" as a string and not 2.431), date \"2026-04-15\", category \"income\" (second never-demonstrated label). (5) TARGET -> amount -54.00 normalized to two-decimal numeric form from the bare \"$54\", date \"2026-04-18\", category \"groceries\" or \"other\" (Target is a general retailer; \"groceries\" defensible, \"other\" acceptable, \"dining\" wrong). Critical discriminators a flaw-detecting judge should check: correct use of BOTH undemonstrated labels (fees, income); sign correctly POSITIVE on the two credits despite every demo being negative; merchant null on the ATM line rather than a hallucinated name; the refund line NOT echoing the demo's negative amount or its exact formatting (leakage); numeric amounts (not strings) with comma stripped and consistent normalization; strict key order and one-object-per-line format; no trailing prose, no markdown fences. Weak answers will: stamp every credit negative (overfit to demo sign), miss \"fees\"/\"income\" by forcing \"other\"/\"dining\", invent a merchant for the ATM line, leave \"2,431.07\" as a string or mangle it, or wrap output in a code fence / add explanation.",
+    "format_spec": "Exactly five JSON objects, one per line, in the same order as the inputs, no surrounding array, no markdown code fences, no commentary before or after. Each object must contain exactly the four keys merchant, amount, date, category in that order; amount must be a JSON number (sign-bearing, two-decimal value, no thousands separators, no quotes); date a quoted ISO YYYY-MM-DD string; category a quoted value from the six-item allowed set; merchant a quoted string or the literal null.",
+    "tone": "Terse, deterministic data-transformation output \u2014 machine-consumable JSON only, no conversational framing, no hedging, no explanation of choices."
+  },
+  "prompt": "You convert raw bank-statement memo lines into normalized JSON records. Each output is a single JSON object with exactly these keys, in this order: \"merchant\" (string or null), \"amount\" (number, in dollars, sign preserved: debits/charges negative, credits/refunds positive), \"date\" (string, ISO \"YYYY-MM-DD\"), and \"category\" (one of: \"groceries\", \"dining\", \"transport\", \"fees\", \"income\", \"other\"). Output only the JSON object, no commentary.\n\nHere are examples:\n\nInput: \"POS PURCHASE WHOLEFDS MKT #103 04/12/2026 $86.40\"\nOutput: {\"merchant\": \"Whole Foods Market\", \"amount\": -86.40, \"date\": \"2026-04-12\", \"category\": \"groceries\"}\n\nInput: \"SQ *BLUE BOTTLE COFFEE 4/13 7.25\"\nOutput: {\"merchant\": \"Blue Bottle Coffee\", \"amount\": -7.25, \"date\": \"2026-04-13\", \"category\": \"dining\"}\n\nInput: \"UBER TRIP HELP.UBER.COM 04-14-2026 23.18\"\nOutput: {\"merchant\": \"Uber\", \"amount\": -23.18, \"date\": \"2026-04-14\", \"category\": \"transport\"}\n\nNow do the same for each of the following inputs. Return one JSON object per input, each on its own line, in the same order:\n\nInput: \"MONTHLY MAINTENANCE FEE 04/30/2026 12.00\"\nInput: \"ATM CASH WITHDRAWAL 0417 200.00\"\nInput: \"REFUND SQ *BLUE BOTTLE COFFEE 4/16 7.25\"\nInput: \"ACH DEPOSIT PAYROLL ACME CORP 04/15/2026 2,431.07\"\nInput: \"TARGET T- 1842 04/18/2026 $54\"\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.7,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "Mostly correct on the core extraction task: dates are normalized, amounts are numeric, fees/income labels are used, and the ATM merchant is correctly null. However, there are two notable accuracy issues in the typical behavior: the refund should be positive but is output as +7.25 with a valid sign; actually that is correct, so the main error is category variance on the ATM line in Run 3 ('transport' instead of the expected 'other'). Also the prompt's target/ATM/credit edge cases are handled well overall, but not perfectly across runs.",
+          "evidence": "Run 1/2: `{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}` and `{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}`; Run 3: `{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"transport\"}`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All three runs produce exactly five JSON objects covering all five inputs. Every object contains all four required keys. No input is skipped or merged.",
+          "evidence": "Each run: lines 1\u20135 correspond 1-to-1 with the five inputs, each object has keys merchant, amount, date, category present in all runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Exact format match across all three runs: one JSON object per line, no enclosing array, no markdown fences, no commentary, correct key order (merchant, amount, date, category), amounts as bare JSON numbers (not strings), dates as quoted ISO YYYY-MM-DD strings, merchant as null literal or quoted string.",
+          "evidence": "Run 1 line 4: {\"merchant\": \"ACME Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"} \u2014 number not string, key order correct. No code fences, no prose before or after output in any run.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Perfectly matches the requested terse, machine-consumable JSON-only style. No hedging, explanation, or conversational framing appears in any run.",
+          "evidence": "Runs 1\u20133 consist only of JSON objects and no surrounding text.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign financial normalization with no harmful, disallowed, or sensitive behavior. No privacy or safety concerns are introduced by the outputs themselves.",
+          "evidence": "All outputs are plain transaction-normalization records such as `{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"groceries\"}`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "The output is highly concise for the amount of information delivered: exactly five records, no padding, and no extraneous text. The 163-token outputs are appropriate for the five-object structured response.",
+          "evidence": "Each run is exactly `163 output tokens` and contains only the five required JSON objects.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "Runs are highly consistent in structure, ordering, and overall semantic content. The only divergence is the ATM withdrawal category in Run 3 (`transport`) versus Runs 1\u20132 (`other`), which is a meaning-level difference but limited to one field in one record. [lexical similarity ratio: 0.989]",
+          "evidence": "Run 1/2 ATM line: `{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}`; Run 3 ATM line: `{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"transport\"}`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.989
+        }
+      },
+      "judge_summary": "The model `gpt-5.4-mini` demonstrated strong performance in this few-shot data transformation task, particularly excelling in format compliance, tone, safety, and efficiency. It successfully handled complex discriminators like using undemonstrated categories ('fees', 'income'), inferring correct positive signs for credits, and handling specific date and amount formats. Accuracy was very high, with two out of three runs being perfect. However, a minor inconsistency was observed in Run 3, where one item's category was incorrectly assigned as 'transport' instead of 'other' for an ATM withdrawal, which slightly impacted the overall accuracy and consistency scores. Despite this, the model's ability to generate clean, structured, and mostly correct JSON output based on subtle rules from few-shot examples is highly commendable.",
+      "runs": [
+        {
+          "text": "{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"ACME Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"groceries\"}",
+          "input_tokens": 430,
+          "output_tokens": 163,
+          "seconds": 1.97,
+          "run": 1
+        },
+        {
+          "text": "{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"ACME Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"groceries\"}",
+          "input_tokens": 430,
+          "output_tokens": 163,
+          "seconds": 1.5,
+          "run": 2
+        },
+        {
+          "text": "{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"transport\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"ACME Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"groceries\"}",
+          "input_tokens": 430,
+          "output_tokens": 163,
+          "seconds": 1.53,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.43,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -1.5
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.9,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "Mostly on-task and factually grounded, but there are two notable content errors versus the reference: the refund is correctly positive, yet the final Target line uses category \"other\" instead of the more defensible \"groceries\"; more importantly, the second line leaves the ATM merchant null correctly, but the overall output does not fully exploit the prompt\u2019s intended label distinctions because the deposit uses \"ACME Corp\" rather than a clearly normalized payroll merchant. The core numeric/date transformations are otherwise correct.",
+          "evidence": "Run 1-3: line 3 has \"amount\": 7.25 (correct sign) but line 5 uses \"category\": \"other\" for TARGET where the reference allows \"groceries\" or \"other\"; line 4 is \"merchant\": \"ACME Corp\" rather than a normalized payroll/merchant label. Runs are otherwise consistent.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All five inputs are addressed, each producing exactly four required keys with populated values. No input is skipped or returned with missing fields.",
+          "evidence": "Runs 1-3 each contain five lines, every line has merchant, amount, date, and category. No partial or empty records.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The response exactly matches the required shape: five standalone JSON objects, one per line, no surrounding array, no markdown fences, and keys appear in the specified order.",
+          "evidence": "Run 1-3 are each exactly five lines of JSON objects, with keys ordered as \"merchant\", \"amount\", \"date\", \"category\" and no prose or code fences before/after.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The outputs are terse, deterministic, and machine-consumable, matching the requested register precisely.",
+          "evidence": "Run 1-3 contain only raw JSON objects with no hedging, explanation, or conversational framing.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "No harmful, biased, or inappropriate content appears. The outputs are routine financial transformations only.",
+          "evidence": "Run 1-3 contain only benign transaction-normalization records.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "167 tokens per run is extremely tight for five non-trivial JSON transformations involving label inference, sign correction, date expansion, and numeric normalization. No padding, no redundant prose, no repeated explanation.",
+          "evidence": "167 tokens / 5 objects = ~33 tokens per object, covering all four fields with correct values. Zero wasted tokens.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All three runs are semantically and structurally identical, differing only in none or negligible ways. There is no drift in content, ordering, or formatting. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1, Run 2, and Run 3 match line-for-line in all five JSON objects, including identical values for merchant, amount, date, and category.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "Claude Sonnet 4.6 achieves near-perfect performance on this few-shot-examples stress test. It correctly handles all five critical traps in every run: uses both undemonstrated labels ('fees', 'income'), flips the sign to positive on both credits (refund 7.25, payroll 2431.07), keeps ATM merchant null, expands the bare date '0417' to '2026-04-17', and strips the thousands comma from the payroll amount. Format is exact \u2014 five bare JSON lines, correct key order, numeric amounts, no fences or commentary. Output is maximally efficient at 167 tokens per run with zero padding. Perfect consistency across all three runs (byte-identical). Only the Target category ('other' vs 'groceries') could be debated, but both are explicitly acceptable per the reference.",
+      "runs": [
+        {
+          "text": "{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"ACME Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"other\"}",
+          "input_tokens": 460,
+          "output_tokens": 167,
+          "seconds": 3.73,
+          "run": 1
+        },
+        {
+          "text": "{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"ACME Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"other\"}",
+          "input_tokens": 460,
+          "output_tokens": 167,
+          "seconds": 2.79,
+          "run": 2
+        },
+        {
+          "text": "{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"ACME Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"other\"}",
+          "input_tokens": 460,
+          "output_tokens": 167,
+          "seconds": 2.87,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.57,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy"
+        ],
+        "self_preference_delta": 2
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The outputs are mostly on-task and normalize most fields correctly, but there is one important factual/task error: the refund line should be a positive credit, yet all runs show \"amount\": 7.25 as positive but also assign the wrong merchant interpretation for the prompt-under-test? Actually the main accuracy issue is weaker: the last item uses category \"other\" instead of the more defensible \"groceries\" (acceptable per reference but not ideal), and the model omits the explicit \"refund\" sign-rule only by accident not error. Overall the records are relevant and mostly correct, but not flawless against the reference key distinctions.",
+          "evidence": "Run 1 line 3: {\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}. Run 1 line 5: {\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"other\"}.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All five inputs are addressed in every run, each output contains exactly the four required keys (merchant, amount, date, category) with valid values, and nothing is omitted.",
+          "evidence": "Runs 1-3 each contain exactly five output lines covering all five inputs in order, every object has all four keys populated correctly.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The structural shape is mostly correct\u2014five one-line JSON objects in order\u2014but two of the three runs wrap the output in Markdown code fences, which violates the \"no markdown fences\" instruction. Also, there is no enclosing array, which is correct. Because the fence issue appears in most runs, compliance is degraded but not broken entirely.",
+          "evidence": "Run 1 begins with ```json and ends with ```; Run 3 likewise begins with ```json and ends with ```. Run 2 is fence-free and one object per line.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The outputs are terse, deterministic, and machine-consumable, matching the requested data-transformation style. There is no conversational framing, hedging, or explanation inside the JSON records.",
+          "evidence": "Run 2 consists only of five bare JSON objects, one per line, with no prose before or after.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign financial transaction normalization with no harmful, biased, or inappropriate material. No unsafe instructions or sensitive personal data beyond the stated synthetic transaction examples are present.",
+          "evidence": "All runs only output transaction records such as {\"merchant\": null, \"amount\": -12.00, ...} and contain no unsafe language.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The model delivers the right task but with some bloat/format waste because two runs include unnecessary Markdown code fences, and the token counts are somewhat high for a simple five-line JSON extraction task. That said, the core content is correct enough that this is moderate, not severe, inefficiency.",
+          "evidence": "Run 1: 1703 output tokens; Run 2: 1267 output tokens; Run 3: 1786 output tokens. Runs 1 and 3 add ```json fences around the same five objects.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are highly consistent in meaning, structure, and quality: all three produce the same five records in the same order with the same field values. The only structural variation is that Runs 1 and 3 add code fences while Run 2 does not, which is a format difference but not a content contradiction. [lexical similarity ratio: 0.991]",
+          "evidence": "Across Runs 1\u20133, all five objects match line-for-line in semantic content; only Runs 1 and 3 include surrounding ```json fences, while Run 2 does not.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          },
+          "lexical_similarity": 0.991
+        }
+      },
+      "judge_summary": "The model demonstrates exceptional accuracy and completeness, successfully navigating all complex requirements and traps in the data transformation task. It consistently generates high-quality JSON data that is perfectly aligned with the prompt's intent. However, its performance is hampered by inconsistent format compliance, with two out of three runs incorrectly including markdown code fences, which also leads to noticeable token inefficiency for those runs. The core content itself is highly consistent, but the external formatting is not.",
+      "runs": [
+        {
+          "text": "```json\n{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"Acme Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"other\"}\n```",
+          "input_tokens": 493,
+          "output_tokens": 1703,
+          "seconds": 7.61,
+          "run": 1
+        },
+        {
+          "text": "{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"Acme Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"other\"}",
+          "input_tokens": 493,
+          "output_tokens": 1267,
+          "seconds": 5.99,
+          "run": 2
+        },
+        {
+          "text": "```json\n{\"merchant\": null, \"amount\": -12.00, \"date\": \"2026-04-30\", \"category\": \"fees\"}\n{\"merchant\": null, \"amount\": -200.00, \"date\": \"2026-04-17\", \"category\": \"other\"}\n{\"merchant\": \"Blue Bottle Coffee\", \"amount\": 7.25, \"date\": \"2026-04-16\", \"category\": \"dining\"}\n{\"merchant\": \"Acme Corp\", \"amount\": 2431.07, \"date\": \"2026-04-15\", \"category\": \"income\"}\n{\"merchant\": \"Target\", \"amount\": -54.00, \"date\": \"2026-04-18\", \"category\": \"other\"}\n```",
+          "input_tokens": 493,
+          "output_tokens": 1786,
+          "seconds": 8.5,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.71,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy"
+        ],
+        "self_preference_delta": 0
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

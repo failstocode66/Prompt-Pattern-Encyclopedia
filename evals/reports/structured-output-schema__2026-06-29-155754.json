@@ -1,0 +1,684 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "structured-output-schema",
+  "date": "2026-06-29 15:57",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A STRONG answer is exactly one parseable JSON object, no prose/fences, with every schema field present and correctly typed. Field-level reference: incident_id MUST be null (the narrative names no official ID \u2014 fabricating one like \"INC-001\" is the empty-slot failure mode). severity = \"SEV1\" (the FINAL/confirmed severity after the IC bumped it; \"SEV2\" is the initial value and is wrong \u2014 tests reading \"final/confirmed\" correctly). root_cause_category = \"configuration\" (the config push is the proximate cause; \"deployment\"/\"human-error\" are tempting distractors the narrative dangles \u2014 \"the deploy pipeline should have caught it\" \u2014 but the category asks for root cause, which was the config change). detection_source = \"customer-report\" (a customer tweet flagged by support came FIRST, before the automated alert; choosing \"automated-alert\" misreads the corrected ordering). time_to_detect_minutes: best answer is 15 (impact 14:05 \u2192 detection/declared at alert 14:20); accepting null with a justification is defensible given the explicitly hedged/contradictory timestamps, but a fabricated false-precision number that ignores the stated conflict is weak. time_to_resolve_minutes = 90 (14:05 \u2192 15:35). customer_impacting = true (boolean true, not the string \"true\"). affected_services = exactly [\"payments-api\",\"order-service\",\"checkout\"] (the web/checkout flow counts; the internal admin dashboard MUST be excluded \u2014 it was explicitly fine). action_items = an array of two objects: {pre-deploy/pool config validation, owner \"Priya\", due ~\"2026-06-26\"/\"2026-06-27\" i.e. end of next week relative to 2026-06-20, or null if the model declines to resolve \"end of next week\"} and {faster latency alert, owner null, due null}. data_loss = false (boolean). notes MUST capture the unschematized material fact that this is the second time this quarter the replica-routing config caused an incident \u2014 this is the over-constraint escape hatch; dropping it entirely is the over-constraint failure mode, and stuffing it into a wrong field is also wrong. A flawed-but-plausible answer will typically (a) pick SEV2 or \"deployment\"/\"human-error\", (b) pick automated-alert, (c) fabricate incident_id, (d) include the admin dashboard, (e) drop the recurrence fact from notes, or (f) emit booleans/integers as strings.",
+    "format_spec": "A single valid JSON object and nothing else \u2014 no markdown code fences, no leading/trailing prose. Must contain exactly the schema's keys (no invented top-level fields, no omitted fields). Enum fields must use one of the listed literal values. customer_impacting and data_loss must be JSON booleans (true/false), not strings. time_to_detect_minutes / time_to_resolve_minutes must be JSON integers or null, not strings. affected_services is an array of strings. action_items is an array of objects each with description/owner/due keys. Absent evidence must be expressed as null (or empty array), never as a fabricated value.",
+    "tone": "Machine-consumable extraction output for a downstream incident-database ingest pipeline; no human-facing narration, no hedging prose, no apologies \u2014 the JSON is the entire deliverable."
+  },
+  "prompt": "Respond only with a single JSON object matching exactly this schema. Do not output anything before or after the JSON \u2014 no commentary, no code fences, no explanation.\n\n{\n  \"incident_id\": \"<string | null \u2014 the official incident identifier as written, or null if none stated>\",\n  \"severity\": \"<one of: SEV1 | SEV2 | SEV3 \u2014 the final/confirmed severity>\",\n  \"root_cause_category\": \"<one of: deployment | configuration | capacity | dependency | human-error | unknown>\",\n  \"detection_source\": \"<one of: automated-alert | customer-report | internal-manual | unknown>\",\n  \"time_to_detect_minutes\": \"<integer minutes from impact start to detection, or null if not derivable>\",\n  \"time_to_resolve_minutes\": \"<integer minutes from impact start to full resolution, or null if not derivable>\",\n  \"customer_impacting\": \"<boolean>\",\n  \"affected_services\": [\"<service name>\", \"...\"],\n  \"action_items\": [\n    { \"description\": \"<string>\", \"owner\": \"<string | null>\", \"due\": \"<ISO date YYYY-MM-DD | null>\" }\n  ],\n  \"data_loss\": \"<boolean>\",\n  \"notes\": \"<string | null \u2014 facts material to the incident that do not fit any field above; null if none>\"\n}\n\nTask: Extract a structured incident record from the following postmortem narrative.\n\n\"\"\"\nPostmortem \u2014 checkout latency event (draft, written from the on-call's memory; numbers not all double-checked).\n\nOn Tuesday the payments-api started getting slow. The pager went off \u2014 actually, correction: a customer tweeted about it first and someone on the support team flagged it in Slack, then a few minutes later the latency alert fired. Impact began around 14:05. We didn't really clock it as a real incident until the alert at about 14:20, and a couple of folks thought it had actually started closer to 14:00. We called it a SEV2 initially but after we saw that order-service was also dropping requests and checkout was effectively down for EU customers for a while, the IC bumped it to SEV1.\n\nTurned out a config change rolled out that afternoon had pointed the connection pool at the wrong replica, which got overwhelmed. So it was the config push, though honestly the deploy pipeline should have caught it. We rolled back the config and things recovered. Full recovery was confirmed at 15:35 once error rates were flat for 15 minutes.\n\nNo data was lost as far as we can tell \u2014 payments are idempotent so the retried charges deduped. We should (a) add a pre-deploy validation check on pool config \u2014 Priya is going to own that, targeting end of next week \u2014 and (b) improve the alert so it fires on latency faster; nobody's been assigned that yet. Also worth noting: this is the second time this quarter the replica-routing config has bitten us.\n\nAffected: payments-api, order-service, and the checkout web flow. (The internal admin dashboard was fine.)\n\"\"\"\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.9,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "Core extraction is mostly correct (severity, root cause, source, booleans, timings), but there are notable schema/content errors: the required affected service should be \"checkout\", not \"checkout web flow\"; the prompt says the internal admin dashboard must be excluded, but run 1 redundantly mentions it in notes; and action item due dates are wrong/unstable across runs relative to the stated end-of-next-week window.",
+          "evidence": "Run 1/2/3 all get the main fields right: \"severity\": \"SEV1\", \"root_cause_category\": \"configuration\", \"detection_source\": \"customer-report\", \"customer_impacting\": true, \"data_loss\": false. However, affected_services uses \"checkout web flow\" instead of the required exact service list including checkout (Run 1: \"checkout web flow\"; Run 2/3: same). The reference expects exactly [\"payments-api\",\"order-service\",\"checkout\"].",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "All 11 schema fields are present in every run, and both action items are captured with correct owner/null assignments. However, 2 of 3 runs fail to place the recurrence fact ('second time this quarter') in the notes field, which the reference explicitly identifies as the over-constraint escape hatch requirement. This is not a minor omission\u2014it's a mandatory capture of unschematized material information. Run 1 meets this requirement; Runs 2 and 3 do not.",
+          "evidence": "Run 2 and Run 3 notes contain no mention of 'second' or 'quarter' or 'recurrence'. Run 1 notes: 'The narrative notes this was the second replica-routing config issue this quarter.' All runs: two action_items with correct owner='Priya' for first item and owner=null/due=null for second item \u2713.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "All three runs produce a single valid JSON object with no markdown fences, no prose before or after the JSON, all 11 required schema keys present, no invented top-level fields, correct enum values, booleans expressed as JSON true/false (not strings), integers as JSON integers, and action_items as arrays of objects with description/owner/due keys. The format specification is met exactly.",
+          "evidence": "All runs: customer_impacting=true (boolean), data_loss=false (boolean), time_to_detect_minutes=15 (integer), time_to_resolve_minutes=90 (integer), severity='SEV1' (valid enum), root_cause_category='configuration' (valid enum), action_items contain objects with exactly description/owner/due. No fences or prose observed in any run.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Tone is exactly machine-consumable and free of narration, apologies, or hedging. It is appropriately terse and structured for an ingest pipeline.",
+          "evidence": "All runs are JSON-only and contain no human-facing prose outside the data fields. Example Run 2 is a bare object with keys and values only.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "No harmful, biased, or inappropriate content is present. The content is standard incident extraction, and the outputs do not add unsafe material.",
+          "evidence": "All runs describe a benign postmortem and contain no insults, sensitive inference, or unsafe instructions.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The outputs are not excessively bloated, but they spend extra tokens in notes rephrasing facts already encoded in fields, and they retain approximate natural-language prose rather than tighter extraction. Given the quality, this is acceptable but not especially compact.",
+          "evidence": "Run 1 notes repeat details already captured elsewhere: \"Impact began around 14:05... Full recovery was confirmed at 15:35... The narrative notes this was the second replica-routing config issue this quarter.\" Run 2 also includes several duplicated facts in notes, including \"initially called SEV2 and later escalated to SEV1\" despite severity already being SEV1.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs are semantically aligned on the core extraction and share the same structure, but they differ in several nontrivial details: the action-item due date changes from 2026-07-10 (run 1) to 2026-07-07 (runs 2/3), the second action item wording varies, and run 2/3 include extra historical details in notes that run 1 omits. These are not contradictions in the core answer, but they are meaningful stability differences. [lexical similarity ratio: 0.629]",
+          "evidence": "Run 1 due date: \"2026-07-10\"; Run 2/3 due date: \"2026-07-07\". Run 2 notes include \"initially called SEV2 and later escalated to SEV1\" and \"the deploy pipeline should have caught the bad config,\" while Run 1 notes do not. All runs agree on the main schema fields and severity/source/root cause.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.629
+        }
+      },
+      "judge_summary": "The model consistently nails the hardest categorical extractions (SEV1 over SEV2, configuration over deployment/human-error, customer-report over automated-alert, null incident_id) and produces well-typed, format-compliant JSON with no prose artifacts. The two main failure modes are: (1) incorrect due-date computation for the 'end of next week' action item across all three runs (~10-14 days late), and (2) runs 2 and 3 omit the critical material fact\u2014second replica-routing incident this quarter\u2014from the notes field, the very escape-hatch the reference highlights as mandatory. Run 1 is clearly the strongest. Format compliance and tone are perfect; consistency is degraded by the notes coverage gap and due-date disagreement between runs.",
+      "runs": [
+        {
+          "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\n    \"payments-api\",\n    \"order-service\",\n    \"checkout web flow\"\n  ],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": \"2026-07-10\"\n    },\n    {\n      \"description\": \"Improve the alert so it fires on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began around 14:05, but the incident was not considered real until the alert at about 14:20. A config change pointed the connection pool at the wrong replica, overwhelming it. Checkout was effectively down for EU customers for a while. The internal admin dashboard was unaffected. Full recovery was confirmed at 15:35 after error rates were flat for 15 minutes. The narrative notes this was the second replica-routing config issue this quarter.\"\n}",
+          "input_tokens": 633,
+          "output_tokens": 277,
+          "seconds": 2.73,
+          "run": 1
+        },
+        {
+          "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": \"2026-07-07\"\n    },\n    {\n      \"description\": \"Improve the latency alert to fire faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began around 14:05; detection was around 14:20 after a customer tweet and Slack escalation, followed by an automated latency alert. The incident was initially called SEV2 and later escalated to SEV1 when checkout was effectively down for EU customers and order-service was dropping requests. Root cause was a configuration change that pointed the connection pool at the wrong replica, overwhelming it; rollback restored service. Full recovery was confirmed at 15:35 after error rates stayed flat for 15 minutes. The narrative notes this may have started closer to 14:00 and that the deploy pipeline should have caught the bad config.\"\n}",
+          "input_tokens": 633,
+          "output_tokens": 306,
+          "seconds": 2.64,
+          "run": 2
+        },
+        {
+          "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config.\",\n      \"owner\": \"Priya\",\n      \"due\": \"2026-07-07\"\n    },\n    {\n      \"description\": \"Improve the alert so it fires on latency faster.\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began around 14:05; the incident was first noticed by a customer tweet and support Slack flag, with the latency alert firing around 14:20. The postmortem notes the incident may have started closer to 14:00, so detection and resolution times are approximate. The config change pointed the connection pool at the wrong replica, which became overwhelmed. Checkout was effectively down for EU customers for a while. Internal admin dashboard was unaffected. This was initially called SEV2 and later bumped to SEV1.\"\n}",
+          "input_tokens": 633,
+          "output_tokens": 286,
+          "seconds": 2.64,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.57,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -1
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "Outputs are highly accurate and on-task overall, with the main substantive miss being the affected-services field: all runs include \"checkout web flow\" instead of the required \"checkout\" and omit the instruction to exclude the internal admin dashboard by name (though it is not included). Everything else matches the reference well, including SEV1, configuration, customer-report, 15/90, booleans, and recurrence in notes.",
+          "evidence": "Runs 1-3 all correctly say \"severity\": \"SEV1\", \"root_cause_category\": \"configuration\", \"detection_source\": \"customer-report\", \"time_to_detect_minutes\": 15, \"time_to_resolve_minutes\": 90, and \"data_loss\": false. But all runs have \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"], which does not exactly match the required [\"payments-api\",\"order-service\",\"checkout\"].",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every schema field is present across all runs. Both action items are present with correct owner attribution (Priya on pool-config validation, null on latency alert). The recurrence material fact ('second time this quarter') is captured in notes in all three runs. Due dates set to null is explicitly defensible per the reference since no absolute date is resolvable from the narrative alone. No required element is omitted.",
+          "evidence": "Run 1 notes: 'This is the second replica-routing config incident this quarter.' Run 2 notes: 'This is the second replica-routing config incident this quarter.' Run 3 notes: 'This is the second replica-routing config incident this quarter.' Action items in all runs: two objects with description/owner/due keys, Priya assigned to pool config item.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "Run 1 wraps the JSON in markdown code fences (```json ... ```), which the prompt explicitly prohibits: 'no code fences.' Runs 2 and 3 are clean bare JSON. All three runs have correct JSON structure, correctly typed fields (booleans, integers, null), and no invented top-level keys. The code fence violation in 1/3 runs is a clear format failure against an explicit instruction, lowering the typical-behavior score.",
+          "evidence": "Run 1 begins with '```json' and ends with '```' \u2014 explicit code fence violation. Runs 2 and 3 emit bare JSON objects with no fences. All runs: customer_impacting=true (boolean not string), data_loss=false (boolean), time_to_detect_minutes=15 (integer), time_to_resolve_minutes=90 (integer).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The outputs are machine-consumable extraction objects with no human-facing narration in the actual content of the responses. The style is appropriately terse and database-like, matching the requested audience.",
+          "evidence": "All three runs are plain incident-record JSON with fields like \"incident_id\": null and \"notes\": \"...\" rather than explanatory prose. The content is structured for ingest rather than human reading.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are safe: they contain no harmful, biased, or inappropriate content, and they handle the incident material neutrally.",
+          "evidence": "The responses only summarize incident facts such as \"No data loss confirmed\" and do not introduce unsafe or inappropriate language.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The quality is good, but there is noticeable verbosity in the notes field, especially Runs 2 and 3, which repeat many facts already captured in structured fields. Run 2 is particularly padded by self-referential explanations like the absolute-date note and calculated durations. This is acceptable but not tight.",
+          "evidence": "Run 2 notes add: \"Priya's action item due date is described as 'end of next week' but no absolute date is given. Time-to-detect calculated as 15 minutes (14:05 to 14:20); time-to-resolve calculated as 90 minutes (14:05 to 15:35).\" Similar repeated detail appears in Runs 1 and 3, duplicating structured fields such as severity, detection source, and time values.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically and structurally very consistent: same schema, same key values, same conclusions. Minor wording variation and slight note phrasing differences do not indicate inconsistency. The only mild divergence is that Run 1 uses markdown fences while Runs 2-3 do not, but the underlying content remains stable. [lexical similarity ratio: 0.507]",
+          "evidence": "All runs agree on the core record: \"severity\": \"SEV1\", \"root_cause_category\": \"configuration\", \"detection_source\": \"customer-report\", and the same affected-services list. Notes differ only in wording, e.g. Run 1: \"customer tweet flagged first via support Slack, then latency alert fired ~14:20\"; Run 3: \"customer tweet flagged by support in Slack, followed by automated latency alert a few minutes later.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.507
+        }
+      },
+      "judge_summary": "Strong extraction overall with excellent cross-run stability. Main issue is a repeated near-miss on affected_services (\"checkout web flow\" instead of exact \"checkout\"), plus Run 1\u2019s markdown fences.",
+      "runs": [
+        {
+          "text": "```json\n{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    { \"description\": \"Add a pre-deploy validation check on pool config\", \"owner\": \"Priya\", \"due\": null },\n    { \"description\": \"Improve the latency alert to fire faster\", \"owner\": null, \"due\": null }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began ~14:05; customer tweet flagged first via support Slack, then latency alert fired ~14:20. Exact impact start time uncertain (possibly 14:00). Incident initially classified SEV2, upgraded to SEV1 after order-service request drops and effective checkout outage for EU customers confirmed. Root cause: config change pointed connection pool at wrong replica, overwhelming it. Config rolled back; full recovery confirmed at 15:35 (after 15 minutes of flat error rates). Payments are idempotent so retried charges deduped \u2014 no data loss. This is the second replica-routing config incident this quarter.\"\n}\n```",
+          "input_tokens": 714,
+          "output_tokens": 338,
+          "seconds": 6.12,
+          "run": 1
+        },
+        {
+          "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on connection pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve latency alert to fire faster on elevated latency\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact start estimated at ~14:05 (possibly as early as 14:00 per some team members). A customer tweeted about the issue first; support flagged it in Slack before the automated latency alert fired at ~14:20. Incident was initially classified SEV2 and upgraded to SEV1 after order-service request drops and effective checkout outage for EU customers were confirmed. Root cause was a config change that pointed the connection pool at the wrong replica, overwhelming it; the deploy pipeline did not catch it. Config was rolled back; full recovery confirmed at 15:35 after 15 minutes of flat error rates. Payments are idempotent so retried charges deduped with no data loss. This is the second replica-routing config incident this quarter. Priya's action item due date is described as 'end of next week' but no absolute date is given. Time-to-detect calculated as 15 minutes (14:05 to 14:20); time-to-resolve calculated as 90 minutes (14:05 to 15:35).\"\n}",
+          "input_tokens": 714,
+          "output_tokens": 451,
+          "seconds": 8.1,
+          "run": 2
+        },
+        {
+          "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve the latency alert so it fires faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Detection source was a customer tweet flagged by support in Slack, followed by automated latency alert a few minutes later. Impact start time is approximate (estimated 14:05, possibly as early as 14:00). Initially classified SEV2, upgraded to SEV1 when order-service request drops and EU checkout outage were confirmed. Root cause was a config change pointing the connection pool at the wrong replica, which became overwhelmed. Config was rolled back to resolve. No data loss confirmed due to idempotent payments and retry deduplication. This is the second replica-routing config incident this quarter. Priya's due date for the pool config validation action item was described as 'end of next week' but no absolute date was given.\"\n}",
+          "input_tokens": 714,
+          "output_tokens": 368,
+          "seconds": 7.14,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.86,
+        "max_spread": 2,
+        "contested_dims": [
+          "tone_style"
+        ],
+        "self_preference_delta": -2
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.7,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "Core incident extraction is mostly correct, but there are important factual misses: Run 1 and Run 2 fabricate the service name as \"checkout web flow\" instead of the required \"checkout\", omit the admin-dashboard exclusion only by implication, and all runs miss the best-supported/expected time-to-detect of 15 only in one run (Run 3 says 10). Run 2 also invents an incident_id from the narrative title. The overall answer is on-task and mostly correct, but not fully accurate.",
+          "evidence": "Run 1: affected_services includes \"checkout web flow\"; Run 2: incident_id = \"checkout latency event\"; Run 3: time_to_detect_minutes = 10. The reference requires affected_services exactly [\"payments-api\",\"order-service\",\"checkout\"] and incident_id null.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All schema fields are present in every run and the critical unschematized fact (second recurrence this quarter) appears in the notes of all three runs. The two action items are correctly extracted with owners. The only gap is that Priya's due date ('end of next week') is left as null across all runs rather than resolved to an ISO date, and runs 1 and 3 omit the deploy-pipeline distractor note (present in run 2 and 3 notes, absent in run 1). These are minor omissions; no requirement is wholesale ignored.",
+          "evidence": "Run 1 notes: 'This is the second time this quarter the replica-routing config has bitten us.' Run 2 notes adds deploy-pipeline observation. All runs: action_items[0].due=null despite 'end of next week' being derivable.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "Each run is a single valid JSON object with the expected top-level keys and no extra prose, so the broad shape is correct. Minor deviations prevent a 5: incident_id is wrong in Run 2, affected_services values are not exact, and the schema wording calls for array objects with description/owner/due (met), but the prompt-under-test itself also asked for exact schema matching and no invented values. Still, the output is parseable JSON throughout.",
+          "evidence": "All three runs are enclosed in a single JSON object with keys incident_id, severity, root_cause_category, detection_source, time_to_detect_minutes, time_to_resolve_minutes, customer_impacting, affected_services, action_items, data_loss, notes. No fences or prose outside the JSON in any run.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The outputs are machine-readable, terse, and free of narrative commentary, apologies, or hedging. They match the intended ingest-pipeline register well.",
+          "evidence": "All runs contain only JSON fields and values; no explanatory text outside the object.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign incident-summary extraction with no harmful, biased, or inappropriate material. No safety issues are present.",
+          "evidence": "Runs only describe an outage, remediation, and follow-up actions; no unsafe instructions or sensitive personal data beyond the named owner Priya already present in the source.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The quality is mixed while token counts are relatively high (1048, 1882, 1955 tokens) for a simple extraction task. The model spends a lot of output budget despite the task requiring only a compact JSON object, and one run even degrades factual quality despite the extra length.",
+          "evidence": "Run 1: 1048 tokens; Run 2: 1882 tokens; Run 3: 1955 tokens. The outputs are short JSON payloads, but the reported token usage is large relative to the simple schema-fill task and does not improve correctness proportionally.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs share the same overall structure and core answers, but there are meaningful divergences in fields that should have been stable: incident_id changes from null to a fabricated string in Run 2, time_to_detect_minutes changes from 15 to 10 in Run 3, notes wording shifts, and affected_services is not exact in any run. This is not total contradiction, but it is more than mere paraphrase. [lexical similarity ratio: 0.931]",
+          "evidence": "Run 1: incident_id null; Run 2: incident_id \"checkout latency event\". Run 1/2: time_to_detect_minutes 15; Run 3: 10. Run 2 notes adds extra text not in Run 1/3. affected_services is consistently \"checkout web flow\" instead of the required exact service name.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.931
+        }
+      },
+      "judge_summary": "Mostly on-task JSON extraction, but with notable factual and schema-content errors: fabricated incident_id in one run, incorrect affected_services value across runs, and an unstable/incorrect time-to-detect in one run. Clean format and safe tone, but only moderate accuracy and consistency, with inefficient verbosity for the task.",
+      "runs": [
+        {
+          "text": "```json\n{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\n    \"payments-api\",\n    \"order-service\",\n    \"checkout web flow\"\n  ],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve the alert to fire on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"This is the second time this quarter the replica-routing config has bitten us.\"\n}\n```",
+          "input_tokens": 681,
+          "output_tokens": 1048,
+          "seconds": 5.35,
+          "run": 1
+        },
+        {
+          "text": "```json\n{\n  \"incident_id\": \"checkout latency event\",\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"improve the alert so it fires on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"This is the second time this quarter the replica-routing config has bitten us. The deploy pipeline should have caught the configuration error.\"\n}\n```",
+          "input_tokens": 681,
+          "output_tokens": 1882,
+          "seconds": 8.79,
+          "run": 2
+        },
+        {
+          "text": "```json\n{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 10,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\n    \"payments-api\",\n    \"order-service\",\n    \"checkout web flow\"\n  ],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve the alert so it fires on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"This is the second time this quarter the replica-routing config has caused an incident. The deploy pipeline should have caught the configuration error.\"\n}\n```",
+          "input_tokens": 681,
+          "output_tokens": 1955,
+          "seconds": 10.25,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.86,
+        "max_spread": 3,
+        "contested_dims": [
+          "completeness",
+          "format_compliance"
+        ],
+        "self_preference_delta": 4.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

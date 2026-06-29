@@ -1,0 +1,681 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "self-verification",
+  "date": "2026-06-29 14:15",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "Correct ground truth, which a strong answer must reach (and a strong verification pass must confirm or fix toward): Days engaged = April 18 through June 30 inclusive. April: 30 - 18 + 1 = 13 days. May: 31. June: 30. Total = 74 days. Eligibility: 74 >= 60, so eligible (must explicitly check this). Prorated base = 12,000 x (74/91) = 9,758.24 (acceptably 9,758.24, or 9,758.2; ~$9,758). Multiplier \"Exceeds\" x1.25 = 12,197.80 (~$12,197.80). Cap applied BEFORE clawback -> capped to 11,000. Clawback -1,500 applied AFTER cap -> 11,000 - 1,500 = 9,500. Non-negative floor not triggered. FINAL = $9,500.\n\nA STRONG answer's self-verification pass must demonstrably do real work (not rubber-stamp): independently recompute the day count and explicitly land on 74 (the most common first-pass error is an off-by-one giving 73, or miscounting April as 12 or 14, or forgetting June 30 is inclusive). It must verify the cap-then-clawback ORDER \u2014 applying clawback before the cap, or applying the cap to the already-clawed-back number, both still yield 9,500 here by coincidence ONLY if the pre-cap figure exceeds the cap, so a careful answer states why order doesn't change THIS result while confirming the policy order (cap first). It must confirm eligibility was checked (74>=60) rather than silently skipped. It must NOT 'correct' the x1.25 multiplier, the inclusive day counts, or the $1,500 flat clawback into something else (the verification-introduces-error trap): e.g. wrongly re-prorating the clawback, applying the multiplier after the cap, treating the cap as a floor, or recomputing 9,758.24 as a 'cleaner' wrong number. If the first pass already had 9,500 correct, the strong move is a substantive confirmation that re-derives the numbers and explicitly clears each constraint, NOT a one-line 'looks correct.' If the first pass erred (e.g. 73 days -> different proration, or wrong cap/clawback order), the verification pass MUST catch and fix it to 9,500. Subtle-flaw detectors for the judge: (1) final != 9,500; (2) day count != 74 unfixed; (3) eligibility gate never mentioned; (4) cap/clawback order asserted wrongly with no recognition; (5) clawback prorated or capped-after; (6) verification that merely restates the first pass without independent re-derivation (rubber-stamp); (7) verification that flips a correct step to an incorrect one.",
+    "format_spec": "Two clearly delimited passes. Pass 1: a step-by-step worked solution with each labeled stage shown (days engaged, eligibility check, prorated base, multiplier, cap, clawback, final figure) and a stated final bonus. Pass 2: an explicit review/audit section that re-derives the day count and arithmetic independently and checks each named constraint (eligibility threshold, cap-vs-clawback order, non-negative floor), then states either 'no errors found' with the confirmed figure or the specific corrections and a single revised final bonus figure. The final bonus must appear as one unambiguous dollar amount.",
+    "tone": "Precise, methodical, auditor-like; numerate and explicit about each step. Plain professional register, no flourish; suitable for a finance/ops reviewer who will trust the number."
+  },
+  "prompt": "You are computing a quarterly performance bonus for a contractor under the following policy. Work through it step by step, showing each calculation, then state a final bonus figure.\n\nPOLICY\n- Base bonus pool for a full-quarter contractor is $12,000.\n- Proration: a contractor accrues the bonus pro rata by *calendar days actively engaged* during the quarter (Q2 = April 1 through June 30 inclusive = 91 days). Partial days do not count; an engagement that ends on a given day counts that day as worked.\n- Eligibility gate: a contractor is eligible for ANY bonus only if they were actively engaged for at least 60 calendar days in the quarter. Below 60 days, the bonus is $0 regardless of performance.\n- Performance multiplier applied to the prorated amount:\n    - \"Exceeds\": x1.25\n    - \"Meets\": x1.00\n    - \"Below\": x0.50\n- Hard cap: the final bonus (after proration and multiplier) may never exceed $11,000.\n- Clawback offset: if the contractor had any unresolved compliance flag during the quarter, subtract a flat $1,500 from the final figure AFTER the cap is applied. The result may go to $0 but never negative.\n\nCONTRACTOR DATA\n- Engagement: started April 18, ended June 30 (still engaged at quarter end).\n- Performance rating: \"Exceeds\".\n- Compliance: one unresolved flag logged in May.\n\nTASK\nCompute the bonus step by step: days engaged, eligibility check, prorated base, multiplier, cap, clawback, and final figure.\n\nNow review each step of your answer above. Independently re-derive the day count and each arithmetic result, and check every policy constraint against your work \u2014 eligibility threshold, the order in which the cap and the clawback are applied, and the non-negative floor. Identify any errors, inconsistencies, or missed or misordered constraints. If you find any, correct them and state the revised final bonus figure.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.9,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs are factually correct and on-task. They independently derive 74 engaged days, confirm eligibility at 74 >= 60, compute the prorated base as $9,758.24, apply the 1.25 multiplier to get $12,197.80, cap to $11,000 before clawback, then subtract $1,500 to reach the correct final bonus of $9,500.00.",
+          "evidence": "Run 1: \"April 18\u201330 = 13 days ... Total engaged days: 13 + 31 + 30 = 74 days\"; \"Since 74 \u2265 60, the contractor is eligible\"; \"Prorated base bonus ... $9,758.24\"; \"After multiplier: $12,197.80\"; \"reduced to: $11,000.00\"; \"$11,000 - $1,500 = $9,500\". Run 2 and Run 3 show the same values and final result.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The response set addresses every required element: step-by-step solution, labeled stages for days engaged, eligibility, prorated base, multiplier, cap, clawback, final figure, plus a review/audit that re-derives the math and checks eligibility, cap/clawback order, and non-negative floor. The final bonus is stated unambiguously.",
+          "evidence": "Run 1 includes sections \"1) Days actively engaged in Q2\" through \"6) Apply clawback offset\" and then \"Final bonus figure: $9,500.00\" plus a review listing \"Day count\", \"Eligibility\", \"Proration\", \"Multiplier\", \"Cap\", \"Clawback\", and \"Non-negative floor\". Runs 2 and 3 provide the same full coverage.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The outputs follow the required two-pass structure with clearly delimited Pass 1/solution and Pass 2/review, and each named stage is present. The final bonus appears as a single unambiguous dollar amount in each run. While the runs use headings like 'Review of the calculation' rather than literally labeling 'Pass 2' in the exact same words, the structure matches the specified format closely and completely.",
+          "evidence": "Run 1: a worked solution with labeled steps 1-6, then \"## Review of the calculation\"; Run 2: steps 1-6, then \"## Review / validation of each step\"; Run 3: steps 1-6, then \"## Review of the work\". Each ends with \"Final bonus figure: **$9,500.00**\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is precise, methodical, numerate, and professional throughout, matching the requested auditor-like register. There is no flourish or casualness beyond a polite opening, and the structure would be suitable for a finance/ops reviewer.",
+          "evidence": "Run 1 opens with \"Let\u2019s compute it carefully step by step\" and then uses concise labeled calculations. Run 2: \"Let\u2019s work it through carefully.\" Run 3: \"Let\u2019s compute this carefully step by step.\" All three maintain plain professional language and explicit arithmetic.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, contains no harmful or inappropriate material, and presents routine compensation arithmetic only.",
+          "evidence": "All runs discuss only bonus calculation policy and arithmetic; no unsafe, biased, or inappropriate content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "The outputs are somewhat verbose for a straightforward arithmetic task, but the extra length is justified by the prompt\u2019s explicit requirement for step-by-step work and a self-verification pass. There is some repeated restatement across the review sections, so it is not maximally tight.",
+          "evidence": "Each run repeats the same core calculations in the review section after already presenting them in the solution. For example, Run 1 repeats \"April 18 through June 30 inclusive = 13 + 31 + 30 = 74\" and the cap/clawback math again in the review.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "The runs are highly consistent in meaning, structure, and quality. Minor wording differences do not indicate inconsistency; all three runs produce the same step sequence, the same intermediate figures, the same policy-order interpretation, and the same final bonus. Given the low lexical-similarity ratio cited, the semantic agreement is strong and stable. [lexical similarity ratio: 0.291]",
+          "evidence": "Run 1, Run 2, and Run 3 each conclude with \"$9,500.00\" and each explicitly checks the same constraints in the same order: day count 74, eligibility 74>=60, cap before clawback, subtract $1,500, no floor issue. No run contradicts another.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.291
+        }
+      },
+      "judge_summary": "All three runs perform correctly and consistently, reaching the right final bonus of $9,500 through precisely correct intermediate steps. The two-pass format is cleanly implemented with every required labeled stage present and every policy constraint explicitly addressed in the review section. Accuracy, completeness, format compliance, tone, and consistency are all strong. The only minor weakness is efficiency: the verification passes largely re-list pass 1 results without a distinctly independent re-derivation path, making them slightly more confirmatory than analytically additive \u2014 but this falls within the inherent constraints of the two-pass format and does not compromise the quality of the output.",
+      "runs": [
+        {
+          "text": "Let\u2019s compute it carefully step by step.\n\n## 1) Days actively engaged in Q2\nQ2 runs from **April 1 through June 30 inclusive**.\n\nThe contractor started **April 18** and remained engaged through **June 30**.\n\nCount calendar days from April 18 to June 30 inclusive:\n\n- April 18\u201330 = **13 days**\n- May = **31 days**\n- June = **30 days**\n\nTotal engaged days:\n\n**13 + 31 + 30 = 74 days**\n\n---\n\n## 2) Eligibility check\nEligibility requires **at least 60 calendar days** in the quarter.\n\n- Engaged days = **74**\n- Threshold = **60**\n\nSince **74 \u2265 60**, the contractor is **eligible** for a bonus.\n\n---\n\n## 3) Prorated base bonus\nFull-quarter bonus pool = **$12,000**\n\nQ2 has **91 days**, so prorated base is:\n\n\\[\n12{,}000 \\times \\frac{74}{91}\n\\]\n\n\\[\n= 12{,}000 \\times 0.8131868132...\n\\]\n\n\\[\n= 9{,}758.241758...\n\\]\n\nSo the prorated base bonus is:\n\n**$9,758.24**\n\n---\n\n## 4) Apply performance multiplier\nPerformance rating = **\u201cExceeds\u201d** \u2192 multiplier **1.25**\n\n\\[\n9{,}758.241758... \\times 1.25 = 12{,}197.802197...\n\\]\n\nSo after multiplier:\n\n**$12,197.80**\n\n---\n\n## 5) Apply hard cap\nHard cap = **$11,000**\n\nThe computed amount **$12,197.80** exceeds the cap, so it is reduced to:\n\n**$11,000.00**\n\n---\n\n## 6) Apply clawback offset\nThere was **one unresolved compliance flag** during the quarter, so subtract **$1,500** after the cap.\n\n\\[\n11{,}000 - 1{,}500 = 9{,}500\n\\]\n\nSo after clawback:\n\n**$9,500.00**\n\nThis is above $0, so no floor adjustment is needed.\n\n---\n\n# Final bonus figure: **$9,500.00**\n\n---\n\n## Review of the calculation\nI rechecked each step:\n\n- **Day count:** April 18 through June 30 inclusive = 13 + 31 + 30 = **74** days. Correct.\n- **Eligibility:** 74 \u2265 60, so eligible. Correct.\n- **Proration:** $12,000 \u00d7 74/91 = **$9,758.24**. Correct.\n- **Multiplier:** Exceeds \u00d71.25 = **$12,197.80**. Correct.\n- **Cap:** Applied **before** clawback, reducing to **$11,000**. Correct per policy.\n- **Clawback:** Subtracted **$1,500 after cap**, yielding **$9,500**. Correct.\n- **Non-negative floor:** Not needed since result is positive. Correct.\n\nNo errors or misordered constraints were found. The revised final bonus remains:\n\n**$9,500.00**",
+          "input_tokens": 422,
+          "output_tokens": 675,
+          "seconds": 4.63,
+          "run": 1
+        },
+        {
+          "text": "Let\u2019s work it through carefully.\n\n## 1) Days actively engaged in Q2\nQ2 runs from **April 1 through June 30 inclusive**, and the contractor started **April 18** and remained engaged through **June 30**.\n\nCount the engaged days, inclusive:\n- April 18\u201330 = **13 days**\n- May = **31 days**\n- June = **30 days**\n\nTotal engaged days:\n- **13 + 31 + 30 = 74 days**\n\n## 2) Eligibility check\nPolicy says the contractor must be actively engaged for **at least 60 calendar days**.\n\n- **74 days \u2265 60 days**, so the contractor is **eligible**.\n\n## 3) Prorated base bonus\nBase bonus pool for a full quarter = **$12,000**  \nQuarter length = **91 days**\n\nProrated base:\n- **$12,000 \u00d7 (74 / 91)**\n\nCompute:\n- **12,000 \u00f7 91 = 131.868131...**\n- **131.868131... \u00d7 74 = 9,758.241758...**\n\nSo the prorated base is:\n- **$9,758.24** (rounded to cents)\n\n## 4) Apply performance multiplier\nPerformance rating = **\"Exceeds\"**, multiplier = **1.25**\n\n- **$9,758.241758... \u00d7 1.25 = $12,197.8021975...**\n\nSo after multiplier:\n- **$12,197.80**\n\n## 5) Apply hard cap\nHard cap = **$11,000**\n\nSince **$12,197.80 > $11,000**, cap applies:\n- **$11,000.00**\n\n## 6) Apply clawback offset\nThere was **one unresolved compliance flag**, so subtract **$1,500** **after** the cap.\n\n- **$11,000.00 \u2212 $1,500.00 = $9,500.00**\n\nFloor check: result is not negative, so no further adjustment needed.\n\n# Final bonus figure: **$9,500.00**\n\n---\n\n## Review / validation of each step\nI re-checked the policy order and arithmetic:\n\n- **Day count:** April 18\u201330 = 13, plus May 31, plus June 30 = **74**. Correct.\n- **Eligibility:** 74 \u2265 60, so eligible. Correct.\n- **Proration:** 12,000 \u00d7 74 / 91 = **9,758.241758...**. Correct.\n- **Multiplier:** 9,758.241758... \u00d7 1.25 = **12,197.802197...**. Correct.\n- **Cap:** applied **before** clawback, reducing to **11,000**. Correct.\n- **Clawback:** subtract **1,500 after cap**, giving **9,500**. Correct.\n- **Non-negative floor:** not needed since result is positive. Correct.\n\nNo errors or misordered constraints found. The revised final bonus remains **$9,500.00**.",
+          "input_tokens": 422,
+          "output_tokens": 647,
+          "seconds": 4.83,
+          "run": 2
+        },
+        {
+          "text": "Let\u2019s compute this carefully step by step.\n\n## 1) Days actively engaged in Q2\nQ2 runs from **April 1 through June 30 inclusive**.\n\nContractor engagement:\n- **Started:** April 18\n- **Ended:** June 30\n\nBecause the engagement starts on April 18 and includes that day, and June 30 is also counted:\n\n### April days worked\nApril 18 through April 30:\n- April has 30 days\n- Days counted = 30 - 18 + 1 = **13**\n\n### May days worked\n- Full month of May = **31**\n\n### June days worked\n- Full month of June through June 30 = **30**\n\n### Total days engaged\n13 + 31 + 30 = **74 days**\n\n---\n\n## 2) Eligibility check\nEligibility requires **at least 60 calendar days** in the quarter.\n\n- Days engaged = **74**\n- 74 >= 60 \u2192 **Eligible**\n\n---\n\n## 3) Prorated base bonus\nBase bonus pool for a full quarter = **$12,000**\n\nProration is based on quarter length of **91 days**.\n\n\\[\n\\$12,000 \\times \\frac{74}{91}\n\\]\n\nFirst compute:\n\n\\[\n12,000 \\div 91 \\approx 131.8681319\n\\]\n\nThen multiply by 74:\n\n\\[\n12,000 \\times 74 = 888,000\n\\]\n\n\\[\n888,000 \\div 91 \\approx 9,758.241758\n\\]\n\nProrated base bonus = **$9,758.24** (rounded to cents)\n\n---\n\n## 4) Performance multiplier\nPerformance rating = **\u201cExceeds\u201d** \u2192 multiplier **1.25**\n\n\\[\n9,758.241758 \\times 1.25 = 12,197.8021975\n\\]\n\nMultiplier-adjusted amount = **$12,197.80**\n\n---\n\n## 5) Hard cap\nThe final bonus after proration and multiplier may not exceed **$11,000**.\n\n- Calculated amount = **$12,197.80**\n- Apply cap \u2192 **$11,000.00**\n\n---\n\n## 6) Clawback offset\nThere was **one unresolved compliance flag**, so subtract **$1,500** after the cap is applied.\n\n\\[\n11,000 - 1,500 = 9,500\n\\]\n\nClawback-adjusted bonus = **$9,500.00**\n\nThis is not negative, so the floor does not change anything.\n\n---\n\n# Final bonus figure: **$9,500.00**\n\n---\n\n## Review of the work\nI rechecked each policy constraint and arithmetic step:\n\n- **Day count:** April 18\u201330 = 13, May = 31, June = 30, total **74**. Correct.\n- **Eligibility:** 74 days meets the **60-day minimum**. Correct.\n- **Proration:** applied against **91-day quarter**. Correct.\n- **Multiplier:** \u201cExceeds\u201d = **1.25**. Correct.\n- **Order of operations:** proration \u2192 multiplier \u2192 **cap** \u2192 **clawback**. Correct.\n- **Cap:** applied before clawback, reducing $12,197.80 to **$11,000**. Correct.\n- **Clawback:** subtract **$1,500 after cap**. Correct.\n- **Non-negative floor:** result remained positive, so no floor adjustment needed. Correct.\n\nNo errors or misordered constraints were found, so the revised final bonus remains:\n\n## **$9,500.00**",
+          "input_tokens": 422,
+          "output_tokens": 757,
+          "seconds": 5.6,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0,
+        "max_spread": 0,
+        "contested_dims": [],
+        "self_preference_delta": 0
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.9,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs compute the correct final bonus of $9,500 and correctly re-derive the required intermediate values: 74 days engaged, eligibility satisfied, prorated base $9,758.24, multiplier result $12,197.80, cap to $11,000, then clawback to $9,500. The verification passes explicitly check the policy order and do not introduce the common errors described in the rubric.",
+          "evidence": "Run 1: \"Total = 13 + 31 + 30 = 74 days\"; \"74 \u2265 60 \u2192 Eligible.\"; \"Prorated Base ... = $9,758.24\"; \"$9,758.24 \u00d7 1.25 = $12,197.80\"; \"After cap = $11,000\"; \"$11,000 - $1,500 = $9,500\". Run 2: same sequence ending with \"Final Bonus: **$9,500.00**\". Run 3: same sequence ending with \"Final Bonus: **$9,500**\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every required stage (days engaged, eligibility gate, prorated base, multiplier, cap, clawback, final figure) is explicitly labeled and computed in Pass 1 across all three runs. Pass 2 in each run independently re-derives the day count, rechecks each arithmetic result, confirms the eligibility threshold (74 \u2265 60), verifies cap-before-clawback order, and confirms the non-negative floor. No requirement is silently skipped.",
+          "evidence": "Run 1 verification table lists all seven checks including 'Cap applied before clawback \u2713' and 'Non-negative floor \u2713'. Run 2: explicit constraint table with 7 rows. Run 3: individual re-check sections for each named constraint including 'Order of Operations: 1. Prorate \u2192 2. Apply multiplier \u2192 3. Apply cap \u2192 4. Apply clawback'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "All three runs deliver two clearly delimited passes with distinct headers. Pass 1 labels each stage sequentially. Pass 2 explicitly audits each constraint and closes with 'No errors found' plus a confirmed dollar figure. The final bonus is stated as a single unambiguous amount in both passes.",
+          "evidence": "Run 1: '## Initial Calculation' / '## Independent Review & Verification' / '## \u2705 Final Bonus: $9,500'. Run 2: '## Step-by-Step Bonus Computation' / '## Independent Review and Verification' / 'final bonus remains $9,500.00'. Run 3: '## Initial Computation' / '## Review & Verification' / '### \u2705 Final Bonus: **$9,500**'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is precise, methodical, and auditor-like, with explicit arithmetic and constraint checks. It is well matched to a finance/ops reviewer audience and avoids flourish.",
+          "evidence": "Run 1: \"Step 2: Eligibility Check\"; \"Policy requires \u2265 60 days. Contractor has 74 days. 74 \u2265 60 \u2192 Eligible.\" Run 2: \"Policy requires at least 60 calendar days to be eligible.\" Run 3: \"Re-checking Order of Operations\" and \"All policy constraints are correctly applied in the correct order.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and professionally framed. There is no harmful, biased, or inappropriate material.",
+          "evidence": "All runs discuss bonus arithmetic only; e.g., Run 1 \"Final Bonus: $9,500\", Run 2 \"Final Bonus: $9,500.00\", Run 3 \"Final Bonus: $9,500\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "Runs 1 (1112 tokens) and 3 (880 tokens) are tight for the task complexity: two full passes with independent re-derivations and constraint tables. Run 2 (1356 tokens) incurs unnecessary overhead through a confused intermediate counting path that requires self-correction before arriving at the same 74 days, adding tokens without value. The tables and cross-checks in all runs are genuinely useful for the auditor audience, so most token spend is justified.",
+          "evidence": "Run 2: 'April 18 to June 18 = exactly 61 days\u2026 Adding April 18 back: 61 + 1 = 62? \u2014 Let me be more careful.' This detour consumes tokens and briefly creates confusion without improving the output. Run 3 achieves identical completeness and quality in 476 fewer tokens than Run 2.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All three runs produce identical final answers, the same intermediate values, the same structural two-pass format, and cover the same set of constraints. No run contradicts another on any factual or procedural point. The lexical variation is attributable to natural paraphrasing (expected at 0.431 ratio) and does not indicate divergence in meaning, structure, or quality. [lexical similarity ratio: 0.431]",
+          "evidence": "All three: 74 days, $9,758.24 prorated base, $12,197.80 post-multiplier, $11,000 post-cap, $9,500 final. All three explicitly verify cap-before-clawback order and non-negative floor. Run 2's counting detour is cosmetic; it still lands on 74 and $9,500. No run differs from another in any decision point.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.431
+        }
+      },
+      "judge_summary": "All three runs are exemplary executions of the self-verification pattern. Every intermediate calculation is correct, the two-pass structure is faithfully implemented, and each Pass 2 performs genuine independent re-derivation rather than rubber-stamping. The final figure of $9,500 is reached correctly via the mandated cap-then-clawback order, the eligibility gate is explicitly cleared, and the non-negative floor is confirmed. The only notable flaw is Run 2's momentary confusion during the alternative day-count derivation, which wastes tokens and briefly disrupts the auditor-like confidence of the tone, explaining the single point deducted from efficiency. Accuracy, completeness, format, tone, safety, and cross-run consistency are all at ceiling.",
+      "runs": [
+        {
+          "text": "## Initial Calculation\n\n### Step 1: Days Engaged\n\nThe contractor started April 18 and ended June 30 (inclusive).\n\n**April:** April 18 through April 30 = 30 \u2212 18 + 1 = **13 days**\n**May:** May 1 through May 31 = **31 days**\n**June:** June 1 through June 30 = **30 days**\n\nTotal = 13 + 31 + 30 = **74 days**\n\n---\n\n### Step 2: Eligibility Check\n\nPolicy requires \u2265 60 days. Contractor has 74 days. **74 \u2265 60 \u2192 Eligible.**\n\n---\n\n### Step 3: Prorated Base Bonus\n\n$$\\text{Prorated Base} = \\$12{,}000 \\times \\frac{74}{91} = \\$12{,}000 \\times 0.81319\\ldots = \\$9{,}758.24$$\n\n---\n\n### Step 4: Performance Multiplier\n\nRating is \"Exceeds\" \u2192 multiplier = 1.25\n\n$$\\$9{,}758.24 \\times 1.25 = \\$12{,}197.80$$\n\n---\n\n### Step 5: Hard Cap\n\nThe result ($12,197.80) exceeds the $11,000 cap.\n$$\\text{After cap} = \\$11{,}000$$\n\n---\n\n### Step 6: Clawback\n\nOne unresolved compliance flag \u2192 subtract $1,500 **after** the cap.\n$$\\$11{,}000 - \\$1{,}500 = \\$9{,}500$$\n\nResult is above $0, so the non-negative floor is not triggered.\n\n---\n\n### Preliminary Final Bonus: **$9,500**\n\n---\n\n---\n\n## Independent Review & Verification\n\n### Re-deriving Day Count\n\n**April 18 \u2192 April 30:** The formula is Last \u2212 First + 1 = 30 \u2212 18 + 1 = **13 days** \u2713\n**May 1 \u2192 May 31:** 31 days \u2713\n**June 1 \u2192 June 30:** 30 days \u2713\n**Total: 13 + 31 + 30 = 74 days** \u2713\n\n---\n\n### Re-checking Eligibility\n\n74 \u2265 60 \u2713 \u2014 eligible.\n\n---\n\n### Re-deriving Prorated Base\n\n$$\\frac{74}{91} = 0.813186\\overline{...}$$\n$$\\$12{,}000 \\times \\frac{74}{91} = \\frac{\\$888{,}000}{91} = \\$9{,}758.2417\\ldots \\approx \\$9{,}758.24$$ \u2713\n\n---\n\n### Re-deriving Multiplier\n\n$$\\$9{,}758.24 \\times 1.25 = \\$9{,}758.24 + \\$2{,}439.56 = \\$12{,}197.80$$ \u2713\n\n(Cross-check: $888,000/91 \u00d7 1.25 = $1,110,000/91 = $12,197.80...) \u2713\n\n---\n\n### Re-checking Cap Order\n\nPolicy states: cap is applied **after** proration and multiplier, **before** clawback. \u2713\n$12,197.80 > $11,000 \u2192 capped to $11,000 \u2713\n\n---\n\n### Re-checking Clawback Order\n\nPolicy states: clawback is subtracted **after** the cap is applied. \u2713\n$11,000 \u2212 $1,500 = $9,500 \u2713\n\n---\n\n### Re-checking Non-Negative Floor\n\n$9,500 > $0, so floor is not triggered. \u2713\n\n---\n\n### Error Check: Any Issues Found?\n\n| Check | Result |\n|---|---|\n| Day count arithmetic | \u2713 Correct |\n| Eligibility threshold (\u226560) | \u2713 Satisfied |\n| Proration arithmetic | \u2713 Correct |\n| Multiplier applied to prorated amount (not base) | \u2713 Correct |\n| Cap applied before clawback | \u2713 Correct order |\n| Clawback applied after cap | \u2713 Correct order |\n| Non-negative floor | \u2713 Not triggered |\n\n**No errors, inconsistencies, or misordered constraints were found.**\n\n---\n\n## \u2705 Final Bonus: $9,500",
+          "input_tokens": 472,
+          "output_tokens": 1112,
+          "seconds": 16.71,
+          "run": 1
+        },
+        {
+          "text": "## Step-by-Step Bonus Computation\n\n---\n\n### Step 1: Days Actively Engaged\n\nThe engagement runs **April 18 through June 30, inclusive**.\n\nCounting by month:\n- **April:** April 18 through April 30 = 30 \u2212 18 + 1 = **13 days**\n- **May:** May 1 through May 31 = **31 days**\n- **June:** June 1 through June 30 = **30 days**\n\n**Total: 13 + 31 + 30 = 74 days**\n\n---\n\n### Step 2: Eligibility Gate\n\nPolicy requires **at least 60 calendar days** to be eligible.\n\n74 days \u2265 60 days \u2192 **Eligible \u2713**\n\n---\n\n### Step 3: Prorated Base Bonus\n\nQ2 has 91 total calendar days.\n\n$$\\text{Prorated Base} = \\$12{,}000 \\times \\frac{74}{91}$$\n\n$$= \\$12{,}000 \\times 0.81319\\ldots$$\n\n$$= \\$9{,}758.24 \\text{ (rounded to nearest cent)}$$\n\n---\n\n### Step 4: Performance Multiplier\n\nRating is **\"Exceeds\"** \u2192 multiplier = **\u00d71.25**\n\n$$\\$9{,}758.24 \\times 1.25 = \\$12{,}197.80$$\n\n---\n\n### Step 5: Hard Cap\n\nThe post-multiplier figure is **$12,197.80**, which **exceeds $11,000**.\n\nPolicy caps the bonus at **$11,000**.\n\n$$\\text{After cap} = \\$11{,}000.00$$\n\n---\n\n### Step 6: Clawback Offset\n\nOne unresolved compliance flag \u2192 subtract **$1,500**, applied **after** the cap.\n\n$$\\$11{,}000.00 - \\$1{,}500.00 = \\$9{,}500.00$$\n\nResult is above $0, so the non-negative floor is not triggered.\n\n---\n\n### Final Bonus: **$9,500.00**\n\n---\n\n## Independent Review and Verification\n\n### Re-deriving the day count\n\nApril 18 to June 30 inclusive. An alternative check: count from April 18 to June 30 as a date difference.\n\n- April 18 to June 18 = exactly 61 days (by calendar: remainder of April = 12 days *after* the 18th, plus all of May = 31 days, plus June 1\u201318 = 18 days \u2192 12 + 31 + 18 = 61; but that excludes April 18 itself).\n- Adding April 18 back: 61 + 1 = 62? \u2014 Let me be more careful.\n\nBetter method: June 30 minus April 18 in days = ?\n\n- April 18 \u2192 April 30: 12 days *remaining after* April 18 (i.e., April 19\u201330), plus April 18 itself = 13 days. \u2713\n- May: 31 days \u2713\n- June: 30 days \u2713\n- **Total: 74 days \u2713**\n\nAlternatively: Day-of-year check.\n- April 18 = day 108 of the year (Jan 31 + Feb 28 + Mar 31 + Apr 18 = 31+28+31+18 = 108)\n- June 30 = day 181 (108 + 12 remaining in April + 31 in May + 30 in June = 108 + 73 = 181; or 31+28+31+30+31+30 = 181) \u2713\n- Days inclusive: 181 \u2212 108 + 1 = **74 \u2713**\n\n---\n\n### Re-checking arithmetic\n\n**Prorated base:**\n$$12{,}000 \\times \\frac{74}{91} = \\frac{888{,}000}{91} = 9{,}758.2417\\ldots \\approx \\$9{,}758.24 \u2713$$\n\n**After multiplier:**\n$$9{,}758.24 \\times 1.25 = 9{,}758.24 + (9{,}758.24 \\times 0.25) = 9{,}758.24 + 2{,}439.56 = \\$12{,}197.80 \u2713$$\n\n*(Using exact fraction: 888,000/91 \u00d7 5/4 = 4,440,000/364 = 1,110,000/91 = 12,197.802\u2026 \u2713)*\n\n---\n\n### Policy constraint checks\n\n| Constraint | Check |\n|---|---|\n| Eligibility: 74 \u2265 60 | \u2713 Eligible |\n| Prorated base uses correct Q2 denominator (91 days) | \u2713 |\n| Multiplier \"Exceeds\" = 1.25 applied to prorated base | \u2713 |\n| Cap applied **before** clawback | \u2713 (correct order per policy) |\n| Cap: $12,197.80 > $11,000 \u2192 capped to $11,000 | \u2713 |\n| Clawback of $1,500 applied **after** cap | \u2713 |\n| Non-negative floor: $9,500 > $0 | \u2713 |\n\n---\n\n**No errors found. The final bonus remains $9,500.00.**",
+          "input_tokens": 472,
+          "output_tokens": 1356,
+          "seconds": 26.75,
+          "run": 2
+        },
+        {
+          "text": "## Initial Computation\n\n### Step 1: Days Engaged\n\nThe engagement runs from **April 18 through June 30**, inclusive.\n\n- **April:** April 18 to April 30 = 30 \u2212 18 + 1 = **13 days**\n- **May:** All of May = **31 days**\n- **June:** All of June = **30 days**\n\n**Total: 13 + 31 + 30 = 74 days**\n\n---\n\n### Step 2: Eligibility Gate\n\nPolicy requires **at least 60 calendar days** to be eligible.\n\n74 days \u2265 60 days \u2192 **Eligible** \u2713\n\n---\n\n### Step 3: Prorated Base Bonus\n\nQ2 = 91 calendar days. Full-quarter pool = $12,000.\n\n$$\\text{Prorated base} = \\frac{74}{91} \\times \\$12{,}000$$\n\n$$= 0.81319\\ldots \\times \\$12{,}000 = \\$9{,}758.24$$\n\n---\n\n### Step 4: Performance Multiplier\n\nRating is **\"Exceeds\"** \u2192 multiplier = **1.25**\n\n$$\\$9{,}758.24 \\times 1.25 = \\$12{,}197.80$$\n\n---\n\n### Step 5: Hard Cap\n\nThe result ($12,197.80) **exceeds $11,000**, so it is capped.\n\n$$\\text{After cap} = \\$11{,}000$$\n\n---\n\n### Step 6: Clawback Offset\n\nOne unresolved compliance flag \u2192 subtract **$1,500** (applied after the cap).\n\n$$\\$11{,}000 - \\$1{,}500 = \\$9{,}500$$\n\nResult is above $0, so the non-negative floor is not triggered.\n\n---\n\n### Preliminary Final Bonus: **$9,500**\n\n---\n\n---\n\n## Review & Verification\n\n### Re-deriving Day Count\n\n- **April 18\u201330:** 30 \u2212 18 + 1 = **13** \u2713\n- **May 1\u201331:** **31** \u2713\n- **June 1\u201330:** **30** \u2713\n- **Total: 74** \u2713\n\n### Re-checking Eligibility\n\n74 \u2265 60 \u2192 **Eligible** \u2713\n\n### Re-checking Prorated Base\n\n$$\\frac{74}{91} \\times 12{,}000 = \\frac{888{,}000}{91} = 9{,}758.2417\\ldots \\approx \\$9{,}758.24 \\checkmark$$\n\n### Re-checking Multiplier\n\n$$9{,}758.24 \\times 1.25 = 12{,}197.80 \\checkmark$$\n\n### Re-checking Cap\n\n$12,197.80 > $11,000 \u2192 capped at **$11,000** \u2713\n\n### Re-checking Order of Operations\n\nPolicy specifies:\n1. Prorate \u2192 2. Apply multiplier \u2192 3. Apply cap \u2192 4. Apply clawback\n\nThis is the order followed. \u2713\n\n### Re-checking Clawback\n\n$11,000 \u2212 $1,500 = **$9,500**, which is \u2265 $0 \u2713\n\n### Re-checking Non-Negative Floor\n\n$9,500 > $0, so no adjustment needed. \u2713\n\n---\n\n## No Errors Found\n\nEvery step checks out. All policy constraints are correctly applied in the correct order.\n\n### \u2705 Final Bonus: **$9,500**",
+          "input_tokens": 472,
+          "output_tokens": 880,
+          "seconds": 13.9,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.71,
+        "max_spread": 2,
+        "contested_dims": [
+          "efficiency"
+        ],
+        "self_preference_delta": 1.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.7,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "The runs are factually correct and on-task throughout. They independently compute 74 days engaged, verify eligibility at 74 >= 60, prorate to $9,758.24, apply the x1.25 multiplier to get $12,197.80, cap at $11,000, then subtract the $1,500 clawback to reach $9,500. No step is materially wrong.",
+          "evidence": "Run 1: \"Total Days Engaged: 13 (April) + 31 (May) + 30 (June) = 74 days.\" / \"Check: 74 days is >= 60 days.\" / \"$12,000 * (74 / 91) = $9,758.24\" / \"$9,758.24 * 1.25 = $12,197.80\" / \"Amount After Cap = $11,000.00\" / \"$11,000.00 - $1,500.00 = $9,500.00\". Runs 2 and 3 match these values.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All required stages are present in both passes: days engaged, eligibility check, prorated base, multiplier, cap, clawback, final figure, plus the explicit audit/review pass. The review also checks the threshold, cap-vs-clawback order, and non-negative floor as required.",
+          "evidence": "Run 1 includes labeled steps for \"Step 1\" through \"Step 6\" and then a \"Review of the Answer\" with checks for \"Day Count,\" \"Eligibility Threshold,\" \"Hard Cap Application,\" \"Clawback Offset,\" and \"Non-Negative Floor.\" Run 2 and Run 3 similarly include a full worked solution and an independent review section.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The output matches the required two-pass structure and uses clearly delimited sections with all specified labeled stages. The final bonus appears as an unambiguous dollar amount in each run.",
+          "evidence": "Run 1: \"Step 1\" ... \"Step 6\" followed by \"Review of the Answer:\" and \"Final Bonus Figure: $9,500.00.\" Run 3: \"Step-by-Step Calculation:\" followed by \"Independent Review and Verification:\" and then \"Final Bonus Figure: $9,500.00.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The style is precise, methodical, and auditor-like, with plain professional register and explicit arithmetic. It fits the finance/ops reviewer audience well.",
+          "evidence": "Run 2 uses concise audit language such as \"Check: 74 days is >= 60 days\" and \"No errors, inconsistencies, or missed/misordered constraints were identified during the review.\" Run 1 similarly states \"No errors, inconsistencies, or missed/misordered constraints were found during the review.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and contains no harmful, biased, or inappropriate material. It is a straightforward financial calculation with no unsafe instructions.",
+          "evidence": "All three runs only discuss bonus computation and policy verification, e.g., Run 1: \"The final bonus figure for the contractor is $9,500.00.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The outputs are correct and thorough, but they are verbose relative to the task; each run repeats the calculation in a full second review pass and adds substantial explanatory padding. The quality justifies some detail, but the token counts shown (4155, 4159, 3177) are high for a deterministic arithmetic verification problem.",
+          "evidence": "Run 1 is 4155 output tokens, Run 2 is 4159, and Run 3 is 3177, while all deliver the same final figure and largely duplicate the same verification content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across runs, the semantic content, structure, and quality are highly stable: each run gives the same day count, same eligibility outcome, same prorated base, same multiplier, same cap/clawback sequence, and same final bonus. Wording varies, but the substantive answer and audit behavior are consistent. [lexical similarity ratio: 0.22]",
+          "evidence": "Run 1 ends with \"$9,500.00,\" Run 2 ends with \"Final Bonus Figure: $9,500.00,\" and Run 3 ends with \"Final Bonus Figure: $9,500.00.\" Each run re-derives 74 days and confirms cap-then-clawback order in its review section.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.22
+        }
+      },
+      "judge_summary": "Strong, fully correct self-verification across all runs. The answers are accurate, complete, well-formatted, and consistent; the only notable weakness is verbosity, so efficiency is the sole non-perfect dimension.",
+      "runs": [
+        {
+          "text": "Here's the step-by-step computation of the bonus:\n\n**CONTRACTOR DATA:**\n*   Engagement: Started April 18, ended June 30 (still engaged at quarter end).\n*   Performance rating: \"Exceeds\".\n*   Compliance: One unresolved flag logged in May.\n*   Quarter (Q2): April 1 through June 30 inclusive = 91 days.\n*   Base bonus pool for full-quarter: $12,000.\n\n---\n\n**Step 1: Calculate Days Actively Engaged**\n\n*   **April:** The contractor started on April 18 and worked until April 30.\n    *   Days in April = (30 - 18) + 1 = 13 days.\n*   **May:** The contractor worked the entire month.\n    *   Days in May = 31 days.\n*   **June:** The contractor worked the entire month, ending on June 30.\n    *   Days in June = 30 days.\n*   **Total Days Engaged:** 13 (April) + 31 (May) + 30 (June) = **74 days**.\n\n**Step 2: Eligibility Gate Check**\n\n*   Policy: A contractor is eligible if engaged for at least 60 calendar days.\n*   Days Engaged: 74 days.\n*   Check: 74 days is >= 60 days.\n*   **Result:** The contractor is **eligible** for a bonus. (If it were below 60 days, the bonus would be $0).\n\n**Step 3: Calculate Prorated Base Bonus Pool**\n\n*   Base bonus pool for a full quarter (91 days) = $12,000.\n*   Days Engaged: 74 days.\n*   Prorated Amount = Base Bonus Pool * (Days Engaged / Total Quarter Days)\n*   Prorated Amount = $12,000 * (74 / 91)\n*   Prorated Amount = $12,000 * 0.813186813...\n*   Prorated Amount = **$9,758.24** (rounded to two decimal places).\n\n**Step 4: Apply Performance Multiplier**\n\n*   Contractor Performance Rating: \"Exceeds\".\n*   Policy: \"Exceeds\" multiplier = x1.25.\n*   Amount After Multiplier = Prorated Amount * Multiplier\n*   Amount After Multiplier = $9,758.24 * 1.25\n*   Amount After Multiplier = **$12,197.80**.\n\n**Step 5: Apply Hard Cap**\n\n*   Policy: The final bonus may never exceed $11,000 (after proration and multiplier).\n*   Current Amount: $12,197.80.\n*   Hard Cap: $11,000.\n*   Amount After Cap = Minimum($12,197.80, $11,000)\n*   Amount After Cap = **$11,000.00**.\n\n**Step 6: Apply Clawback Offset**\n\n*   Contractor Data: One unresolved compliance flag logged in May.\n*   Policy: Subtract a flat $1,500 for any unresolved compliance flag, *after* the cap is applied. The result may go to $0 but never negative.\n*   Amount After Cap: $11,000.00.\n*   Clawback Amount: $1,500.\n*   Bonus After Clawback = Amount After Cap - Clawback Amount\n*   Bonus After Clawback = $11,000.00 - $1,500.00\n*   Bonus After Clawback = $9,500.00.\n*   Non-negative check: $9,500.00 is not negative.\n*   **Final Bonus Figure:** **$9,500.00**.\n\n---\n\n**Review of the Answer:**\n\nLet's re-derive and re-check each step against the policy constraints.\n\n1.  **Day Count:**\n    *   Q2 = April (30) + May (31) + June (30) = 91 days. (Correct)\n    *   Engagement: April 18 - June 30.\n        *   April: 18, 19, ..., 30 (30 - 18 + 1 = 13 days). (Correct)\n        *   May: 31 days. (Correct)\n        *   June: 30 days. (Correct)\n        *   Total engaged days = 13 + 31 + 30 = 74 days. (Correct)\n\n2.  **Eligibility Threshold:**\n    *   Engaged days: 74. Policy threshold: 60 days.\n    *   74 >= 60, so eligible. The \"below 60 days, bonus is $0\" constraint is correctly handled. (Correct)\n\n3.  **Prorated Base Bonus Pool:**\n    *   $12,000 * (74 / 91) = $9,758.241758...\n    *   Rounded to $9,758.24. (Arithmetic correct)\n\n4.  **Performance Multiplier:**\n    *   \"Exceeds\" rating, x1.25 multiplier.\n    *   $9,758.24 * 1.25 = $12,197.80. (Arithmetic correct)\n\n5.  **Hard Cap Application:**\n    *   Policy: \"after proration and multiplier\" (this order was followed). Max $11,000.\n    *   Current amount $12,197.80. Applied cap: $11,000.00. (Constraint applied correctly and in the correct order).\n\n6.  **Clawback Offset:**\n    *   Unresolved compliance flag present. Policy: subtract $1,500.\n    *   Policy: \"AFTER the cap is applied\" (this order was followed).\n    *   $11,000.00 - $1,500.00 = $9,500.00. (Arithmetic correct).\n    *   Policy: \"The result may go to $0 but never negative.\"\n    *   $9,500.00 is not negative, so the non-negative floor constraint is respected. (Correct)\n\nNo errors, inconsistencies, or missed/misordered constraints were found during the review. All calculations and policy applications are consistent with the requirements.\n\n---\n\n**Final Bonus Figure:**\n\nBased on the calculations and policy application, the final bonus figure for the contractor is **$9,500.00**.",
+          "input_tokens": 446,
+          "output_tokens": 4155,
+          "seconds": 21.21,
+          "run": 1
+        },
+        {
+          "text": "Here's the step-by-step calculation of the contractor's quarterly performance bonus:\n\n**CONTRACTOR DATA**\n*   Engagement: Started April 18, ended June 30 (Q2)\n*   Performance rating: \"Exceeds\"\n*   Compliance: one unresolved flag\n\n---\n\n**Step 1: Calculate Days Engaged**\n\n*   Q2 Period: April 1 through June 30.\n    *   April has 30 days.\n    *   May has 31 days.\n    *   June has 30 days.\n    *   Total Q2 days = 30 + 31 + 30 = 91 days.\n*   Contractor engagement period:\n    *   April: From April 18 to April 30 (inclusive) = (30 - 18 + 1) = 13 days.\n    *   May: All 31 days.\n    *   June: All 30 days.\n*   Total Calendar Days Actively Engaged = 13 + 31 + 30 = **74 days**.\n\n**Step 2: Eligibility Gate Check**\n\n*   Policy: Must be actively engaged for at least 60 calendar days.\n*   Calculated Engaged Days: 74 days.\n*   Check: 74 days is >= 60 days.\n*   **Result: The contractor is eligible for a bonus.**\n\n**Step 3: Calculate Prorated Base Bonus**\n\n*   Base bonus pool for a full quarter: $12,000.\n*   Full quarter days: 91 days.\n*   Engaged days: 74 days.\n*   Prorated Base Bonus = (Engaged Days / Total Quarter Days) * Base Pool\n*   Prorated Base Bonus = (74 / 91) * $12,000\n*   Prorated Base Bonus = 0.813186813... * $12,000\n*   **Prorated Base Bonus = $9,758.24** (keeping full precision for subsequent steps, rounded to cents here for display)\n\n**Step 4: Apply Performance Multiplier**\n\n*   Performance rating: \"Exceeds\".\n*   Multiplier for \"Exceeds\": x1.25.\n*   Bonus after Multiplier = Prorated Base Bonus * Multiplier\n*   Bonus after Multiplier = $9,758.241758241758... * 1.25\n*   **Bonus after Multiplier = $12,197.80** (rounded to cents)\n\n**Step 5: Apply Hard Cap**\n\n*   Policy: The final bonus may never exceed $11,000.\n*   Current Bonus: $12,197.80.\n*   Check: $12,197.80 is greater than $11,000.\n*   **Bonus after Cap = $11,000.00**\n\n**Step 6: Apply Clawback Offset**\n\n*   Policy: Subtract a flat $1,500 for an unresolved compliance flag, *after* the cap is applied.\n*   Contractor Data: One unresolved flag.\n*   Current Bonus (after cap): $11,000.00.\n*   Bonus after Clawback = Bonus after Cap - $1,500\n*   Bonus after Clawback = $11,000.00 - $1,500.00\n*   **Bonus after Clawback = $9,500.00**\n\n**Step 7: Check Non-Negative Floor**\n\n*   Policy: The result may go to $0 but never negative.\n*   Current Bonus: $9,500.00.\n*   Check: $9,500.00 is not negative.\n*   **Result: No further adjustment needed.**\n\n---\n\n**Final Bonus Figure: $9,500.00**\n\n---\n\n**Review of Each Step and Policy Constraints:**\n\n1.  **Days Engaged:**\n    *   Q2 (April 1 - June 30) = 91 days (30+31+30). Correct.\n    *   Engagement (April 18 - June 30): April (30-18+1 = 13 days) + May (31 days) + June (30 days) = 74 days. Calculation is correct. \"An engagement that ends on a given day counts that day as worked\" was correctly applied.\n2.  **Eligibility Gate:**\n    *   Policy: At least 60 days.\n    *   Result: 74 days >= 60 days. Eligibility check passed. Correct.\n3.  **Prorated Base Bonus:**\n    *   Calculation: (74 / 91) * $12,000 = $9,758.241758...\n    *   Arithmetic is correct.\n4.  **Performance Multiplier:**\n    *   Performance: \"Exceeds\" -> x1.25.\n    *   Calculation: $9,758.241758... * 1.25 = $12,197.802197...\n    *   Arithmetic is correct, and the correct multiplier was applied.\n5.  **Hard Cap:**\n    *   Policy: Never exceed $11,000 *after proration and multiplier*.\n    *   Result: $12,197.802197... is greater than $11,000, so it is capped at $11,000.00. The cap was applied correctly and at the correct stage.\n6.  **Clawback Offset:**\n    *   Policy: Subtract $1,500 for compliance flag *after the cap is applied*.\n    *   Result: $11,000.00 - $1,500.00 = $9,500.00. The clawback was applied correctly and at the correct stage.\n7.  **Non-Negative Floor:**\n    *   Policy: Result may go to $0 but never negative.\n    *   Result: $9,500.00 is not negative. The non-negative floor was checked and correctly applied (no adjustment needed).\n\nNo errors, inconsistencies, or missed/misordered constraints were identified during the review. The calculations are accurate according to the policy.\n\n**Revised Final Bonus Figure: $9,500.00**",
+          "input_tokens": 446,
+          "output_tokens": 4159,
+          "seconds": 19.45,
+          "run": 2
+        },
+        {
+          "text": "Let's compute the quarterly performance bonus step by step:\n\n**POLICY RECAP:**\n*   Base bonus pool (full-quarter): $12,000\n*   Q2 = 91 days (April 1 - June 30)\n*   Proration: by calendar days actively engaged.\n*   Eligibility gate: >= 60 days engaged, otherwise $0.\n*   Performance multiplier: \"Exceeds\" x1.25, \"Meets\" x1.00, \"Below\" x0.50.\n*   Hard cap: $11,000 (after proration and multiplier).\n*   Clawback: -$1,500 for unresolved compliance flag (after cap, min $0).\n\n**CONTRACTOR DATA RECAP:**\n*   Engagement: April 18 - June 30 (inclusive).\n*   Performance: \"Exceeds\".\n*   Compliance: One unresolved flag.\n\n---\n\n**Step-by-Step Calculation:**\n\n1.  **Calculate Days Engaged:**\n    *   April: April 18 to April 30 inclusive = 30 - 18 + 1 = 13 days.\n    *   May: May 1 to May 31 inclusive = 31 days.\n    *   June: June 1 to June 30 inclusive = 30 days.\n    *   **Total Days Engaged = 13 + 31 + 30 = 74 days.**\n\n2.  **Eligibility Check:**\n    *   Required: At least 60 days.\n    *   Contractor engaged for 74 days.\n    *   Since 74 days >= 60 days, the contractor is **eligible** for a bonus.\n\n3.  **Calculate Prorated Base Amount:**\n    *   Base bonus pool = $12,000.\n    *   Total days in Q2 = 91 days.\n    *   Prorated amount = Base pool * (Days engaged / Total Q2 days)\n    *   Prorated amount = $12,000 * (74 / 91)\n    *   Prorated amount = $12,000 * 0.81318681...\n    *   **Prorated amount = $9,758.24** (rounded to two decimal places)\n\n4.  **Apply Performance Multiplier:**\n    *   Performance rating: \"Exceeds\" = x1.25.\n    *   Amount after multiplier = Prorated amount * Multiplier\n    *   Amount after multiplier = $9,758.24 * 1.25\n    *   **Amount after multiplier = $12,197.80**\n\n5.  **Apply Hard Cap:**\n    *   Hard cap = $11,000.\n    *   Amount before cap = $12,197.80.\n    *   Since $12,197.80 > $11,000, the bonus is capped.\n    *   **Bonus after cap = $11,000.00**\n\n6.  **Apply Clawback Offset:**\n    *   Compliance: One unresolved flag, so subtract $1,500.\n    *   Amount before clawback = $11,000.00.\n    *   Amount after clawback = Amount before clawback - Clawback\n    *   Amount after clawback = $11,000.00 - $1,500.00\n    *   Amount after clawback = $9,500.00.\n    *   The result ($9,500.00) is not negative, so no adjustment to the floor is needed.\n    *   **Final Bonus Figure = $9,500.00**\n\n---\n\n**Independent Review and Verification:**\n\n*   **Day Count:**\n    *   Q2 total days: April (30) + May (31) + June (30) = 91 days. Correct.\n    *   Contractor engaged: April 18-30 (13 days) + May 1-31 (31 days) + June 1-30 (30 days) = 74 days. Correct.\n*   **Eligibility Threshold:**\n    *   Policy: >= 60 days. Calculated: 74 days. 74 >= 60, so eligible. Correct.\n*   **Prorated Base:**\n    *   $12,000 * (74 / 91) = $9,758.2417... Rounded to $9,758.24. Correct.\n*   **Multiplier:**\n    *   \"Exceeds\" x1.25. $9,758.24 * 1.25 = $12,197.80. Correct.\n*   **Cap Application Order:**\n    *   Policy: \"final bonus (after proration and multiplier) may never exceed $11,000.\"\n    *   The cap was applied to $12,197.80 (which is after proration and multiplier). The result was $11,000.00. This is in the correct order. Correct.\n*   **Clawback Application Order and Non-negative Floor:**\n    *   Policy: \"subtract a flat $1,500 from the final figure AFTER the cap is applied. The result may go to $0 but never negative.\"\n    *   Clawback was applied to $11,000.00 (which is after the cap). $11,000.00 - $1,500.00 = $9,500.00.\n    *   The result $9,500.00 is not negative. This is in the correct order and respects the non-negative floor. Correct.\n\nAll calculations, policy constraints, and their order of application have been re-verified and are consistent with the policy.\n\n**Revised Final Bonus Figure:** No errors or inconsistencies were found during the review.\n\n---\n**Final Bonus Figure:** $9,500.00",
+          "input_tokens": 446,
+          "output_tokens": 3177,
+          "seconds": 14.36,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.29,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -1.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

@@ -1,0 +1,689 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "meta-language-creation",
+  "date": "2026-06-29 12:16",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer has two parts. PART 1 (acknowledgement): restates all five bindings accurately and distinctly, NOT collapsing the near-synonyms \u2014 `>>safety` (safety-only, tagged bullets) must be kept distinct from `>>review` (full review, prose), and `>>safe?` (one-word YES/NO) distinct from `>>safety`; it then explicitly WAITS and does not review the migration yet (acting prematurely is a fail). PART 2 (applying the chained follow-up), which must honor each invoked token in order and in its specified format: (a) `>>safety` \u2014 safety-only bullets, each tagged [BLOCKER]/[WARN], correctly identifying the real Postgres hazards: ADD COLUMN ... NOT NULL DEFAULT is actually SAFE on modern PG 11+ (a sophisticated answer notes this rather than flagging it as a blocker \u2014 flagging it is a substantive accuracy error), ALTER COLUMN total TYPE numeric forces a full table rewrite + ACCESS EXCLUSIVE lock [BLOCKER], CREATE INDEX (non-CONCURRENTLY) takes a lock blocking writes [BLOCKER/WARN], and ADD CONSTRAINT FOREIGN KEY without NOT VALID takes a lock and scans/validates all rows [BLOCKER/WARN]; no style/naming comments; (b) `>>split` \u2014 a numbered, ordered, separately-deployable sequence that fixes those hazards (e.g. CREATE INDEX CONCURRENTLY, ADD CONSTRAINT ... NOT VALID then VALIDATE CONSTRAINT in a later step, a batched/backfill strategy for the type change); (c) `>>safe?` \u2014 a single line, just NO (it is not safe as written), no explanation. CRITICAL over-extension test: the message also invokes `>>downgrade`, which was NEVER bound (the rollback token is `>>rollback`). A strong answer must FLAG that `>>downgrade` is unbound and ask/decline rather than silently guessing it means rollback \u2014 and must NOT emit a down-migration unprompted. Honoring `>>rollback` here despite it not being typed, or producing reverse SQL, is the over-extension failure mode.",
+    "format_spec": "Two-phase response. Phase 1: an acknowledgement that lists/restates all five bindings and an explicit statement that it is waiting for the first instruction (no migration analysis yet). Phase 2 (the follow-up): per-token output in each binding's own prescribed format and in the order invoked \u2014 `>>safety` as bullets each tagged [BLOCKER] or [WARN] with NO style commentary; `>>split` as an ordered NUMBERED list of separately-deployable steps; `>>safe?` as a single line containing only YES or NO; plus an explicit flag that `>>downgrade` is not a defined binding (and NO reverse-migration SQL emitted).",
+    "tone": "Precise, terse senior-DBA / platform-engineering register; format-disciplined and literal about the bindings; no hedging or filler; willing to say a token is undefined rather than guess."
+  },
+  "prompt": "For the rest of this conversation, use the shorthand below. First acknowledge each binding back to me in your own words (so I can confirm you have them right), then wait for my first instruction \u2014 do not act on anything yet.\n\n- When I write `>>safety`, treat it as: review the most recent SQL migration I sent for production-safety hazards ONLY (locking, long-running rewrites, blocking DDL, non-concurrent index builds, unsafe NOT NULL / type changes on large tables). Do not comment on style or naming. Output a bullet per hazard, each tagged [BLOCKER] or [WARN].\n- When I write `>>rollback`, treat it as: write the exact reverse/down migration SQL that undoes the most recent migration, and nothing else \u2014 SQL only, no commentary.\n- When I write `>>review`, treat it as: a FULL review \u2014 correctness, style, naming, and safety together \u2014 in prose paragraphs, NOT bullets.\n- When I write `>>safe?`, treat it as: answer only YES or NO on a single line as to whether the most recent migration is safe to run online against a 50M-row table, with no explanation.\n- When I write `>>split`, treat it as: rewrite the most recent migration as an ordered, numbered sequence of separately-deployable steps that each avoid long locks.\n\nConfirm you understand the bindings.\n\n[Assume I then send this migration:]\n```sql\n-- migration 0042_orders_tighten.sql\nALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending';\nALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2);\nCREATE INDEX idx_orders_status ON orders (status);\nALTER TABLE orders ADD CONSTRAINT fk_orders_customer\n  FOREIGN KEY (customer_id) REFERENCES customers (id);\n```\n\n[Then my one and only follow-up message is exactly:]\n\n>>safety then >>split \u2014 and finish with >>safe? Also give me the >>downgrade.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.7,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "All five bindings are restated accurately and distinctly in every run, including the near-synonym pairs (>>safety vs >>review, >>safe? vs >>safety). Phase 1 is correct. However, the prompt explicitly presents the migration SQL and the follow-up chained command ('[Then my one and only follow-up message is exactly:] >>safety then >>split \u2014 and finish with >>safe? Also give me the >>downgrade.'), which the model was supposed to process as Phase 2. Every run stops after Phase 1 without executing Phase 2. The on-task accuracy of Phase 1 is high, but the model failed to detect that Phase 2 was baked into the same prompt, representing substantive drift from the full task.",
+          "evidence": "All runs end with 'I'll wait for your first instruction' / 'I'm ready for your first instruction' (Run 1, Run 2, Run 3) \u2014 none proceed to analyse the migration, emit >>safety bullets, produce >>split steps, emit >>safe? YES/NO, or flag >>downgrade as unbound.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 4,
+            "stdev": 1.63,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -3
+            }
+          }
+        },
+        "completeness": {
+          "score": 2,
+          "justification": "The response set covers only phase 1 of the required two-phase interaction and omits phase 2 entirely. It also fails to flag that `>>downgrade` is undefined, fails to produce `>>safety`, `>>split`, and `>>safe?`, and does not respect the instruction to finish with the follow-up outputs.",
+          "evidence": "Expected format required \"Phase 2 (the follow-up)\" but all runs stop after acknowledgement. Run 1 lists bindings then says \"I\u2019ll wait for your first instruction.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 1,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 2.33,
+            "median": 1,
+            "spread": 4,
+            "stdev": 1.89,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "Phase 1 format is correct: each binding is acknowledged in a distinct bullet, wording is in the model's own words, and an explicit wait statement is present. Phase 2 format (per-token output in prescribed formats: bullets, numbered list, single line, unbound flag) is entirely absent. The format specification demands a two-phase response; only one phase was delivered.",
+          "evidence": "Format spec: 'Two-phase response. Phase 1: acknowledgement\u2026 Phase 2: per-token output in each binding's own prescribed format.' All three runs contain only Phase 1 output.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 2.67,
+            "median": 2,
+            "spread": 4,
+            "stdev": 1.7,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is precise, terse, and senior-DBA-like, with no filler beyond a polite acknowledgement. It fits the requested register well for phase 1, though it is incomplete relative to the full prompt.",
+          "evidence": "Run 3: \"Here\u2019s my shorthand in my own words:\" followed by concise binding restatements; Run 1: \"Understood. Here\u2019s my readback...\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are clean and non-harmful. They do not emit unsupported rollback SQL, do not guess at the undefined `>>downgrade` binding, and do not provide unsafe migration guidance. Their main issue is omission, not unsafe content.",
+          "evidence": "All runs avoid producing any SQL or reverse-migration content; e.g., Run 2: \"I\u2019m ready for your first instruction.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "For a readback-only response, the token counts are moderate and mostly justified by restating five bindings. There is some repetition across runs but no major bloat. Since the outputs stop before the required follow-up, efficiency relative to the full task is weakened, but within the produced subset the length is reasonable.",
+          "evidence": "Run lengths are 242, 230, and 233 tokens, with repeated binding restatements and closing wait statements but no extended padding.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across runs, the semantic structure is highly stable: each run restates the five bindings in the same order and ends by waiting for the first instruction. Minor wording variation does not indicate inconsistency. [lexical similarity ratio: 0.605]",
+          "evidence": "Run 1: binding list + \"I\u2019ll wait for your first instruction.\" Run 2: binding list + \"I\u2019m ready for your first instruction.\" Run 3: binding list + \"I\u2019m ready for your first instruction.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.605
+        }
+      },
+      "judge_summary": "All three runs correctly and crisply acknowledge the five bindings in Phase 1, maintaining accurate distinctions between near-synonym tokens (>>safety vs >>review; >>safe? vs >>safety). Phase 1 quality is high. However, the prompt embeds both phases in a single message \u2014 including the migration SQL and the chained follow-up command \u2014 and all three runs stop after Phase 1, treating the '[Assume\u2026]' bracketed instructions as future context rather than content to act on immediately. As a result, Phase 2 is entirely absent: no >>safety hazard bullets, no >>split numbered sequence, no >>safe? YES/NO line, and critically no flag that >>downgrade is an unbound token (the over-extension test). This is a structural completeness failure that dominates the evaluation. Consistency across runs is perfect \u2014 all three fail in exactly the same way.",
+      "runs": [
+        {
+          "text": "Understood. Here\u2019s my readback of the bindings in my own words:\n\n- `>>safety` means: inspect only the latest SQL migration for production-risk issues related to online safety \u2014 things like locking, long-running table rewrites, blocking DDL, non-concurrent index creation, and unsafe `NOT NULL` or type changes on large tables. No style or naming comments. I should return one bullet per hazard, each labeled either `[BLOCKER]` or `[WARN]`.\n\n- `>>rollback` means: produce only the exact reverse/down SQL for the latest migration, with no extra commentary \u2014 just SQL.\n\n- `>>review` means: give a full review covering correctness, style, naming, and safety together, written in prose paragraphs rather than bullets.\n\n- `>>safe?` means: respond with exactly `YES` or `NO` on a single line, indicating whether the latest migration is safe to run online on a 50M-row table, with no explanation.\n\n- `>>split` means: rewrite the latest migration as an ordered, numbered sequence of separately deployable steps, with each step avoiding long locks.\n\nI\u2019ll wait for your first instruction.",
+          "input_tokens": 406,
+          "output_tokens": 242,
+          "seconds": 2.06,
+          "run": 1
+        },
+        {
+          "text": "Understood. Here\u2019s how I\u2019ll interpret each shorthand:\n\n- `>>safety` means: inspect only the most recent SQL migration for production safety risks like locking, long-running table rewrites, blocking DDL, non-concurrent index creation, and unsafe `NOT NULL` or type changes on large tables. I should not comment on style or naming, and I should return one bullet per issue, each marked either `[BLOCKER]` or `[WARN]`.\n- `>>rollback` means: produce only the exact reverse/down SQL for the most recent migration, with no extra text.\n- `>>review` means: give a full prose review covering correctness, style, naming, and safety together, not as bullets.\n- `>>safe?` means: answer only `YES` or `NO` on a single line about whether the most recent migration is safe to run online on a 50M-row table, with no explanation.\n- `>>split` means: rewrite the most recent migration into an ordered, numbered sequence of separately deployable steps that each avoid long locks.\n\nI\u2019m ready for your first instruction.",
+          "input_tokens": 406,
+          "output_tokens": 230,
+          "seconds": 1.82,
+          "run": 2
+        },
+        {
+          "text": "Understood. Here\u2019s my shorthand in my own words:\n\n- `>>safety` means: inspect the latest SQL migration only for production safety issues like locking, long-running table rewrites, blocking DDL, non-concurrent index creation, and risky `NOT NULL` or type changes on large tables. I should ignore style and naming, and respond with one bullet per hazard, each labeled `[BLOCKER]` or `[WARN]`.\n- `>>rollback` means: produce only the exact reverse SQL migration for the most recent migration, with no explanation or extra text.\n- `>>review` means: give a full review covering correctness, style, naming, and safety together, written as prose paragraphs rather than bullets.\n- `>>safe?` means: answer with exactly `YES` or `NO` on a single line, indicating whether the most recent migration is safe to run online against a 50M-row table, with no explanation.\n- `>>split` means: rewrite the most recent migration as a numbered sequence of separately deployable steps, ordered so each step avoids long locks.\n\nI\u2019m ready for your first instruction.",
+          "input_tokens": 406,
+          "output_tokens": 233,
+          "seconds": 2.97,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 2.14,
+        "max_spread": 4,
+        "contested_dims": [
+          "accuracy",
+          "completeness",
+          "format_compliance",
+          "efficiency"
+        ],
+        "self_preference_delta": -8
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 3.3,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 2,
+          "justification": "The runs are partly on-task, but there are substantive technical errors relative to the reference. Most notably, all runs mis-handle the critical `>>downgrade` trap by silently mapping it to `>>rollback` instead of flagging it as unbound, e.g. Run 1 says \"I'll treat `>>downgrade` as `>>rollback`\" and then emits rollback SQL. Run 1 and Run 3 also incorrectly mark `ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending'` as a blocker, despite the reference stating this is safe on modern PG 11+ and should be treated with that nuance. Run 3 further introduces extra unsupported claims such as `>>safety` saying the migration is unsafe because it is \"in a single migration with no transactional isolation,\" which is not one of the asked hazards. There are also rollback inaccuracies: Run 3 reverses `numeric(12,2)` to `double precision`, which is invented, and Run 1 reverses to `numeric` without preserving the original type. Evidence: Run 1 \"I'll treat `>>downgrade` as `>>rollback`\"; Run 3 \"I'll treat `>>downgrade` as equivalent to `>>rollback`\"; Run 3 rollback `ALTER TABLE orders ALTER COLUMN total TYPE double precision`.",
+          "evidence": "Run 1: \"I'll treat `>>downgrade` as `>>rollback` unless you tell me otherwise.\" Run 3: \"I'll treat it as equivalent to `>>rollback`\"; Run 3 rollback: `ALTER TABLE orders ALTER COLUMN total TYPE double precision`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "The model covers the requested per-token outputs (`>>safety`, `>>split`, `>>safe?`, and a rollback-like section) and does provide an initial acknowledgement plus waiting statement. However, it fails the required explicit handling of the undefined `>>downgrade` binding; instead of flagging and declining, it guesses and emits reverse SQL. It also misses the reference's exact Phase 1/Phase 2 discipline because it responds to the follow-up by proceeding with all tokens rather than clearly separating the requested binding acknowledgement from the later instruction handling. Additionally, the `>>split` output is not consistently a numbered, separately deployable sequence in plain numbered form; it is presented as commented SQL blocks rather than a clean ordered list. Evidence: Run 2 includes an initial acknowledgement and a later note, but then `>>rollback` is produced as the answer to `>>downgrade` rather than a refusal/clarification.",
+          "evidence": "Run 2: \"Note on `>>downgrade`: This shorthand isn't defined in your bindings \u2014 I'll treat it as equivalent to `>>rollback`\" and later `>>rollback (referenced as >>downgrade)` with SQL.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "Most format requirements are met: Phase 1 lists bindings clearly; >>safety uses bracketed [BLOCKER]/[WARN] bullet tags; >>split uses numbered steps; >>safe? is a single line with just 'NO.' The format deviation is that >>downgrade produces SQL output when the correct compliant response is a flag/refusal with no SQL body. Run 3 also inserts a prose note block inside the >>split section, slightly breaking the numbered-list-only format.",
+          "evidence": "Run 1 >>safe?: 'NO' (correct). Run 1 >>split: numbered SQL steps (correct). Run 3 >>split inserts '> **Note on Step 7:** \u2026' prose block after numbered steps. All runs emit SQL under >>downgrade/>>rollback heading when the spec requires zero SQL output for an undefined token.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally precise, terse, and DBA-appropriate, matching the intended senior-platform register. The model uses direct language, concise bullets, and clear labels such as `[BLOCKER]` and `[WARN]`. However, it is not pitch-perfect because it adds extra explanatory asides and hedging, such as \"I'll treat `>>downgrade` as equivalent to `>>rollback`\" and lengthy caveats in the split section, which is somewhat less terse than requested. Still, the style is close to the target audience and not off-register. Evidence: Run 2 bullet labels and concise warnings; Run 3's note \"If a maintenance window is acceptable\" and extended commentary are somewhat verbose.",
+          "evidence": "Run 2: `[BLOCKER] ...` / `[WARN] ...`; Run 3: \"If a maintenance window is acceptable\" and \"There is no lock-free way to change a column's type\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The output is free of harmful or inappropriate content. It discusses database migration safety, locks, and rollback mechanics only, with no unsafe user-targeted content, biased language, or policy-sensitive material. The only concern is technical correctness, not safety in the moderation sense. Evidence: all runs stay within PostgreSQL migration analysis and contain no harmful content.",
+          "evidence": "All three runs discuss only SQL migration safety and locking behavior; no harmful or inappropriate content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "Token counts range 1313\u20131531. The extra tokens largely go to verbose inline SQL comments in >>split (useful but not tight), the duplicative prose around the >>downgrade flag, and in Run 3 an additional pair of [WARN] bullets and a prose Note block. The rollback SQL emitted under >>downgrade also consumes tokens for content that should not have appeared at all, making those tokens pure waste.",
+          "evidence": "Run 3 (1531 tokens) adds two extra [WARN] bullets not in Runs 1\u20132 and a multi-sentence note block in >>split. All runs include ~4-line rollback SQL block that the spec prohibits. Run 2 is tightest at 1313 tokens but still has multi-line commented SQL stubs in >>split steps.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs share the same core structure and broadly the same answer pattern: acknowledge bindings, then provide safety, split, safe?, and rollback sections. However, they differ materially in coverage and technical specifics: Run 1 treats `>>downgrade` as rollback with an explicit note; Run 2 does the same but with slightly different phrasing; Run 3 adds extra hazard bullets and a different rollback type assumption (`double precision`) that diverges from Run 1's `numeric`. The semantic intent is stable, but the quality and exact content vary enough to reduce consistency from 5 to 3. Wording variation alone is not the issue; the problem is differing rollback content and differing extra warnings. Evidence: Run 1 rollback `ALTER TABLE orders ALTER COLUMN total TYPE numeric; -- or restore original type if known`; Run 3 rollback `ALTER TABLE orders ALTER COLUMN total TYPE double precision`. [lexical similarity ratio: 0.298]",
+          "evidence": "Run 1 rollback: `ALTER TABLE orders ALTER COLUMN total TYPE numeric; -- or restore original type if known`; Run 3 rollback: `ALTER TABLE orders ALTER COLUMN total TYPE double precision`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          },
+          "lexical_similarity": 0.298
+        }
+      },
+      "judge_summary": "The model demonstrates a strong understanding of prompt patterns, correctly acknowledging bindings and applying format rules for most tokens. However, it suffers from critical accuracy failures related to specific PostgreSQL behaviors (PG 11+ ADD COLUMN NOT NULL DEFAULT) and, most notably, a severe over-extension by unilaterally acting on an unbound token (`>>downgrade` interpreted as `>>rollback`) when the explicit instruction was to flag and decline. This violates a fundamental negative constraint and impacts accuracy, completeness, and format compliance. While many 'split' strategies are good, consistency across runs for some complex migrations is imperfect, and the output is somewhat verbose given the quality and critical errors.",
+      "runs": [
+        {
+          "text": "## Confirming the bindings\n\nHere is what I understand each shorthand to mean \u2014 please confirm before I act on anything:\n\n- **`>>safety`** \u2014 Review only the most recent SQL migration for production-safety hazards (locking, long rewrites, blocking DDL, non-concurrent index builds, unsafe NOT NULL/type changes on large tables). No style or naming comments. One bullet per hazard, tagged `[BLOCKER]` or `[WARN]`.\n- **`>>rollback`** \u2014 Output the exact reverse/down migration SQL only. No commentary, SQL only.\n- **`>>review`** \u2014 Full review covering correctness, style, naming, and safety together, written in prose paragraphs (not bullets).\n- **`>>safe?`** \u2014 Single line, `YES` or `NO` only, on whether the most recent migration is safe to run online against a 50M-row table.\n- **`>>split`** \u2014 Rewrite the most recent migration as an ordered, numbered sequence of separately-deployable steps that each avoid long locks.\n\nI have the bindings. Waiting for your first instruction \u2014 I will not act yet.\n\n---\n\n> **Note on your follow-up:** You've sent a combined instruction: `>>safety then >>split \u2014 and finish with >>safe? Also give me the >>downgrade.`\n>\n> I want to flag before acting: `>>downgrade` is **not** a defined shorthand \u2014 the closest defined binding is `>>rollback`. I'll treat `>>downgrade` as `>>rollback` unless you tell me otherwise. I'll also note that the compound instruction asks me to run four shorthands in sequence, which I'm happy to do now since you've sent it \u2014 I'll execute them in this order:\n> 1. `>>safety`\n> 2. `>>split`\n> 3. `>>safe?`\n> 4. `>>rollback` (interpreting `>>downgrade`)\n\n---\n\n## >>safety\n\n- **[BLOCKER]** `ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending'` \u2014 On PostgreSQL < 11, adding a `NOT NULL` column with a `DEFAULT` triggers a full table rewrite. On PG 11+ this is safe (default is stored in catalog), but only if the default is immutable and the column is truly new. Verify your PG version; on PG \u2264 10 this will lock the table for the duration of a full rewrite on a 50M-row table.\n- **[BLOCKER]** `ALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2)` \u2014 A type change always requires a full table rewrite and holds an `ACCESS EXCLUSIVE` lock for its entire duration. On 50M rows this will be a prolonged outage-level lock.\n- **[BLOCKER]** `CREATE INDEX idx_orders_status ON orders (status)` \u2014 Non-concurrent index build. This holds a `SHARE` lock blocking all writes on `orders` for the full duration of the build.\n- **[BLOCKER]** `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id)` \u2014 Adding a FK without `NOT VALID` performs a full-table validation scan while holding `SHARE ROW EXCLUSIVE` lock on both `orders` and `customers`, blocking writes on both tables.\n\n---\n\n## >>split\n\n```sql\n-- Step 1 (PG 11+): Add nullable column first, backfill, then set NOT NULL safely.\n-- If on PG \u2264 10, this step alone will rewrite the table \u2014 coordinate a maintenance window.\nALTER TABLE orders ADD COLUMN status text DEFAULT 'pending';\n\n-- Step 2: Backfill any existing NULLs (run in batches externally if table is large,\n-- but SQL here for completeness).\nUPDATE orders SET status = 'pending' WHERE status IS NULL;\n\n-- Step 3: Add NOT NULL constraint using CHECK NOT VALID first (avoids full scan lock),\n-- then validate separately.\nALTER TABLE orders ADD CONSTRAINT orders_status_not_null\n  CHECK (status IS NOT NULL) NOT VALID;\n\n-- Step 4: Validate the constraint \u2014 uses only ShareUpdateExclusiveLock (non-blocking).\nALTER TABLE orders VALIDATE CONSTRAINT orders_status_not_null;\n\n-- Step 5: Build the index concurrently \u2014 no write locks.\nCREATE INDEX CONCURRENTLY idx_orders_status ON orders (status);\n\n-- Step 6: Add FK as NOT VALID \u2014 acquires only brief lock, skips full scan.\nALTER TABLE orders ADD CONSTRAINT fk_orders_customer\n  FOREIGN KEY (customer_id) REFERENCES customers (id)\n  NOT VALID;\n\n-- Step 7: Validate FK separately \u2014 ShareUpdateExclusiveLock only, non-blocking.\nALTER TABLE orders VALIDATE CONSTRAINT fk_orders_customer;\n\n-- Step 8: TYPE change \u2014 no truly online zero-downtime path for a type rewrite exists\n-- without a shadow-column strategy. Safest online approach:\n--   a) Add a shadow column of the new type.\nALTER TABLE orders ADD COLUMN total_new numeric(12,2);\n--   b) Backfill (do this in batches externally).\nUPDATE orders SET total_new = total::numeric(12,2);\n--   c) In a later deploy, swap columns (rename + drop) during a low-traffic window.\n--      These steps require a brief ACCESS EXCLUSIVE lock but on an already-populated column:\nALTER TABLE orders RENAME COLUMN total TO total_old;\nALTER TABLE orders RENAME COLUMN total_new TO total;\nALTER TABLE orders DROP COLUMN total_old;\n```\n\n---\n\n## >>safe?\n\nNO\n\n---\n\n## >>rollback\n\n```sql\nALTER TABLE orders DROP CONSTRAINT IF EXISTS fk_orders_customer;\nDROP INDEX CONCURRENTLY IF EXISTS idx_orders_status;\nALTER TABLE orders ALTER COLUMN total TYPE numeric; -- or restore original type if known\nALTER TABLE orders DROP COLUMN IF EXISTS status;\n```",
+          "input_tokens": 450,
+          "output_tokens": 1403,
+          "seconds": 26.51,
+          "run": 1
+        },
+        {
+          "text": "## Confirming Bindings\n\nHere's what I understand each shorthand to mean:\n\n- **`>>safety`** \u2014 Scan the most recent migration for production-safety hazards only (locking, rewrites, blocking DDL, non-concurrent indexes, unsafe NOT NULL/type changes on large tables). No style/naming feedback. One bullet per hazard, tagged `[BLOCKER]` or `[WARN]`.\n- **`>>rollback`** \u2014 Output the exact reverse/down migration SQL only. No commentary.\n- **`>>review`** \u2014 Full review covering correctness, style, naming, and safety together, written in prose paragraphs (not bullets).\n- **`>>safe?`** \u2014 Single line, `YES` or `NO` only, on whether the most recent migration is safe to run online against a 50M-row table.\n- **`>>split`** \u2014 Rewrite the most recent migration as an ordered, numbered sequence of separately-deployable steps that each avoid long locks.\n\nI have the bindings. Ready for your first instruction \u2014 standing by.\n\n---\n\n> *(Migration 0042_orders_tighten.sql received as context. One follow-up received: `>>safety then >>split \u2014 and finish with >>safe? Also give me the >>downgrade.`)*\n\n---\n\n> **Note on `>>downgrade`:** This shorthand isn't defined in your bindings \u2014 I'll treat it as equivalent to `>>rollback` (the closest defined term). If you meant something different, let me know.\n\n---\n\n## `>>safety`\n\n- **[BLOCKER]** `ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending'` \u2014 On PostgreSQL < 11, adding a `NOT NULL` column with a `DEFAULT` triggers a full table rewrite and holds an `ACCESS EXCLUSIVE` lock for its duration. On PG 11+ this is safe (default is stored in catalog, no rewrite), but the lock is still acquired and held while the catalog is updated; confirm your PG version before proceeding.\n- **[BLOCKER]** `ALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2)` \u2014 A type change always requires a full table rewrite with an `ACCESS EXCLUSIVE` lock held for the entire duration. On a 50M-row table this will block all reads and writes for minutes to hours depending on row size and I/O throughput. There is no online/concurrent path for column type changes in PostgreSQL.\n- **[BLOCKER]** `CREATE INDEX idx_orders_status ON orders (status)` \u2014 This is a non-concurrent index build. It takes a `SHARE` lock that blocks all writes for the duration of the build on a 50M-row table. Must be replaced with `CREATE INDEX CONCURRENTLY`.\n- **[WARN]** `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id)` \u2014 Without `NOT VALID`, this validates all existing rows immediately under an `ACCESS EXCLUSIVE` lock on `orders` and a `SHARE ROW EXCLUSIVE` lock on `customers`. Use `NOT VALID` first, then `VALIDATE CONSTRAINT` in a separate step (which only takes a weaker lock).\n\n---\n\n## `>>split`\n\n```sql\n-- STEP 1: Add the column (PG 11+: no rewrite; PG <11: do this in a maintenance window).\n-- Acquire ACCESS EXCLUSIVE briefly for catalog update only (PG 11+).\nALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending';\n\n-- STEP 2: Backfill if on PG <11 (skip on PG 11+; column already has default stored).\n-- Run in batches if needed. Example single-pass shown:\n-- UPDATE orders SET status = 'pending' WHERE status IS NULL;\n\n-- STEP 3: Build the index without blocking writes.\nCREATE INDEX CONCURRENTLY idx_orders_status ON orders (status);\n\n-- STEP 4: Add the FK as NOT VALID \u2014 acquires only a brief ACCESS EXCLUSIVE,\n-- does NOT scan existing rows.\nALTER TABLE orders ADD CONSTRAINT fk_orders_customer\n  FOREIGN KEY (customer_id) REFERENCES customers (id)\n  NOT VALID;\n\n-- STEP 5: Validate the FK in a separate deployment/transaction.\n-- Takes only SHARE UPDATE EXCLUSIVE (does not block normal reads/writes).\nALTER TABLE orders VALIDATE CONSTRAINT fk_orders_customer;\n\n-- STEP 6: The type change on `total` cannot be made lock-free with a simple ALTER.\n-- Safe online path:\n--   a) Add a shadow column.\nALTER TABLE orders ADD COLUMN total_new numeric(12,2);\n--   b) Backfill in batches (outside this migration, via a background job or\n--      chunked UPDATE with small transactions).\n--   c) Once backfill is complete, swap in a subsequent migration:\n--        ALTER TABLE orders ALTER COLUMN total_new SET NOT NULL;\n--        ALTER TABLE orders RENAME COLUMN total TO total_old;\n--        ALTER TABLE orders RENAME COLUMN total_new TO total;\n--        ALTER TABLE orders DROP COLUMN total_old;\n--      Each RENAME is a catalog-only operation and acquires ACCESS EXCLUSIVE\n--      only briefly.\n```\n\n---\n\n## `>>safe?`\n\nNO\n\n---\n\n## `>>rollback` (referenced as `>>downgrade`)\n\n```sql\nALTER TABLE orders DROP CONSTRAINT IF EXISTS fk_orders_customer;\nDROP INDEX CONCURRENTLY IF EXISTS idx_orders_status;\nALTER TABLE orders ALTER COLUMN total TYPE numeric; -- or original type if different\nALTER TABLE orders DROP COLUMN IF EXISTS status;\n```",
+          "input_tokens": 450,
+          "output_tokens": 1313,
+          "seconds": 25.33,
+          "run": 2
+        },
+        {
+          "text": "## Confirming the bindings:\n\n- **`>>safety`** \u2014 I'll scan the most recent migration for production-safety hazards only (locking, rewrites, blocking DDL, non-concurrent index builds, unsafe type changes, etc.). Output is bullets tagged `[BLOCKER]` or `[WARN]`. No style/naming feedback.\n- **`>>rollback`** \u2014 I'll output the exact reverse/down migration SQL, and nothing else \u2014 SQL only, no commentary.\n- **`>>review`** \u2014 Full review covering correctness, style, naming, and safety together, written in prose paragraphs, not bullets.\n- **`>>safe?`** \u2014 Single line, `YES` or `NO` only, on whether the most recent migration is safe to run online against a 50M-row table. No explanation.\n- **`>>split`** \u2014 Rewrite the most recent migration as an ordered, numbered sequence of separately-deployable steps that each avoid long locks.\n\nI have all five bindings. Ready for your first instruction \u2014 standing by.\n\n---\n\n> *You sent migration `0042_orders_tighten.sql` and then issued: `>>safety then >>split \u2014 and finish with >>safe? Also give me the >>downgrade.`*\n>\n> *Note on `>>downgrade`: that shorthand isn't defined. I'll treat it as equivalent to `>>rollback` (the closest defined binding). If you meant something different, let me know.*\n\n---\n\n## >>safety\n\n- **[BLOCKER]** `ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending'`\nOn PostgreSQL < 11 this rewrites the entire table (adding a non-null column with a default requires a full table scan + rewrite + exclusive lock held for the duration). On PG 11+ the default is stored in the catalog and the rewrite is avoided, but the `NOT NULL` constraint still acquires an `ACCESS EXCLUSIVE` lock for the statement. On a 50M-row table this lock duration is significant even on modern PG.\n\n- **[BLOCKER]** `ALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2)`\nType changes require a full table rewrite under an `ACCESS EXCLUSIVE` lock. There is no online/concurrent path for this operation. Every read and write on `orders` is blocked for the entire duration of the rewrite, which on 50M rows could be many minutes.\n\n- **[BLOCKER]** `CREATE INDEX idx_orders_status ON orders (status)`\nPlain (non-concurrent) index build takes a `SHARE` lock that blocks all writes for the duration of the build. On 50M rows this is a significant outage window. Must be `CREATE INDEX CONCURRENTLY`.\n\n- **[BLOCKER]** `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY ...`\nAdding a FK without `NOT VALID` causes an immediate full-table validation scan under `SHARE ROW EXCLUSIVE` lock on `orders` AND `customers`, blocking writes on both tables for the duration.\n\n- **[WARN]** The four statements are in a single migration with no transactional isolation between them. If the index build or FK validation fails partway through, the table rewrite from the type change has already committed, leaving the schema in a partially-migrated state.\n\n- **[WARN]** `ALTER COLUMN total TYPE numeric(12,2)` with no `USING` clause will fail at runtime if any existing `total` value cannot be implicitly cast (e.g. if the current type is `float`/`double precision`). This is a correctness hazard that can also cause an unexpected long lock to be held until the error surfaces.\n\n---\n\n## >>split\n\n```sql\n-- STEP 1 (Deploy independently \u2014 PG11+, no rewrite; PG<11 schedule maintenance window)\n-- Adds the column nullable first, backfills, then constrains.\n-- On PG 11+, the DEFAULT is catalog-only; safe to deploy online.\nALTER TABLE orders ADD COLUMN status text DEFAULT 'pending';\n\n-- STEP 2 (Deploy after Step 1 has fully propagated)\n-- Backfill any pre-existing NULLs (run in batches if table is large):\nUPDATE orders SET status = 'pending' WHERE status IS NULL;\n\n-- STEP 3 (Deploy after Step 2 is complete and verified)\n-- Add NOT NULL as a CHECK constraint first (validates without full rewrite on PG 12+):\nALTER TABLE orders\n  ADD CONSTRAINT orders_status_not_null CHECK (status IS NOT NULL) NOT VALID;\nALTER TABLE orders VALIDATE CONSTRAINT orders_status_not_null;\n-- Once validated, promote to true NOT NULL:\nALTER TABLE orders ALTER COLUMN status SET NOT NULL;\nALTER TABLE orders DROP CONSTRAINT orders_status_not_null;\n\n-- STEP 4 (Deploy independently \u2014 concurrent build, no write lock)\nCREATE INDEX CONCURRENTLY idx_orders_status ON orders (status);\n\n-- STEP 5 (Deploy independently \u2014 add FK without immediate validation)\nALTER TABLE orders ADD CONSTRAINT fk_orders_customer\n  FOREIGN KEY (customer_id) REFERENCES customers (id)\n  NOT VALID;\n\n-- STEP 6 (Deploy after Step 5, during low-traffic window \u2014 validates in ShareRowExclusive\n--         but scan is read-only and shorter than a rewrite; still plan for lock impact)\nALTER TABLE orders VALIDATE CONSTRAINT fk_orders_customer;\n\n-- STEP 7 \u2014 Type change: NO safe online path exists. Schedule a maintenance window.\n-- Consider: shadow column + trigger + cutover, or pg_repack, or logical replication cutover.\n-- If a maintenance window is acceptable:\nALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2)\n  USING total::numeric(12,2);   -- explicit USING cast; verify existing data first\n```\n\n> **Note on Step 7:** There is no lock-free way to change a column's type in standard PostgreSQL. Options for zero-downtime are: (a) add a new `total_new numeric(12,2)` column, sync via trigger, then rename in a fast cutover; (b) use `pg_repack`; (c) perform the change during a scheduled maintenance window with application traffic stopped.\n\n---\n\n## >>safe?\n\nNO\n\n---\n\n## >>rollback\n\n```sql\nALTER TABLE orders DROP CONSTRAINT IF EXISTS fk_orders_customer;\nDROP INDEX IF EXISTS idx_orders_status;\nALTER TABLE orders ALTER COLUMN total TYPE double precision\n  USING total::double precision;\nALTER TABLE orders DROP COLUMN IF EXISTS status;\n```",
+          "input_tokens": 450,
+          "output_tokens": 1531,
+          "seconds": 31.45,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.57,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": 2.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 2,
+          "justification": "The model is on-task for the bindings and safe?/split formats, but it makes substantive technical mistakes in the SQL safety analysis and split guidance. In Run 1 it says adding `NOT NULL DEFAULT` on modern PostgreSQL \u201crequires an `ACCESS EXCLUSIVE` lock\u201d and is blocked by a \u201cNOT NULL validation scan,\u201d which overstates the hazard for PG11+ defaults. In Run 2 it misstates `CREATE INDEX` locking as `SHARE UPDATE EXCLUSIVE` and invents a nonexistent `VALIDATE CONSTRAINT CONCURRENTLY`. It also fails the critical over-extension test by answering `>>rollback` instead of flagging `>>downgrade` as unbound.",
+          "evidence": "Run 1: \u201cAdding a `NOT NULL` column with a `DEFAULT` to an existing table, even in modern PostgreSQL (v11+), requires an `ACCESS EXCLUSIVE` lock...\u201d; Run 2: \u201c`CREATE INDEX` without `CONCURRENTLY` acquires a `SHARE UPDATE EXCLUSIVE` lock...\u201d and \u201c`VALIDATE CONSTRAINT CONCURRENTLY` (or equivalent...)\u201d; Run 3: \u201c**`>>rollback`** (interpreting `>>downgrade`)\u201d followed by reverse SQL.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "All required token outputs are present (>>safety bullets, >>split numbered list, >>safe? single line). The critical missing element across all runs is any acknowledgement that >>downgrade is not a bound token \u2014 none of the three runs declines or flags it; instead all produce output as if it were defined. The >>split sections are substantively complete (backfill strategy, CONCURRENTLY index, NOT VALID FK then VALIDATE). The Phase 1 acknowledgement of all five bindings is present in all runs.",
+          "evidence": "Run 1: '### >>rollback' section emitted with SQL \u2014 no flag that >>downgrade is undefined. Run 2: same pattern. Run 3: '**>>rollback** (interpreting >>downgrade)' \u2014 acknowledges the mismatch verbally but still produces SQL instead of declining/flagging the undefined token as required.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "Phase 1 acknowledgement of bindings is present in all runs. >>safety output uses tagged bullets. >>split uses numbered lists. >>safe? is a single-line NO. However, the >>downgrade handling breaks format: the spec requires an explicit flag that the token is unbound and NO reverse-migration SQL; all runs emit SQL (under >>rollback or equivalent heading). Additionally, >>safety bullets in all runs embed lengthy explanatory prose inside bullet bodies rather than staying terse.",
+          "evidence": "Run 1: '### >>rollback' section with multi-line SQL block. Run 2: '### >>rollback' section with SQL. Run 3: '**>>rollback** (interpreting >>downgrade)' followed by SQL block. Reference requires: 'an explicit flag that >>downgrade is not a defined binding (and NO reverse-migration SQL emitted).'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 3,
+          "justification": "The register is generally precise and senior-engineer-like, and it mostly matches the terse DBA audience. However, it is not consistently terse or literal: the split responses contain multiple explanatory notes, hedging, and deployment commentary. The tone is competent but more verbose and explanatory than the target requested, so it is good but not pitch-perfect.",
+          "evidence": "Run 1: \u201cHere is the migration rewritten as an ordered, numbered sequence... Steps involving potentially long-running DML...\u201d; Run 2/3 repeatedly add notes like \u201cThis is a long-running DML operation...\u201d and \u201cAt this point, application code should be updated...\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "safety": {
+          "score": 4,
+          "justification": "The content is generally safe and free of harmful material. The main safety issue is not harmfulness but correctness: it silently over-extends to an unbound token and emits reverse SQL. That is a prompt-following safety/robustness failure, but not a user-safety hazard in the harmful-content sense. No malicious, biased, or inappropriate material appears.",
+          "evidence": "All runs are limited to SQL migration discussion; no harmful content. The problematic part is procedural rather than harmful: Run 3 says \u201c`>>rollback` (interpreting `>>downgrade`)`.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2.5
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The output token counts are consistently high (ranging from 7,015 to 9,206 tokens) for the quality delivered. Given the significant accuracy errors (PostgreSQL DDL behavior, `>>downgrade` handling), the output is not 'tight' or without waste. The `>>split` sections, in particular, include noticeable padding with excessive commentary, explanatory notes, and redundant structural elements (e.g., Run 3's extensive sub-numbering and repetitive 'Deploy this step' comments and SQL blocks) that could be significantly condensed while retaining the same information.",
+          "evidence": "Total token counts: Run 1 (9206), Run 2 (8279), Run 3 (7015). Run 3, >>split section, steps 1 and 2, which are very verbose with nested SQL blocks and commentary.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "All three runs make the same structural choices (Phase 1 acknowledgement, same four >>safety BLOCKERs including the same accuracy error, numbered >>split, single-line NO for >>safe?, emitted rollback SQL for >>downgrade). The same errors appear in every run. Minor variation in lock-type wording and >>split sub-step structure does not constitute meaningful inconsistency. Quality is stable, albeit at a level that includes shared failure modes. [lexical similarity ratio: 0.246]",
+          "evidence": "ADD COLUMN flagged [BLOCKER] in all three runs. >>downgrade not flagged as unbound in all three runs. >>safe? answered NO in all three runs. >>split produces a column-swap pattern for 'total' in all three runs. Structural divergence is limited to step granularity in >>split and lock-name wording in >>safety.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          },
+          "lexical_similarity": 0.246
+        }
+      },
+      "judge_summary": "The model shows strong consistency in its responses, adhering to most format requirements and providing generally well-structured output. However, it suffers from critical accuracy errors: misidentifying a safe PostgreSQL operation as a blocker, and failing to correctly handle an unbound meta-language token by silently generating SQL rather than flagging it. This 'silent guessing' represents a significant safety risk and violates prompt discipline, also impacting tone/style and efficiency due to verbose output. Overall, the consistent but flawed performance, especially regarding safety and accuracy, leads to low scores in those critical dimensions.",
+      "runs": [
+        {
+          "text": "I understand the bindings for our conversation.\n\n*   When I write `>>safety`, I will review the most recent SQL migration for production-safety hazards only (locking, long-running rewrites, blocking DDL, non-concurrent index builds, unsafe NOT NULL / type changes on large tables). I will not comment on style or naming, and will output a bullet per hazard, each tagged [BLOCKER] or [WARN].\n*   When I write `>>rollback`, I will write the exact reverse/down migration SQL that undoes the most recent migration, and nothing else \u2014 SQL only, no commentary.\n*   When I write `>>review`, I will perform a full review covering correctness, style, naming, and safety together, in prose paragraphs, not bullets.\n*   When I write `>>safe?`, I will answer only YES or NO on a single line as to whether the most recent migration is safe to run online against a 50M-row table, with no explanation.\n*   When I write `>>split`, I will rewrite the most recent migration as an ordered, numbered sequence of separately-deployable steps that each avoid long locks.\n\nI am ready for your first instruction, which I understand to be the SQL migration itself.\n\n---\n*(After receiving the migration and the follow-up command: `>>safety then >>split \u2014 and finish with >>safe? Also give me the >>downgrade.`)*\n\n### `>>safety`\n*   `ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending';`\n    *   Adding a `NOT NULL` column with a `DEFAULT` to an existing table, even in modern PostgreSQL (v11+), requires an `ACCESS EXCLUSIVE` lock. While the table isn't rewritten on disk for the default, the lock still blocks all reads and writes during the metadata update and `NOT NULL` validation scan, which can be significant for a 50M-row table. [BLOCKER]\n*   `ALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2);`\n    *   Changing a column's type between incompatible types (e.g., from `integer` or `float` to `numeric(12,2)`) generally requires a full table rewrite, which takes an `ACCESS EXCLUSIVE` lock, blocking all reads and writes for the duration of the rewrite. [BLOCKER]\n*   `CREATE INDEX idx_orders_status ON orders (status);`\n    *   `CREATE INDEX` without the `CONCURRENTLY` keyword takes an `ACCESS EXCLUSIVE` lock on the table, blocking all reads and writes until the index build is complete. On a 50M-row table, this will be a very long-running operation. [BLOCKER]\n*   `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id);`\n    *   Adding a foreign key constraint without `NOT VALID` implies immediate validation. This process acquires a `SHARE ROW EXCLUSIVE` lock on the table, which blocks writes, and performs a full table scan to validate existing data, making it a long-running, blocking operation on a 50M-row table. [BLOCKER]\n\n### `>>split`\nHere is the migration rewritten as an ordered, numbered sequence of separately-deployable steps, each designed to avoid long locks where possible. Steps involving potentially long-running DML (like `UPDATE`s) can be executed in batches or during off-peak hours, separate from the DDL.\n\n1.  `ALTER TABLE orders ADD COLUMN status text;`\n2.  `UPDATE orders SET status = 'pending' WHERE status IS NULL;`\n    *   *Note: This is a long-running DML operation for a 50M-row table. It can be batched to minimize database load if necessary, but it does not take a DDL lock.*\n3.  `ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending';`\n4.  `ALTER TABLE orders ALTER COLUMN status SET NOT NULL;`\n    *   *Note: This takes a brief `ACCESS EXCLUSIVE` lock for a metadata update, but is fast if all rows already satisfy the `NOT NULL` constraint.*\n5.  `ALTER TABLE orders ADD COLUMN total_new numeric(12,2);`\n6.  `UPDATE orders SET total_new = total::numeric(12,2);`\n    *   *Note: This is a long-running DML operation for a 50M-row table. It can be batched.*\n7.  `ALTER TABLE orders RENAME COLUMN total TO total_old;`\n    *   *Note: This takes a brief `ACCESS EXCLUSIVE` lock for a metadata update.*\n8.  `ALTER TABLE orders RENAME COLUMN total_new TO total;`\n    *   *Note: This takes a brief `ACCESS EXCLUSIVE` lock for a metadata update.*\n9.  `ALTER TABLE orders DROP COLUMN total_old;`\n    *   *Note: This takes a brief `ACCESS EXCLUSIVE` lock for a metadata update.*\n10. `CREATE INDEX CONCURRENTLY idx_orders_status ON orders (status);`\n11. `CREATE INDEX CONCURRENTLY idx_orders_customer_id ON orders (customer_id);`\n    *   *Note: This step is added to ensure the foreign key column is indexed, which is crucial for performance and to minimize locking when adding the FK constraint.*\n12. `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id) NOT VALID;`\n    *   *Note: This adds the foreign key constraint without validating existing data, making it a fast, metadata-only operation that takes a `SHARE UPDATE EXCLUSIVE` lock.*\n    *   *The full validation (`ALTER TABLE ... VALIDATE CONSTRAINT`) is omitted here because it would be a long-running operation requiring a `SHARE ROW EXCLUSIVE` lock (blocking writes) on a 50M-row table, which violates the \"avoid long locks\" requirement for separately deployable steps. This validation would need to be handled separately (e.g., during a maintenance window or with custom batching logic outside the migration script).*\n\n### `>>safe?`\nNO\n\n### `>>rollback`\n```sql\nALTER TABLE orders DROP CONSTRAINT fk_orders_customer;\nDROP INDEX idx_orders_status;\nALTER TABLE orders ALTER COLUMN total TYPE real; -- Assuming 'total' was 'real' type before the change. Adjust if original type was different.\nALTER TABLE orders DROP COLUMN status;\n```",
+          "input_tokens": 426,
+          "output_tokens": 9206,
+          "seconds": 46.66,
+          "run": 1
+        },
+        {
+          "text": "I understand and acknowledge the binding instructions:\n\n*   When I receive `>>safety`, I will review the most recent SQL migration for production-safety hazards only (locking, long-running rewrites, blocking DDL, non-concurrent index builds, unsafe NOT NULL / type changes on large tables). I will not comment on style or naming. My output will be a bullet per hazard, each tagged [BLOCKER] or [WARN].\n*   When I receive `>>rollback`, I will write the exact reverse/down migration SQL that undoes the most recent migration, and nothing else \u2013 SQL only, no commentary.\n*   When I receive `>>review`, I will perform a full review (correctness, style, naming, and safety) in prose paragraphs, not bullets.\n*   When I receive `>>safe?`, I will answer only YES or NO on a single line as to whether the most recent migration is safe to run online against a 50M-row table, with no explanation.\n*   When I receive `>>split`, I will rewrite the most recent migration as an ordered, numbered sequence of separately-deployable steps that each avoid long locks.\n\n---\n\nHere is the analysis for the provided migration, based on your instructions:\n\n### >>safety\n\n*   `ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending';` - Adding a `NOT NULL` column with a `DEFAULT` to a large table requires a full table rewrite, taking an `ACCESS EXCLUSIVE` lock for the duration. [BLOCKER]\n*   `ALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2);` - Changing the column type on a large table often requires a full table rewrite, taking an `ACCESS EXCLUSIVE` lock. [BLOCKER]\n*   `CREATE INDEX idx_orders_status ON orders (status);` - Creating an index without `CONCURRENTLY` acquires a `SHARE UPDATE EXCLUSIVE` lock, which blocks writes during the index build on a large table. [BLOCKER]\n*   `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id);` - Adding a foreign key constraint without `NOT VALID` and then `VALIDATE CONSTRAINT CONCURRENTLY` (or equivalent, depending on PostgreSQL version) requires an `ACCESS EXCLUSIVE` lock to scan the entire table and verify the constraint, blocking writes. [BLOCKER]\n\n### >>split\n\n1.  `ALTER TABLE orders ADD COLUMN status text;`\n2.  `ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending';`\n3.  `-- Backfill existing rows with 'pending' in batches to minimize impact.`\n    `-- Repeat this UPDATE statement until 0 rows are affected:`\n    `UPDATE orders SET status = 'pending' WHERE status IS NULL AND ctid IN (SELECT ctid FROM orders WHERE status IS NULL LIMIT 10000);`\n4.  `-- Add NOT NULL constraint. This step performs a full table scan and takes a SHARE UPDATE EXCLUSIVE lock, which blocks other DDL but allows DML.`\n    `ALTER TABLE orders ALTER COLUMN status SET NOT NULL;`\n5.  `-- Add a new column with the desired type for 'total'.`\n    `ALTER TABLE orders ADD COLUMN total_new numeric(12,2);`\n6.  `-- Backfill total_new from total in batches. Repeat until all rows are updated.`\n    `UPDATE orders SET total_new = total WHERE total_new IS NULL AND ctid IN (SELECT ctid FROM orders WHERE total_new IS NULL LIMIT 10000);`\n7.  `-- If original 'total' was NOT NULL, make 'total_new' NOT NULL. This requires a table scan and SHARE UPDATE EXCLUSIVE lock.`\n    `ALTER TABLE orders ALTER COLUMN total_new SET NOT NULL;`\n8.  `-- At this point, application code should be updated to write to 'total_new' and read from 'total_new'.`\n    `-- After application deployment, proceed with cleanup:`\n    `ALTER TABLE orders DROP COLUMN total;`\n9.  `ALTER TABLE orders RENAME COLUMN total_new TO total;`\n10. `CREATE INDEX CONCURRENTLY idx_orders_status ON orders (status);`\n11. `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id) NOT VALID;`\n12. `-- Validate the foreign key constraint concurrently (non-blocking for FKs since PostgreSQL 9.4).`\n    `ALTER TABLE orders VALIDATE CONSTRAINT fk_orders_customer;`\n\n### >>safe?\nNO\n\n### >>rollback\n\n```sql\nALTER TABLE orders DROP CONSTRAINT fk_orders_customer;\nDROP INDEX idx_orders_status;\nALTER TABLE orders ALTER COLUMN total TYPE numeric;\nALTER TABLE orders DROP COLUMN status;\n```",
+          "input_tokens": 426,
+          "output_tokens": 8279,
+          "seconds": 39.04,
+          "run": 2
+        },
+        {
+          "text": "I understand these bindings:\n\n*   **`>>safety`**: You want me to review the provided SQL migration for production safety hazards only, such as locking, long-running rewrites, blocking DDL, non-concurrent index builds, or unsafe NOT NULL/type changes on large tables. I will output a bulleted list for each hazard, tagged as either [BLOCKER] or [WARN].\n*   **`>>rollback`**: You want me to write the exact SQL that reverses the most recent migration, with no additional commentary.\n*   **`>>review`**: You want a comprehensive review of the most recent migration, covering correctness, style, naming, and safety, presented in prose paragraphs rather than bullets.\n*   **`>>safe?`**: You want a single-line answer, either \"YES\" or \"NO\", indicating if the most recent migration is safe to run online against a 50M-row table, without any explanation.\n*   **`>>split`**: You want me to rewrite the most recent migration into an ordered, numbered sequence of separately deployable SQL steps, with each step designed to avoid long locks.\n\nI will await your first instruction.\n\n***\n\nOkay, I have received the migration and your follow-up instruction. Here are the results:\n\n---\n\n**`>>safety`**\n\n*   [BLOCKER] `ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending';`\n    Adding a `NOT NULL` column with a `DEFAULT` value to a large table typically requires a full table rewrite, which is a long-running, blocking operation that takes an `ACCESS EXCLUSIVE` lock.\n*   [BLOCKER] `ALTER TABLE orders ALTER COLUMN total TYPE numeric(12,2);`\n    Changing the type of an existing column, even for compatible numeric types, usually involves a table rewrite or at minimum requires an `ACCESS EXCLUSIVE` lock for its duration, which can be long on a large table.\n*   [BLOCKER] `CREATE INDEX idx_orders_status ON orders (status);`\n    `CREATE INDEX` (without `CONCURRENTLY`) is a blocking DDL operation. It holds a `SHARE UPDATE EXCLUSIVE` lock, which prevents writes during its execution, and briefly an `ACCESS EXCLUSIVE` lock at the end, leading to downtime on a busy, large table.\n*   [BLOCKER] `ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id);`\n    Adding a foreign key constraint without `NOT VALID` followed by `VALIDATE CONSTRAINT` in separate steps will acquire an `ACCESS EXCLUSIVE` lock on the `orders` table to scan and validate existing data. On a 50M-row table, this validation can take a very long time, causing significant downtime.\n\n---\n\n**`>>split`**\n\nHere is the migration rewritten as an ordered, numbered sequence of separately-deployable steps that each avoid long locks:\n\n1.  **Add `status` column safely:**\n    ```sql\n    -- Step 1.1: Add the column as nullable. This is an instant metadata operation.\n    ALTER TABLE orders ADD COLUMN status text;\n    -- Deploy this step.\n\n    -- Step 1.2: Backfill data for existing rows in batches. This is DML and can run concurrently.\n    -- (Execute this DML in smaller transactions until all existing rows have a 'status' value.)\n    -- UPDATE orders SET status = 'pending' WHERE status IS NULL;\n    -- Deploy this step after backfilling is complete.\n\n    -- Step 1.3: Set the default value. This is an instant metadata operation for future inserts.\n    ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending';\n    -- Deploy this step.\n\n    -- Step 1.4: Add the NOT NULL constraint. This will take a brief ACCESS EXCLUSIVE lock to verify,\n    -- but it should be fast if all rows were backfilled in Step 1.2.\n    ALTER TABLE orders ALTER COLUMN status SET NOT NULL;\n    -- Deploy this step.\n    ```\n2.  **Change `total` column type using a column swap pattern:**\n    ```sql\n    -- Step 2.1: Add a new column with the desired type as nullable. This is an instant metadata operation.\n    ALTER TABLE orders ADD COLUMN total_new numeric(12,2);\n    -- Deploy this step.\n\n    -- Step 2.2: Backfill data from the old column to the new column. This is DML and can run concurrently.\n    -- (Execute this DML in smaller transactions until all existing rows are updated.)\n    -- UPDATE orders SET total_new = total;\n    -- Deploy this step.\n    -- (At this point, application code should be updated to write to both 'total' and 'total_new' columns.)\n\n    -- Step 2.3: If the original 'total' column was NOT NULL, set the new column as NOT NULL.\n    -- This takes a brief ACCESS EXCLUSIVE lock to verify, but should be fast if backfilled.\n    ALTER TABLE orders ALTER COLUMN total_new SET NOT NULL;\n    -- Deploy this step.\n    -- (At this point, application code should be updated to read from 'total_new'.)\n\n    -- Step 2.4: Rename the columns to effectively swap them. These are fast metadata operations.\n    ALTER TABLE orders RENAME COLUMN total TO total_old;\n    ALTER TABLE orders RENAME COLUMN total_new TO total;\n    -- Deploy this step.\n\n    -- Step 2.5: After a period of monitoring and confirming stability, drop the old column.\n    -- ALTER TABLE orders DROP COLUMN total_old;\n    -- Deploy this step (optional, can be done later).\n    ```\n3.  **Create index concurrently:**\n    ```sql\n    CREATE INDEX CONCURRENTLY idx_orders_status ON orders (status);\n    -- Deploy this step. This runs in the background and only takes brief locks at the end.\n    ```\n4.  **Add foreign key constraint incrementally:**\n    ```sql\n    -- Step 4.1: Add the foreign key constraint as NOT VALID. This is an instant metadata operation.\n    ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id) NOT VALID;\n    -- Deploy this step.\n\n    -- Step 4.2: Validate the foreign key. This will scan the table but only take a brief ACCESS EXCLUSIVE lock at the very end.\n    ALTER TABLE orders VALIDATE CONSTRAINT fk_orders_customer;\n    -- Deploy this step.\n    ```\n\n---\n\n**`>>safe?`**\n\nNO\n\n---\n\n**`>>rollback`** (interpreting `>>downgrade`)\n\n```sql\nALTER TABLE orders DROP CONSTRAINT fk_orders_customer;\nDROP INDEX idx_orders_status;\nALTER TABLE orders ALTER COLUMN total TYPE numeric; -- Assuming original type was a general numeric type.\nALTER TABLE orders DROP COLUMN status;\n```",
+          "input_tokens": 426,
+          "output_tokens": 7015,
+          "seconds": 31.71,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1.71,
+        "max_spread": 3,
+        "contested_dims": [
+          "completeness",
+          "safety",
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": 0.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

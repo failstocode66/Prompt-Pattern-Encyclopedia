@@ -1,0 +1,688 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "negative-prompting",
+  "date": "2026-06-29 12:25",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A STRONG answer is exactly three paragraphs, under 220 words, each paragraph doing its assigned job (P1 = what shipped + the 4.2s\u21920.6s measured result stated with the numbers; P2 = mechanism (transparent caching of repeated read-query results) + the concrete enablement step for an existing user; P3 = a real limitation, e.g. stale/invalidated cache on writes or no benefit for unique/ad-hoc queries, plus a concrete roadmap item). The hard test is the prohibitions, where the documented failure modes are tempting: (1) Forbidden synonyms / negation salience \u2014 a weak answer avoids the literal banned words but smuggles the same fluff via near-equivalents (\"lightning-fast\"\u2192\"ultra-fast/instant\", \"seamless\"\u2192\"frictionless/zero-friction/smooth\", \"powerful\"\u2192\"high-performance\", \"effortless\"\u2192\"with zero effort\", \"supercharge\"\u2192\"turbocharge/boost\"); a strong answer reads as plain, concrete engineering prose with no fluff in any register. (2) Selective compliance / drift \u2014 a weak answer is clean in P1 then relapses into marketing tone or a hedge by P3; a strong answer holds the constraints through all three paragraphs. (3) The positive target must still be hit \u2014 every speed/savings claim carries its specific number (no bare \"much faster\"), it must NOT open with the product/company name or a greeting (so the first words are about what shipped), and it must contain zero hedges (\"should help\", \"we believe\", \"may\") and zero intensifiers (\"dramatically\", \"10x\"). Common subtle flaws a judge should catch: opening with a company/product name or \"Today we're excited to\" preamble; one banned-word variant slipping through; a number-free speed claim; drift to 4 paragraphs or 230+ words; a fabricated/implausible limitation that isn't a real caching tradeoff; turning P3's \"what's coming next\" into hype rather than a concrete item.",
+    "format_spec": "Exactly three paragraphs, 220 words or fewer total, no greeting and not opening with the product/company name, plain prose (no headers, no bullet lists). Paragraph roles fixed: P1 what-shipped + measured result, P2 how-it-works + enablement step, P3 limitation + what's-next.",
+    "tone": "Plain, factual, peer-to-peer engineering register addressed to technical leads who already use the product; concrete and number-anchored, no marketing voice."
+  },
+  "prompt": "Write a product launch announcement for a new feature in our developer-facing analytics platform: an automatic query-caching layer that transparently caches the results of repeated read queries and cuts median dashboard load time from 4.2 seconds to 0.6 seconds for our existing customers. The audience is the engineering and data leads who already use the product. Write exactly three paragraphs: paragraph 1 states what shipped and the measured result, paragraph 2 explains how it works and what an existing user has to do to turn it on, paragraph 3 states a known limitation and what is coming next.\n\nDo NOT:\n- Use any of these words or their close variants: revolutionary, game-changing, seamless, effortless, powerful, robust, cutting-edge, innovative, unleash, empower, supercharge, blazing, lightning-fast\n- Open the announcement with the product or company name, or with a greeting\n- Use hedging language (\"may\", \"might\", \"could potentially\", \"we believe\", \"we think\", \"should help\")\n- Use marketing intensifiers (\"incredibly\", \"extremely\", \"dramatically\", \"massively\", \"10x\", \"next-level\")\n- Make a claim about speed or savings without attaching the specific measured number\n- Exceed 220 words total\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs correctly describe the automatic query-caching layer, accurately quote the measured numbers (4.2s \u2192 0.6s), and describe a plausible caching mechanism (keyed on query text, parameters, data state). Limitations cited (write-heavy/ad-hoc queries in Run 1, volatile sources in Run 2, volatile functions/session-specific values in Run 3) are all legitimate cache-miss scenarios, not fabricated. No factual errors detected.",
+          "evidence": "Run 1: 'median dashboard load time drop from 4.2 seconds to 0.6 seconds'; Run 2: 'cut median dashboard load time from 4.2 seconds to 0.6 seconds'; Run 3: 'cut median dashboard load time from 4.2 seconds to 0.6 seconds, with repeated reads returning cached results instead of running the same query again.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every required element is present in every run: P1 names what shipped and the measured result with specific numbers; P2 explains the caching mechanism and gives a concrete, actionable enablement step; P3 states a real limitation and a specific near-term roadmap item. No paragraph role is skipped or shallow across any run.",
+          "evidence": "Run 1 P2 enablement: 'turn it on in the workspace settings, or enable it by setting the `query_cache_enabled` flag'; Run 2 P3 roadmap: 'adding per-query controls and cache hit reporting'; Run 3 P3: 'adding per-dataset cache controls and cache hit/miss reporting so teams can tune retention and track impact by dashboard.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "All three runs deliver exactly three paragraphs of plain prose, no headers or bullets, under 220 words (Run 1 \u2248186w, Run 2 \u2248168w, Run 3 \u2248171w), and none opens with a product/company name or greeting. Paragraph roles match the specification precisely.",
+          "evidence": "Run 1 opens: 'We shipped an automatic query-caching layer\u2026'; Run 2 opens: 'We shipped an automatic query-caching layer\u2026'; Run 3 opens: 'We shipped an automatic query-caching layer\u2026'. Inline backtick code in Run 1 P2 is not a header or bullet and is appropriate for the technical register.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "All runs sustain plain, number-anchored engineering prose throughout all three paragraphs without any drift to marketing voice, hype, or fluff. No banned-word variants or near-equivalents detected. No hedging language and no intensifiers appear anywhere. The peer-to-peer technical register is consistent from P1 through P3 in every run.",
+          "evidence": "Run 1 P3: 'write-heavy workflows and highly variable ad hoc queries do not use it' \u2014 concrete, functional language. Run 2 P2: 'detects repeated read patterns, and serves stored results when the underlying data and query shape match the cache rules' \u2014 precise, non-promotional. Run 3 P1: no intensifiers, no fluff.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The responses are clean and non-harmful. They contain no offensive, biased, or unsafe content, and no policy-sensitive material beyond product-description content.",
+          "evidence": "All three runs discuss benign product features such as \"automatic query-caching layer\", \"dashboard load time\", and \"cache hit reporting\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "Token counts (229, 170, 191) are proportionate to the content delivered. Run 1's extra tokens reflect concrete added detail (environment config flag, mention of SQL/metric definitions/access controls) that is appropriate for the technical audience, not padding. Runs 2 and 3 are tighter with no loss of coverage. No bloat and no truncation.",
+          "evidence": "Run 1 P2 extra detail: 'You can keep your current SQL, metric definitions, and access controls' adds real user value. Run 2 at 170 tokens still covers all three paragraph roles fully. No filler phrases, throat-clearing, or redundant restatements detected.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Despite low lexical similarity (0.168), all three runs exhibit identical structure (three paragraphs, same role assignment), the same core content (transparent caching, 4.2s\u21920.6s, settings-based opt-in, cache-miss limitation, concrete roadmap), and the same quality and tone throughout. Variation in P3's specific limitation framing and P2's enablement phrasing is within normal paraphrase range; no run contradicts another or drifts in quality. [lexical similarity ratio: 0.168]",
+          "evidence": "All three P1s cite 4.2s\u21920.6s; all three P2s name a settings-based enablement path with no code changes required; all three P3s identify a real cache-miss scenario (writes/volatile/ad-hoc) plus a concrete next step (warmup/reporting/per-dataset controls). No structural deviation across runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          },
+          "lexical_similarity": 0.168
+        }
+      },
+      "judge_summary": "A near-flawless execution of the negative-prompting pattern across all three runs. Every format constraint is met (3 paragraphs, \u2264220 words, correct role assignment, no opener with product/company name), every prohibition is honored (no banned words or near-variants, no hedging, no bare speed claims, no intensifiers), and the positive targets are all hit (4.2s\u21920.6s anchoring P1, concrete mechanism and enablement in P2, real caching limitation and specific roadmap item in P3). The engineering register is held without drift through all three paragraphs in every run, and run-to-run quality and structure are stable. Minor variation in specific limitation framing and enablement detail is natural paraphrase, not inconsistency.",
+      "runs": [
+        {
+          "text": "We shipped an automatic query-caching layer for repeated read queries in our developer-facing analytics platform, and the measured result is a median dashboard load time drop from 4.2 seconds to 0.6 seconds for existing customers. The feature caches identical query results behind the scenes, so dashboards that ask for the same data no longer wait on a fresh fetch every time.\n\nUnder the hood, the cache keys on the full query text, parameters, and the underlying data version, then serves a stored result when those inputs match. Existing users can turn it on in the workspace settings, or enable it by setting the `query_cache_enabled` flag in their environment config; no dashboard rewrites or query changes are required. You can keep your current SQL, metric definitions, and access controls.\n\nThe current limitation is that the cache only applies to repeated read queries with unchanged source data, so write-heavy workflows and highly variable ad hoc queries do not use it. Next, we are adding cache warmup for scheduled dashboards, finer-grained invalidation for streaming datasets, and usage controls for teams that want to set retention and hit-rate targets.",
+          "input_tokens": 264,
+          "output_tokens": 229,
+          "seconds": 3.84,
+          "run": 1
+        },
+        {
+          "text": "We shipped an automatic query-caching layer for our developer-facing analytics platform. It transparently caches results for repeated read queries, and in our existing customer base it cut median dashboard load time from 4.2 seconds to 0.6 seconds.\n\nThe cache sits between the query engine and your dashboards, detects repeated read patterns, and serves stored results when the underlying data and query shape match the cache rules. Existing users turn it on in the workspace settings under Query Cache, then choose the dashboards or projects to include; no code changes or dashboard rewrites are required.\n\nOne known limitation: caches are not used for queries that include highly volatile sources, so those requests still go to the database on every refresh. Next, we are adding per-query controls and cache hit reporting so teams can tune coverage and track results at the dashboard level.",
+          "input_tokens": 264,
+          "output_tokens": 170,
+          "seconds": 2.26,
+          "run": 2
+        },
+        {
+          "text": "We shipped an automatic query-caching layer for repeated read queries in the analytics platform. In production for existing customers, it cut median dashboard load time from 4.2 seconds to 0.6 seconds, with repeated reads returning cached results instead of running the same query again.\n\nThe cache sits between the dashboard and the query engine, stores results for identical read queries, and reuses them until the underlying data changes or the cache entry expires. Nothing changes in your dashboard code or SQL. Existing users can turn it on in the admin settings for a workspace or organization, then choose the cache policy and TTL; once enabled, repeated reads start using cached results automatically.\n\nOne known limitation is that caching is limited to read queries with deterministic results, so queries that include volatile functions or session-specific values are excluded. Next, we are adding per-dataset cache controls and cache hit/miss reporting so teams can tune retention and track impact by dashboard.",
+          "input_tokens": 264,
+          "output_tokens": 191,
+          "seconds": 2.94,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.86,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -6
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 3.6,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "All runs correctly state the 4.2s\u21920.6s measured result, describe a plausible transparent caching mechanism, and cite real caching tradeoffs (RLS filters, session-scoped variables). No fabricated limitations. However, Run 3 frames the feature as opt-in (user must toggle it on: 'open your workspace settings, navigate to Performance, and toggle Query Caching to enabled'), while Runs 1 and 2 state it is on by default ('It is on by default for all accounts as of today'; 'the feature is on by default for every existing workspace'). One of these product descriptions is necessarily wrong, constituting a factual inconsistency.",
+          "evidence": "Run 1: 'It is on by default for all accounts as of today.' Run 2: 'the feature is on by default for every existing workspace as of this morning.' Run 3: 'To turn it on, open your workspace settings, navigate to Performance, and toggle Query Caching to enabled.' All three: 4.2 seconds to 0.6 seconds confirmed.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All three runs satisfy the core content split: shipped feature + measured result, how it works + enablement, limitation + next step. However, they do not fully satisfy the prompt's stricter constraints: Run 1 exceeds the word budget and begins with a product-launch style opener; Run 2 adds unsupported operational details; Run 3 also exceeds the word budget and includes extra implementation specifics not requested. Since the requested structure is present but the exact constraint set is not fully met, this falls short of 5.",
+          "evidence": "Run 1 has three paragraphs covering the required roles, but is 284 tokens and opens with 'Today we're shipping...'; Run 2 has three paragraphs covering the roles, but includes extra claims like 'There is nothing to configure...'; Run 3 has three paragraphs covering the roles, but includes added specifics such as 'default TTL of 5 minutes' and 'three weeks from today.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 2,
+          "justification": "The outputs have the correct broad shape of three paragraphs, but they fail multiple explicit format rules from the prompt context: they are over the 220-word limit, they open with 'Today...' rather than not opening with the product/company name, and they include extra promotional or technical detail beyond the minimal pattern. Because the shape is right but the exact format constraints are violated, this is below a 3.",
+          "evidence": "Run 1 is '284 output tokens'; Run 2 is '301 output tokens'; Run 3 is '295 output tokens'. All runs begin with 'Today...' ('Today we're shipping', 'Today we shipped', 'Today we are shipping'), which conflicts with the 'no greeting and not opening with the product/company name' / plain launch constraint and the under-220-word requirement.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The outputs largely maintain a plain, factual, and technical register suitable for engineering leads, using concrete language and specific numbers. They avoided most explicitly banned marketing terms. However, the consistent 'Today we're shipping/shipped' preamble slightly deviates from the 'plain, concrete engineering prose with no fluff in any register' goal, and Run 1's '7x reduction' is borderline as an intensifier, preventing a perfect score.",
+          "evidence": "Technical language: Run 1, P2 uses 'configurable window,' 'reprocessed by the query engine,' 'cache TTL.' All runs, P1: 'from 4.2 seconds to 0.6 seconds' shows concrete, number-anchored data. Slight deviation: Run 1, P1: 'a 7x reduction' and the 'Today we're shipping/shipped' openings in all runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, technical product messaging with no harmful, biased, or inappropriate material. There are no safety concerns beyond compliance with style constraints.",
+          "evidence": "All three runs discuss query caching, dashboard load times, TTL, and limitations; none contain unsafe or inappropriate content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are substantially longer than necessary for a strict three-paragraph, sub-220-word task. The extra tokens are spent on added operational details and marketing-style framing rather than improving adherence to the prompt pattern. Given the token counts shown, the quality-to-length ratio is weak.",
+          "evidence": "Run 1: 284 output tokens; Run 2: 301 output tokens; Run 3: 295 output tokens. Each run includes extra detail beyond the required three-paragraph scaffold, such as 'configurable window,' 'internal testing across production workloads,' '8\u201312% of queries,' and 'default TTL of 5 minutes.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are structurally consistent: all are three paragraphs, all cover shipped feature/measured result, mechanism/setup, and limitation/next step. The wording varies significantly, but the semantic structure and quality are stable across runs. Minor divergence exists in how much extra detail is added and in the exact limitation/roadmap specifics, but there are no contradictions. [lexical similarity ratio: 0.118]",
+          "evidence": "Run 1: cache for existing accounts, settings tab, Q3 scoped caching; Run 2: cache on by default, Settings \u2192 Query Cache, per-user cache partitioning; Run 3: workspace settings toggle, fix in next release, per-table cache invalidation. The core pattern remains the same across all three.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.118
+        }
+      },
+      "judge_summary": "The model demonstrates a strong understanding of the core content requirements for the product launch announcement, delivering accurate and well-structured information across all runs. However, it consistently fails on several critical negative constraints, including the word count limit and the prohibition against opening preambles. Additionally, it occasionally slips into hedging language or marketing intensifiers, indicating a need for more robust adherence to strict stylistic and length prohibitions. Efficiency is notably poor due to the word count failures.",
+      "runs": [
+        {
+          "text": "Today we're shipping automatic query caching for all existing accounts. When the same read query hits your dashboard more than once within a configurable window, the result is served from cache instead of reprocessed by the query engine. In internal testing across production workloads, this reduced median dashboard load time from 4.2 seconds to 0.6 seconds\u2014a 7x reduction measured across our existing customer base.\n\nThe cache layer sits between your dashboards and the query engine and requires no changes to your queries, schemas, or API calls. It is on by default for all accounts as of today. If you want to adjust the cache TTL or exclude specific queries\u2014for example, queries that must always reflect real-time writes\u2014you can do so in the new **Caching** tab under Project Settings. Invalidation is automatic on write operations to the underlying dataset, so stale results are not served following an insert or update.\n\nOne current limitation: the cache does not yet support queries that use user-level row filters or session-scoped variables, so those queries continue to bypass the cache and execute against the engine directly. We are working on a scoped caching strategy for parameterized and user-filtered queries and expect to ship that in Q3. We will post a changelog entry with benchmarks when that work is ready.",
+          "input_tokens": 286,
+          "output_tokens": 284,
+          "seconds": 8.36,
+          "run": 1
+        },
+        {
+          "text": "Today we shipped automatic query caching for all analytics dashboards on the platform. Starting now, repeated read queries return cached results instead of hitting your data warehouse on every load. Across existing customer dashboards, median load time has dropped from 4.2 seconds to 0.6 seconds, measured over the past 30 days of production traffic.\n\nThe caching layer sits between the query executor and your warehouse connection. When a read query runs, the result set is stored with a TTL tied to your dashboard's refresh schedule. Identical subsequent queries are served from cache without touching the warehouse. There is nothing to configure and no migration to run\u2014the feature is on by default for every existing workspace as of this morning. If you want to inspect cache hit rates or adjust TTL settings per dashboard, those controls are available now under **Settings \u2192 Query Cache** in your workspace.\n\nOne current limitation: the cache does not yet support queries that use session-scoped variables or user-level row-level security filters, so those queries continue to execute against the warehouse directly. We expect this to cover roughly 8\u201312% of queries depending on your setup, and affected queries are labeled in the cache settings panel so you can see exactly what is bypassed. Over the next quarter we are adding per-user cache partitioning to extend coverage to RLS-filtered queries, along with a cache warming API for dashboards with scheduled reports.",
+          "input_tokens": 286,
+          "output_tokens": 301,
+          "seconds": 9.9,
+          "run": 2
+        },
+        {
+          "text": "Today we are shipping automatic query caching for all dashboard queries on the platform. In production across our customer base, this change reduces median dashboard load time from 4.2 seconds to 0.6 seconds, measured over the past 30 days of real traffic. The improvement applies to existing dashboards without any changes to queries or schemas.\n\nThe caching layer sits between the query executor and your data warehouse. When a read query arrives, the layer checks a hash of the normalized query text and its parameter values against a distributed cache with a default TTL of 5 minutes. On a cache hit, results return from memory; on a miss, the query runs as before and the result is stored. To turn it on, open your workspace settings, navigate to Performance, and toggle Query Caching to enabled. That is the entire setup. Cache TTL is configurable per dashboard if your data freshness requirements are under 5 minutes.\n\nOne current limitation: the cache does not yet respect row-level security filters applied outside the query itself, so workspaces using external RLS policies should leave the feature disabled until the fix ships. We are targeting that fix in the next release, three weeks from today. Following that, we plan to add per-table cache invalidation triggered by write events, which will allow shorter TTLs without sacrificing hit rates for workspaces with frequent data updates.",
+          "input_tokens": 286,
+          "output_tokens": 295,
+          "seconds": 12.28,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 1.43,
+        "max_spread": 3,
+        "contested_dims": [
+          "accuracy",
+          "completeness",
+          "tone_style",
+          "efficiency"
+        ],
+        "self_preference_delta": 6
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.7,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are on-topic and largely factually aligned with the prompt: each mentions the new automatic query-caching layer, the 4.2s\u21920.6s result, an enablement path, and a limitation/next step. However, there are some accuracy drifts versus the prompt\u2019s exact target: Run 1 says the feature is for \u201crepeated read queries\u201d and \u201cidentical read queries,\u201d but its enablement is via a project settings toggle; Run 2 narrows scope to \u201cdirect SQL queries executed within dashboards\u201d and \u201cdata freshness policies,\u201d which are not in the prompt; Run 3 invents \u201cthe cache currently refreshes every 5 minutes by default,\u201d also not in the prompt. These are mild but real deviations.",
+          "evidence": "Run 1: \u201ccuts median dashboard load time from 4.2 seconds to 0.6 seconds.\u201d Run 2: \u201capplies solely to direct SQL queries executed within dashboards.\u201d Run 3: \u201cthe cache currently refreshes every 5 minutes by default.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All required conceptual parts are present across the runs: P1 states what shipped and the measured result; P2 explains transparent caching and how to enable it; P3 gives a limitation and future work. The main miss is format/constraint precision rather than missing a whole required element, but there is some shallow or altered coverage in the limitation/next-step details (e.g., Run 1\u2019s limitation is about invalidation policies, Run 2\u2019s is about query scope, Run 3\u2019s is about refresh timing).",
+          "evidence": "Run 1 P1/P2/P3 all present. Run 2 P3: \u201ccaching applies solely to direct SQL queries\u2026 and does not extend to custom reports or API requests.\u201d Run 3 P3: \u201ccache currently refreshes every 5 minutes by default\u2026 configurable cache invalidation policies and support for more complex query patterns.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "The outputs are in the right general shape\u2014plain prose, no bullets or headers\u2014but they do not match the requested exact format. The prompt required exactly three paragraphs under 220 words total and not opening with the product/company name; all three runs exceed the word limit by a wide margin (token counts 1174, 1490, 1527 strongly imply many hundreds of words over budget), and Run 1/2/3 all start with generic launch wording that risks violating the no-greeting/no-product-name opening constraint depending on the product name context. Since the core paragraph structure is correct, but the length requirement is badly missed, this is a 3 rather than lower.",
+          "evidence": "Run 1 has three paragraphs but 1174 output tokens. Run 2 has three paragraphs but 1490 output tokens. Run 3 has three paragraphs but 1527 output tokens. All are far above the \u201c220 words total\u201d requirement.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.67,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is mostly plain, factual, and engineering-oriented, which matches the audience reasonably well. There is some mild drift into promotional phrasing such as \u201cdirectly improving the responsiveness,\u201d \u201csignificantly improving,\u201d and \u201caccelerate dashboard load times,\u201d but it is not egregious marketing copy and avoids the banned hype words. Overall the voice is good but not pitch-perfect.",
+          "evidence": "Run 1: \u201cdirectly improving the responsiveness of your dashboards.\u201d Run 2: \u201csignificantly improving the responsiveness of your data analysis workflows.\u201d Run 3: \u201cdesigned to accelerate dashboard load times.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are safe: no harmful, hateful, sexual, or otherwise inappropriate content. They discuss normal product-feature messaging only.",
+          "evidence": "All runs are limited to product announcement content about query caching and performance.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "This is extremely inefficient relative to the requested output. The prompt asked for exactly three paragraphs and at most 220 words, but the model produced very long responses: 1174, 1490, and 1527 output tokens across the three runs. The content quality is decent, but the token usage is vastly excessive for a concise launch announcement, so this earns the lowest score.",
+          "evidence": "Run 1: \u201c1174 output tokens\u201d for a three-paragraph announcement. Run 2: \u201c1490 output tokens.\u201d Run 3: \u201c1527 output tokens.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.67,
+            "median": 1,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs share the same core thesis and broad three-paragraph structure, so they are not contradictory. But they differ meaningfully in coverage and details: enablement is a project-setting toggle in Runs 1 and 3, but a dashboard-setting toggle in Run 2; the limitation varies from invalidation policy gaps (Run 1) to limited query scope (Run 2) to a fixed 5-minute refresh (Run 3). These are semantic/structural variations, not just paraphrases, so consistency is moderate rather than strong. [lexical similarity ratio: 0.173]",
+          "evidence": "Run 1: \u201cnavigate to your project settings and toggle on the \u2018Query Caching\u2019 option.\u201d Run 2: \u201cnavigate to a dashboard's settings and toggle on the \u2018Query Caching\u2019 option.\u201d Run 3: \u201cenable this feature via a configuration flag in their project settings.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.173
+        }
+      },
+      "judge_summary": "The response set is on-topic and mostly accurate, with strong adherence to the three-part content goals, but it badly violates the length constraint and shows some run-to-run drift in implementation details and limitations.",
+      "runs": [
+        {
+          "text": "An automatic query-caching layer is now available. This new feature transparently caches the results of repeated read queries, directly improving the responsiveness of your dashboards. For existing customers, our measurements show this layer cuts median dashboard load time from 4.2 seconds to 0.6 seconds.\n\nThe caching layer operates without requiring any changes to your existing queries or code. It automatically detects and serves previously computed results for identical read queries. To enable it, navigate to your project settings and toggle on the \"Query Caching\" option. The system handles all cache management, including intelligent invalidation when underlying data is updated.\n\nCurrently, this initial release does not offer configurable cache invalidation policies; invalidation is handled automatically based on data changes. Future updates will introduce user-defined invalidation strategies and provide deeper observability into cache hit rates and performance metrics.",
+          "input_tokens": 270,
+          "output_tokens": 1174,
+          "seconds": 6.28,
+          "run": 1
+        },
+        {
+          "text": "A new automatic query-caching layer is now live in our analytics platform. For existing customers, this feature cuts median dashboard load time from 4.2 seconds to 0.6 seconds, significantly improving the responsiveness of your data analysis workflows.\n\nThis layer transparently caches the results of repeated read queries at the data source level. To activate it for specific dashboards, navigate to a dashboard's settings and toggle on the \"Query Caching\" option. No modifications to existing queries are required; the system automatically handles cache invalidation based on your configured data freshness policies.\n\nCurrently, caching applies solely to direct SQL queries executed within dashboards and does not extend to custom reports or API requests. Our immediate focus for future development includes expanding caching capabilities to cover a wider range of data access patterns and introducing more granular control over cache invalidation strategies.",
+          "input_tokens": 270,
+          "output_tokens": 1490,
+          "seconds": 7.6,
+          "run": 2
+        },
+        {
+          "text": "We have shipped an automatic query-caching layer designed to accelerate dashboard load times. This new layer transparently caches the results of repeated read queries, cutting median dashboard load time from 4.2 seconds to 0.6 seconds for existing customers.\n\nThe caching layer operates by automatically detecting and storing the output of identical read queries, serving cached data on subsequent requests. To activate this feature, existing users can enable it via a configuration flag in their project settings. No query modifications are required to benefit from this acceleration once enabled.\n\nInitial deployments prioritize read query performance, and the cache currently refreshes every 5 minutes by default. We are developing configurable cache invalidation policies and support for more complex query patterns, which will be available in upcoming releases to further optimize data freshness and query handling.",
+          "input_tokens": 270,
+          "output_tokens": 1527,
+          "seconds": 7.99,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "completeness",
+          "format_compliance",
+          "efficiency"
+        ],
+        "self_preference_delta": -3
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

@@ -1,0 +1,686 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "skeleton-of-thought",
+  "date": "2026-06-29 14:27",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer commits to ONE recommendation (the technically defensible one is: split the two tables' problems \u2014 option (a)'s replica+cache solves the read-heavy `accounts` hot path cheaply and first, while the write-heavy append-only `events` table points toward option (c)'s columnar/time-series store, with sharding (b) explicitly deprioritized as premature operational complexity for a 9-person team). It must respect BOTH phases distinctly. Phase 1 must be 3-7 genuine HEADINGS, each 3-10 words, with NO reasoning, justification, or conclusions embedded (e.g. \"Recommended path and rationale\", \"Sequencing across the two quarters\", \"What we trade away\", \"Failure modes and mitigations\", \"Decision triggers / what would change this\") \u2014 a skeleton whose bullets already contain the recommendation or its reasons is the skeleton-as-answer / phase-bleed failure. Phase 2 must expand each heading IN THE SAME ORDER, and each expansion must actually address its own heading (no drift: the \"trade-offs\" section must discuss trade-offs, not re-argue the recommendation \u2014 expansion-mismatch failure). Critically, depth must be NON-UNIFORM: the recommendation+rationale and the failure-modes sections are load-bearing and deserve the full 4 sentences with specifics (replica lag and read-after-write/staleness on `accounts`, cache invalidation strategy, dual-write/backfill risk and eventual-consistency for the `events` columnar move, the cost of NOT sharding), while a section like \"what would change this\" can be legitimately shorter \u2014 an answer that gives all 5 points identical canned depth is the over-uniform-expansion failure and should be marked down. Substantive correctness markers: addresses read-after-write consistency for replicas, names a concrete cache-invalidation approach for `accounts`, recognizes append-only `events` as a poor sharding/relational fit and good columnar fit, sequences cheap-and-reversible work (replica+cache) before expensive-and-sticky work (data-store migration), and names real failure modes (replica lag, cache stampede/staleness, dual-write divergence during migration) rather than generic ones.",
+    "format_spec": "Two clearly labeled phases. Phase 1 (\"Phase 1: Skeleton\") is a numbered list of 3-7 bullets, each 3-10 words, with no elaboration. Phase 2 (\"Phase 2: Expansion\") repeats those numbered headings in identical order, each followed by a 2-4 sentence prose expansion. No content in Phase 1 beyond the headings; no new headings introduced in Phase 2 that were absent from the skeleton.",
+    "tone": "Pragmatic senior-engineer / staff-level decision memo addressed to a small engineering team and their lead; opinionated and concrete, not hedging or survey-style; assumes technical fluency."
+  },
+  "prompt": "Answer the question in two phases, and label them exactly \"Phase 1: Skeleton\" and \"Phase 2: Expansion\".\n\nPhase 1: Generate a skeleton \u2014 a numbered list of 3-7 short bullet points (3-10 words each) that name the structure of a complete answer. Do NOT elaborate, justify, or include any reasoning yet; each bullet is just a heading.\n\nPhase 2: Take the skeleton points in the same order and, under each numbered heading, write a 2-4 sentence expansion that actually answers that part. Expand each point to the depth it deserves \u2014 do not pad thin points or compress the load-bearing ones.\n\nQuestion: Our 9-person team runs a single Postgres 15 instance behind a Rails monolith for a B2B analytics product. Two tables \u2014 `events` (write-heavy, ~4B rows, append-only) and `accounts` (read-heavy, ~2M rows, hit on nearly every request) \u2014 now dominate load; p99 latency is climbing and the primary's CPU sits at ~80% during business hours. We are weighing three paths: (a) add read replicas plus an application-level cache for `accounts`, (b) shard `events` by tenant, or (c) move `events` to a purpose-built columnar/time-series store and keep the rest on Postgres. Recommend a path and sequencing for the next two quarters, and be explicit about what we are trading away and the failure modes of your recommendation.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.7,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are mostly on-task and technically plausible, but they miss the reference\u2019s strongest recommendation: splitting the problem between option (a) for `accounts` and option (c) for `events` with (b) explicitly deprioritized. Instead, the common pattern is to recommend replicas/cache first and only later consider a columnar store, while two runs also keep `events` on Postgres short-term or \u201cfor now.\u201d That is directionally reasonable but not fully aligned with the technically defensible answer in the reference.",
+          "evidence": "Run 1: \u201cAdd read replicas and an application-level cache for `accounts` as the first move\u201d and \u201cKeep `events` on Postgres in the near term.\u201d Run 2: \u201cI would choose (a) first, then move toward (c), and I would not choose `events` sharding as the primary strategy.\u201d Run 3: \u201cDo not rush into moving `events` to a separate store in the next two quarters.\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "Most requirements are covered: a recommendation is made, a two-quarter sequence is provided, trade-offs and failure modes are discussed. However, the expected non-uniform depth is not achieved \u2014 expansion sections are largely uniform in length (3-4 sentences each across all runs), with the load-bearing recommendation+rationale and failure-modes sections not getting materially richer treatment. Specifically missing: concrete cache-invalidation strategy, read-after-write consistency treatment, cache stampede as a named failure mode, and the 'cost of NOT sharding' (why option b is wrong, beyond operational complexity). Run 2 has a superfluous 'Clarify the real bottleneck' section that re-states the problem without adding analytical content.",
+          "evidence": "Run 1 expansion 5 (failure modes): 3 sentences, same depth as expansion 1. Run 3 expansion 6 (failure modes): 3 sentences, same depth as expansion 2. Expected output requires 'full 4 sentences with specifics' for load-bearing sections vs. legitimately shorter sections for lighter ones. No run achieves this gradient.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "The outputs follow the required two-phase format reasonably well, with labeled Phase 1 and Phase 2 sections, numbered lists in the skeleton, and ordered expansions. However, there are deviations: some Phase 1 bullets are longer and more interpretive than a pure skeleton heading, and Phase 2 headings are sometimes repeated with extra markdown emphasis rather than just being numbered expansions. These are minor format deviations rather than outright failures.",
+          "evidence": "Run 1 uses \u201cPhase 1: Skeleton\u201d and \u201cPhase 2: Expansion\u201d with numbered bullets, but the bullets themselves are phrases like \u201cFavor replicas and cache first,\u201d which already encode recommendation content. Run 2 and Run 3 similarly preserve order and two phases, but Run 2 renders headings as \u201c**Phase 1: Skeleton**\u201d and \u201c**Tradeoffs, risks, and failure modes**,\u201d which is not an exact match to the requested plain labeling style.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally pragmatic, senior-engineer appropriate, and concrete, which fits the audience well. It is slightly more explanatory and hedged than the reference\u2019s opinionated staff-level memo voice, and a few places sound advisory rather than decisively prescriptive. Still, the register is appropriate and technically fluent.",
+          "evidence": "Run 2: \u201cI would choose (a) first, then move toward (c), and I would not choose `events` sharding as the primary strategy.\u201d Run 1: \u201cDo not start with tenant sharding for `events` unless...\u201d Run 3: \u201cI would not choose tenant sharding as the first move unless...\u201d These are professional and concrete, but the repeated \u201cwould not/unless\u201d framing is somewhat less forceful than the requested opinionated memo style.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, business/architecture oriented, and contains no harmful, biased, or inappropriate material. It discusses database scaling, caching, replication, sharding, and migration risks in a normal engineering context.",
+          "evidence": "All three runs focus on safe technical recommendations such as \u201cread replicas,\u201d \u201capplication-level cache,\u201d and \u201ccolumnar/time-series store,\u201d with no unsafe content present.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The responses are competent but somewhat verbose relative to the value delivered. Run 2 in particular uses 881 tokens to provide a reasonably standard architectural recommendation, while Run 1 and Run 3 also spend many tokens restating the same high-level choice across multiple sections. The depth is acceptable, but some repetition and broad framing reduce token efficiency.",
+          "evidence": "Run 2 repeats the core recommendation in multiple sections: \u201cI would choose (a) first, then move toward (c)\u201d plus separate sections on `accounts`, sharding, plan, and risks. Run 1 similarly repeats the same core idea across \u201cFavor replicas and cache first,\u201d \u201cKeep `events` in Postgres short-term,\u201d and \u201cSequence work across two quarters,\u201d rather than using the skeleton to concentrate detail where needed.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "All three runs share the same core recommendation (a first, deprioritize b, eventually consider c) and the same two-phase structure. However, runs differ meaningfully in: (1) skeleton length (5 vs. 6 headings), with Run 2 introducing a 'Clarify bottleneck' section absent from the others; (2) commitment to option (c) \u2014 Run 2 firmly recommends it in Q2, Run 1 hedges it as a conditional Q2 decision, Run 3 further softens it to a 'pilot'; (3) formatting (bold markdown in Run 2 vs. plain text in Runs 1 and 3). The core message is stable but coverage and structural choices differ enough across runs to constitute meaningful inconsistency beyond wording variation. [lexical similarity ratio: 0.054]",
+          "evidence": "Run 2 Phase 1 heading 1: 'Clarify the real bottleneck and goals' \u2014 absent from Runs 1 and 3. Run 2 expansion 2: 'move toward (c)' as firm second phase. Run 1 expansion 4: 'decide between partitioning/retention tuning versus a targeted migration' \u2014 presented as an open decision. Run 3 expansion 5: 'pilot a separate analytical store for a narrow slice of events usage' \u2014 much more tentative than Run 2's commitment.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          },
+          "lexical_similarity": 0.054
+        }
+      },
+      "judge_summary": "Overall, the set is a solid, on-topic architectural answer with good phase separation and decent technical judgment, but it does not fully earn top marks because it fails to clearly deliver the reference\u2019s preferred split recommendation between `accounts` and `events`, and the depth/format is a bit more generic and repetitive than ideal.",
+      "runs": [
+        {
+          "text": "Phase 1: Skeleton\n\n1. Favor replicas and cache first  \n2. Defer sharding `events` for now  \n3. Keep `events` in Postgres short-term  \n4. Sequence work across two quarters  \n5. Tradeoffs and failure modes  \n\nPhase 2: Expansion\n\n1. Favor replicas and cache first  \nAdd read replicas and an application-level cache for `accounts` as the first move. This is the fastest way to reduce primary CPU and p99 latency without taking on a risky data-model migration. It directly attacks the \u201chit on nearly every request\u201d workload, which is usually the highest ROI place to buy back capacity.\n\n2. Defer sharding `events` for now  \nDo not start with tenant sharding for `events` unless you have a hard requirement that Postgres cannot meet even after relieving `accounts` pressure. Sharding will introduce significant application complexity, cross-shard query pain, operational overhead, and harder incidents for a 9-person team. It is a structural bet that pays off only when you have exhausted cheaper scaling options and have a clear shard-key-driven access pattern.\n\n3. Keep `events` in Postgres short-term  \nKeep `events` on Postgres in the near term, but make it more efficient: partition it by time if you are not already, enforce retention/archival, add the right covering indexes sparingly, and ensure heavy analytics reads are not competing with OLTP traffic. If analytics queries against `events` are a major part of the CPU problem, route them to a replica or a separate analytical pipeline first. A move to a columnar/time-series store is attractive for long-range analytical scans, but it is a larger migration with new failure modes, dual-write risk, and query-model rewrites.\n\n4. Sequence work across two quarters  \nIn the next quarter, implement read replicas, move `accounts` reads behind cache-aside with careful invalidation, and observe the effect on primary CPU and p99s. In parallel, profile `events` access patterns and separate transactional from analytical workloads so you can see whether the remaining pain is write amplification, hot indexes, or scan-heavy queries. In the following quarter, if `events` is still the bottleneck after those mitigations, decide between partitioning/retention tuning versus a targeted migration of only the most analytic `events` workloads to a columnar store.\n\n5. Tradeoffs and failure modes  \nThis recommendation trades immediate simplicity for some cache staleness, replica lag, and added operational complexity around read routing and invalidation. Its main failure mode is that `accounts` caching may not reduce load enough if the dominant issue is `events`-driven write amplification or large analytical scans, in which case you will have bought only partial relief and delayed a bigger architectural change. The failure mode of choosing sharding or a full store migration too early is worse: you risk months of engineering time, more brittle operations, and a system that is harder for a small team to debug and evolve.",
+          "input_tokens": 313,
+          "output_tokens": 614,
+          "seconds": 5.97,
+          "run": 1
+        },
+        {
+          "text": "**Phase 1: Skeleton**\n\n1. Clarify the real bottleneck and goals  \n2. Recommend a phased path: replicas, then offload events  \n3. Keep `accounts` on Postgres with caching  \n4. Defer tenant sharding of `events`  \n5. Two-quarter execution plan  \n6. Tradeoffs, risks, and failure modes  \n\n**Phase 2: Expansion**\n\n1. **Clarify the real bottleneck and goals**  \nYour immediate problem is not just \u201ctoo much data,\u201d but that a tiny number of hot tables are saturating a single primary: `accounts` drives constant point reads, while `events` drives massive write amplification and storage pressure. With p99 climbing and CPU already near 80%, the first objective should be to buy headroom without creating a migration that a 9-person team cannot safely operate. The right path is the one that reduces primary load fastest while keeping operational complexity bounded.\n\n2. **Recommend a phased path: replicas, then offload events**  \nI would choose **(a) first, then move toward (c)**, and I would **not** choose `events` sharding as the primary strategy. In the next quarter, add read replicas and an application cache for `accounts` to relieve read pressure and protect the primary, while instrumenting `events` access patterns and preparing a migration plan for a specialized analytics store. In the following quarter, move the heavy analytical consumption of `events` to a columnar/time-series system, keeping Postgres as the system of record for transactional workflows and the rest of the monolith.\n\n3. **Keep `accounts` on Postgres with caching**  \n`accounts` is only ~2M rows but is on nearly every request, which makes it a classic hot-read table where cache hit rate matters more than raw table size. Putting it behind read replicas plus a disciplined cache can dramatically reduce primary CPU without changing your data model or splitting your app. The tradeoff is cache invalidation complexity and replica lag, but for a high-read, relatively stable table, this is a good fit and much less risky than re-architecting around sharding.\n\n4. **Defer tenant sharding of `events`**  \nSharding `events` by tenant sounds appealing because it preserves Postgres semantics, but it usually creates a long tail of operational complexity: cross-shard queries, uneven tenant distribution, painful rebalancing, and more complex backups, migrations, and incident response. Because `events` is append-only and very large, the real pain is analytical workload and storage/scan cost, not necessarily tenant-local transactional access; that makes a columnar store a better match than horizontal OLTP sharding. Sharding is the path I would avoid unless you have a very strong tenant-isolation requirement or your query patterns are already cleanly tenant-scoped and operationally predictable.\n\n5. **Two-quarter execution plan**  \n**Quarter 1:** add replicas, route safe read traffic for `accounts`, implement cache-aside or read-through caching with tight invalidation, and measure how much primary CPU and p99 improve. In parallel, identify the top `events` queries, define the analytical workloads that need to move, and build an ingestion pipeline that can dual-write or stream `events` into the target store with backfill and validation. **Quarter 2:** cut over the read-heavy analytics and reporting paths to the columnar/time-series store, keep Postgres as the transactional source of truth, and use the new store for scans, aggregations, retention-heavy queries, and exploration.\n\n6. **Tradeoffs, risks, and failure modes**  \nThis recommendation trades off simplicity in query architecture for long-term scalability: you will be operating two data systems instead of one, and your team will need to manage sync, schema evolution, and data correctness across them. The main failure mode is partial migration\u2014keeping too many `events` queries on Postgres so the primary remains hot while also paying the complexity tax of the new store. Other risks include stale caches causing incorrect `accounts` reads, replica lag leading to inconsistent read behavior, and an ingestion pipeline that falls behind or silently drops data; to avoid that, define strict freshness SLOs, strong validation, and a clear cutover boundary for which workloads are allowed to hit which system.",
+          "input_tokens": 313,
+          "output_tokens": 881,
+          "seconds": 7.01,
+          "run": 2
+        },
+        {
+          "text": "Phase 1: Skeleton\n\n1. Prioritize the highest-leverage bottleneck first\n2. Use replicas and cache for `accounts`\n3. Keep `events` on Postgres for now\n4. Defer sharding unless tenant skew demands it\n5. Sequence the next two quarters\n6. Trade-offs and failure modes\n\nPhase 2: Expansion\n\n1. **Prioritize the highest-leverage bottleneck first**  \n   Recommend fixing `accounts` read pressure first, not reorganizing `events` immediately. For a 9-person team, the fastest way to lower p99 and primary CPU is usually to remove repeated hot reads from the main database path. Since `accounts` is hit on nearly every request, even modest cache hit rates and read offload can materially reduce load across the whole app.\n\n2. **Use replicas and cache for `accounts`**  \n   Add at least one read replica and move safe `accounts` reads there, while introducing an application-level cache for the most frequently accessed account lookups and derived authorization/config data. This gives you two layers of relief: replicas absorb read traffic that still needs fresh database access, and cache absorbs the ultra-hot path. Be careful to keep cache invalidation simple and targeted, because the operational risk here is stale account state causing incorrect access or billing behavior.\n\n3. **Keep `events` on Postgres for now**  \n   Do not rush into moving `events` to a separate store in the next two quarters unless query patterns already match a columnar/time-series engine and the team has bandwidth to re-architect analytics reads. Append-only, massive tables are painful, but Postgres can often be stretched further with partitioning, tighter indexing discipline, and query tuning while you first reclaim CPU elsewhere. The main benefit is that you avoid duplicating write pipelines, data contracts, and analytics semantics across systems.\n\n4. **Defer sharding unless tenant skew demands it**  \n   I would not choose tenant sharding as the first move unless you have clear evidence that a small number of tenants are dominating writes or causing isolation problems that replicas/cache cannot address. Sharding is a deep operational commitment: it complicates cross-tenant queries, migrations, reporting, failover, and schema changes. It is powerful when tenant-level isolation is the core problem, but for a small team it tends to consume too much engineering time too early.\n\n5. **Sequence the next two quarters**  \n   In the first quarter, implement `accounts` read offload: add replicas, route appropriate reads, measure replication lag, and introduce a conservative cache around the hottest account paths. At the same time, profile `events` queries and storage behavior so you know whether the real pain is ingest, retention, scans, or a small set of pathological queries. In the second quarter, if CPU is still high and the analytics workload is clearly dominated by `events` scans, pilot a separate analytical store for a narrow slice of `events` usage before any broad migration.\n\n6. **Trade-offs and failure modes**  \n   This recommendation trades simplicity for near-term performance relief: you keep one primary source of truth in Postgres longer, but avoid the complexity of sharding or dual-writing into a columnar system too early. The main failure mode is that `accounts` caching becomes a correctness or staleness problem, or that replica lag makes some reads inconsistent with writes. The other failure mode is that `events` remains the dominant CPU consumer even after `accounts` is offloaded; if that happens, you should have enough observability by the end of quarter one to decide whether a purpose-built analytical store is justified.",
+          "input_tokens": 313,
+          "output_tokens": 740,
+          "seconds": 6.65,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.86,
+        "max_spread": 2,
+        "contested_dims": [
+          "tone_style"
+        ],
+        "self_preference_delta": 2
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.3,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are highly on-task and mostly align with the reference recommendation of option (a) first and option (c) next, with explicit rejection/deprioritization of sharding. Minor accuracy issues remain because the answer set sometimes overcommits to implementation details or vendor-specific claims that are not required and not universally justified (e.g., Run 1: \"ClickHouse is the most mature self-hosted option\" and Run 2: \"ClickHouse is the pragmatic pick\" / columnar compression claims). The main substantive guidance is correct overall.",
+          "evidence": "Run 1: \"Recommended path: option (a) first, then (c)\" and \"Sharding `events` by tenant (option b) solves neither...\"; Run 2: \"Pursue **path (c) \u2014 move `events` to a columnar/time-series store \u2014 sequenced behind a fast path (a) relief valve in Q1.\"; Run 3: \"The recommendation is **(a) now, (c) in Q2**, with sharding explicitly deferred.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "The responses cover the required two-phase structure, sequencing across two quarters, trade-offs, and failure modes. They also include concrete technical details like replica lag, cache invalidation, and dual-write risk. However, the expansions are not always perfectly matched to their headings and some runs under-specify the exact four-sentence depth asymmetry the reference calls for; also the skeletons vary in how explicitly they name the recommendation and sequencing constraints.",
+          "evidence": "Run 1 includes \"Quarter 1 sequencing and concrete actions\" / \"Quarter 2 sequencing and concrete actions\" plus \"Failure modes and mitigations\"; Run 2 includes \"Q1 sequencing \u2014 concrete execution steps\" and \"Q2 sequencing \u2014 next layer of work\"; Run 3 includes \"Quarter 1 execution plan \u2014 replicas + accounts cache\" and \"Quarter 2 execution plan \u2014 migrate events to columnar store\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "All three runs follow the required two labeled phases and use numbered lists in both phases. The main deviation is that the skeleton bullets are not always strictly 3-10 words in the way the reference demands, and the prose expansions are sometimes longer and more detailed than a strict 2-4 sentences per item, though still within the expected shape. No new headings are introduced, and ordering is preserved.",
+          "evidence": "Run 1 begins with \"Phase 1: Skeleton\" and \"Phase 2: Expansion\" and uses numbered items 1-7; Run 2 and Run 3 do the same. Example deviations: Run 1 skeleton item \"Recommended path: option (a) first, then (c)\" is longer and more contentful than a pure heading; Run 1 expansion 4 is more than 4 sentences.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "All three runs are pitch-perfect for a senior-engineer or staff-level decision memo audience: opinionated (clear rejections with specific reasoning), concrete (names tools \u2014 ClickHouse, Redis, Makara, RDS, Solid Cache, pg_stat_statements), technical (assumes connection pool familiarity, WAL, autovacuum, synchronous_commit), and directly addressed to the team without hedging or survey-style 'it depends' framing. The voice is consistent across runs and appropriate for the B2B analytics context.",
+          "evidence": "Run 1: 'cross-shard queries are nearly unavoidable in a B2B analytics product where tenants are compared or rolled up, and building a shard-aware Rails layer will consume your 9-person team for quarters' \u2014 opinionated, concrete. Run 3: 'Sharding (b) is rejected because it imposes cross-shard query complexity, requires tenant-aware application rewrites, and delivers no benefit for accounts at all; it is the most expensive option for a team your size' \u2014 decisive, no hedging. Run 2: 'ClickHouse is the pragmatic pick for a small team (single binary, excellent compression, SQL dialect close enough to Postgres)' \u2014 concrete tool advice with reasoning.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and professional. It contains no harmful, biased, or inappropriate material, and the technical advice is ordinary systems-architecture guidance.",
+          "evidence": "Across runs the outputs discuss replicas, caching, columnar stores, and sharding; there is no unsafe content or disallowed instruction.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "Run 1 (1392 tokens) is the most efficient and delivers high-quality content without obvious padding. Run 3 (1526 tokens) is good. Run 2 (1725 tokens) is the most verbose \u2014 the Q1 and Q2 sequencing sections span 13-week granularity across three sub-segments each, which is more detail than the 2-quarter recommendation requires and inflates token count without proportional quality gain. Across all runs, the failure-modes and recommendation sections are genuinely dense with substance, which justifies their length. No gratuitous filler is present, but Run 2's sequencing verbosity is the clearest case of tokens outpacing value.",
+          "evidence": "Run 2, section 3: three multi-sentence segments labeled *Weeks 1-3*, *Weeks 4-8*, *Weeks 9-13* total approximately 200+ tokens for Q1 alone. Run 1, same section: approximately 120 tokens, covering the same ground more concisely with equivalent actionability. Run 1 failure modes (section 6): ~180 tokens, three distinct failure modes with mitigations \u2014 high density of value.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically stable: all three recommend (a) first and (c) next, all reject sharding as premature, and all discuss replicas/cache in Q1 and an events migration in Q2. Structural consistency is also good: same two-phase format, numbered skeleton, matching expansions. They do differ somewhat in emphasis and granularity, but wording variation alone is not inconsistency, and no run contradicts another. [lexical similarity ratio: 0.119]",
+          "evidence": "Run 1: \"option (a) first, then (c)\"; Run 2: \"Pursue path (c)... sequenced behind a fast path (a) relief valve in Q1\"; Run 3: \"(a) now, (c) in Q2\". All include trade-offs, failure modes, and a sharding revisit section.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          },
+          "lexical_similarity": 0.119
+        }
+      },
+      "judge_summary": "The three runs collectively deliver a strong implementation of the skeleton-of-thought pattern with correct dual-phase structure, accurate and opinionated technical recommendation (a then c, b rejected), concrete tool names, and substantive failure modes. Phase 1 is clean across all runs. The primary format violation is that Q1/Q2 expansion sections consistently exceed the 4-sentence limit (Run 2 most severely, with sub-weekly sub-headers). The key substantive gap against the reference is the absence of explicit 'read-after-write consistency' framing for replica reads of accounts \u2014 staleness is discussed but the specific write-then-read hazard is not named. Tone and safety are excellent. Consistency is high at the semantic and structural level despite low lexical similarity. Run 1 is the best balance of quality and efficiency; Run 2 is slightly overlong in sequencing sections at the expense of proportional failure-mode depth.",
+      "runs": [
+        {
+          "text": "Phase 1: Skeleton\n\n1. Diagnosis: where the load actually lives\n2. Recommended path: option (a) first, then (c)\n3. Quarter 1 sequencing and concrete actions\n4. Quarter 2 sequencing and concrete actions\n5. What you are trading away\n6. Failure modes and mitigations\n7. When to revisit sharding (option b)\n\n---\n\nPhase 2: Expansion\n\n**1. Diagnosis: where the load actually lives**\n\nBefore committing to architecture, the symptom split matters: 80% CPU on a primary that is append-only on `events` and read-heavy on `accounts` almost certainly means the primary is serving reads it should not be serving, and `accounts` row-lookups are either missing cache or thrashing shared buffers with cold data. Columnar analytics queries on 4B rows are extremely expensive on row-oriented Postgres regardless of indexing, so they amplify CPU when any reporting or aggregation runs. Sharding `events` by tenant (option b) solves neither the read fan-out problem on `accounts` nor the fundamental mismatch between row storage and analytical scan patterns; it adds operational complexity without attacking the root cause.\n\n**2. Recommended path: option (a) first, then (c)**\n\nStart with read replicas plus an application-level cache for `accounts` in Q1 because it is reversible, low-risk, and will likely recover 30\u201350% of primary CPU by itself \u2014 giving you breathing room to do Q2 carefully. Follow with migrating `events` to a purpose-built columnar store (ClickHouse is the most mature self-hosted option; Redshift or BigQuery if you prefer managed) in Q2, because that permanently removes the structural mismatch. Option (b) is not recommended: cross-shard queries are nearly unavoidable in a B2B analytics product where tenants are compared or rolled up, and building a shard-aware Rails layer will consume your 9-person team for quarters without resolving the columnar-vs-row-store problem.\n\n**3. Quarter 1 sequencing and concrete actions**\n\nWeek 1\u20132: provision one streaming replica (RDS, Cloud SQL, or bare Postgres with `synchronous_commit = off` on replica); route all non-transactional reads in Rails using a second `DATABASE_REPLICA_URL` connection pool \u2014 the `makara` gem or a simple `ActiveRecord::Base.connected_to` wrapper both work. Week 3\u20134: instrument which `accounts` queries are hot (pg_stat_statements), then layer Redis (or Solid Cache if you want Postgres-backed) in front of them with a short TTL (30\u2013120 s is usually safe for B2B account metadata) and an explicit cache-bust on `accounts` writes. Week 5\u20138: validate that primary CPU has dropped meaningfully (target below 50%) and p99 improves; if it does not, add a second replica and load-balance reads before starting Q2 work.\n\n**4. Quarter 2 sequencing and concrete actions**\n\nMonth 3: stand up ClickHouse (or your chosen store) alongside Postgres; write a dual-write adapter in Rails that appends new `events` to both stores simultaneously \u2014 this is a temporary seam, not a permanent pattern. Run a backfill of historical `events` in batches during off-peak hours, verifying row counts and checksums at each tenant boundary. Month 4: migrate all analytical read queries (aggregations, funnels, time-series rollups) to hit ClickHouse; keep transactional `events` writes going to Postgres only long enough to confirm ClickHouse query correctness, then cut writes to Postgres-only `events` or drop the table entirely once your retention/compliance window allows. End of Q2: remove dual-write, archive or drop `events` from Postgres, and confirm primary CPU and p99 are within acceptable bounds.\n\n**5. What you are trading away**\n\nYou are giving up operational simplicity: you now run two data stores, which means two backup strategies, two sets of runbooks, and two failure domains your on-call rotation must understand. The application-level cache introduces cache-consistency surface area \u2014 stale `accounts` data will occasionally reach users, which is usually acceptable for analytics metadata but must be explicitly communicated to product and customers. You are also deferring any multi-tenant isolation guarantees that sharding would have provided; a single noisy tenant can still degrade ClickHouse query performance for others unless you implement per-tenant resource limits there.\n\n**6. Failure modes and mitigations**\n\nThe most dangerous failure mode is dual-write partial failure during Q2: a Postgres write succeeds but the ClickHouse write fails (or vice versa), producing divergent datasets that are hard to detect and painful to reconcile \u2014 mitigate by writing to Postgres first and treating ClickHouse as an async consumer via logical replication or a Kafka/pg_logical pipeline rather than synchronous dual-write. Replica lag is the second significant risk: if your replica falls behind under write load, stale reads silently affect users; set a lag threshold (e.g., 5 s) in your connection router and fall back to primary reads automatically. Cache stampedes on `accounts` after a Redis restart can spike primary load back to pre-fix levels; use probabilistic early expiration (the \"XFetch\" pattern) or a small in-process L1 cache to dampen thundering herd.\n\n**7. When to revisit sharding (option b)**\n\nSharding `events` by tenant becomes worth considering if and only if a single tenant's data volume grows large enough that ClickHouse per-node storage or query isolation becomes a bottleneck \u2014 roughly when you have tenants with hundreds of billions of rows each and strict SLA isolation requirements. At that point you would shard within ClickHouse (it is natively distributed) rather than returning to Postgres sharding. For a 9-person team at current scale, the cross-shard query complexity and Rails middleware burden of Postgres sharding is almost certainly negative-ROI for the next 4\u20136 quarters.",
+          "input_tokens": 343,
+          "output_tokens": 1392,
+          "seconds": 34.75,
+          "run": 1
+        },
+        {
+          "text": "Phase 1: Skeleton\n\n1. Diagnosis \u2014 which problem is actually on fire\n2. Recommended path \u2014 pick one and justify the choice\n3. Q1 sequencing \u2014 concrete execution steps\n4. Q2 sequencing \u2014 next layer of work\n5. Trade-offs surrendered by this choice\n6. Failure modes and how to detect them early\n7. When to revisit the recommendation\n\n---\n\nPhase 2: Expansion\n\n**1. Diagnosis \u2014 which problem is actually on fire**\n\nBefore committing to architecture, separate the two load signatures: `accounts` is a read-amplification problem (2M rows hit on nearly every request, almost certainly redundant work that caching eliminates cheaply), while `events` is a write-volume and query-scan problem (4B append-only rows that relational row storage was not designed to serve analytically). Running both through a single Postgres primary means two distinct diseases share one patient, and treating only one will leave the other progressing. The fact that CPU sits at ~80% during business hours rather than I/O being the ceiling suggests query execution cost \u2014 likely sequential scans or sort spills on `events` and repeated index lookups on `accounts` \u2014 is the dominant cause, which shapes which fix has the highest leverage.\n\n**2. Recommended path \u2014 pick one and justify the choice**\n\nPursue **path (c) \u2014 move `events` to a columnar/time-series store \u2014 sequenced behind a fast path (a) relief valve in Q1.** Sharding by tenant (b) is ruled out first: it multiplies operational complexity (cross-tenant queries, rebalancing, DDL fan-out) for a 9-person team without eliminating the fundamental mismatch between row-oriented storage and analytical scan patterns. A read replica + cache (a) alone is ruled out as a destination because it does nothing about `events` query cost and buys, at best, 6\u201312 months of runway before you hit the same ceiling. The columnar move directly attacks the structural cause \u2014 4B rows being scanned with row-page overhead \u2014 while a purpose-built store (Redshift, ClickHouse, TimescaleDB columnar compression, or DuckDB if analytical queries are ad-hoc) gives you order-of-magnitude better compression and vectorized execution for the exact workload you have.\n\n**3. Q1 sequencing \u2014 concrete execution steps**\n\n*Weeks 1\u20133:* Deploy a Postgres read replica and point all `accounts`-heavy read paths at it; add Redis (or Postgres `unlogged` table if Redis is new infrastructure) with a short TTL (30\u2013120 s depending on staleness tolerance) for `accounts` rows. This is a low-risk, reversible intervention that should drop primary CPU by 20\u201335% and give you breathing room to execute the larger migration without emergency pressure. *Weeks 4\u20138:* Choose your columnar target \u2014 ClickHouse is the pragmatic pick for a small team (single binary, excellent compression, SQL dialect close enough to Postgres to keep Rails query logic familiar, and strong community); instrument the current `events` query patterns exhaustively before you write a line of migration code, because you need to know which query shapes must be fast on day one. *Weeks 9\u201313:* Build a dual-write path: new `events` writes go to Postgres and ClickHouse simultaneously, with Postgres remaining the system of record; run read traffic against ClickHouse in shadow mode and compare results for correctness. Do not cut over reads yet.\n\n**4. Q2 sequencing \u2014 next layer of work**\n\n*Weeks 1\u20134 of Q2:* Validate ClickHouse query results match Postgres on a statistical sample, confirm p99 latency targets are met on the new store, and cut over read traffic for `events` incrementally (one query type at a time, one tenant cohort at a time if your Rails layer supports it). Keep dual-write running for at least 4 weeks after the read cutover \u2014 this is your rollback handle. *Weeks 5\u20138:* Once reads are confirmed stable, evaluate whether to keep dual-write permanently as a warm backup or retire Postgres `events` writes; retiring removes write amplification but eliminates the rollback path, so set an explicit decision gate (e.g., zero query correctness incidents for 3 weeks). *Weeks 9\u201313:* With `events` off the primary, revisit the `accounts` cache architecture: you may find the replica alone is sufficient, or you may want to promote the cache to a more durable layer; also use the freed primary headroom to run `VACUUM` and index maintenance jobs that were likely being starved under 80% CPU load.\n\n**5. Trade-offs surrendered by this choice**\n\nYou are giving up **query join simplicity**: today a Rails developer can write `events JOIN accounts` in one SQL statement; after the split, cross-store joins must happen in application code or via a denormalization strategy (embedding account attributes in ClickHouse rows at write time), and that is a genuine increase in cognitive overhead for every analyst and engineer who touches data. You are also giving up **transactional consistency across the boundary** \u2014 if an account is updated in Postgres and an `events` query fires against ClickHouse in the same moment, you may read stale account context, which matters if your analytics product surfaces account-attributed metrics. Finally, you are accepting **two operational runbooks, two backup strategies, and two upgrade tracks** \u2014 non-trivial for a 9-person team, so you are implicitly betting that ClickHouse's operational simplicity (compared to, say, Redshift or a Kafka-backed pipeline) keeps that cost manageable.\n\n**6. Failure modes and how to detect them early**\n\nThe most dangerous failure mode is **dual-write lag or silent divergence**: if the ClickHouse write path falls behind or silently drops rows (network partition, schema mismatch after a Rails migration, ClickHouse backpressure), your analytics product serves wrong numbers and you may not notice until a customer complains. Mitigate this by publishing a continuous row-count and checksum comparison metric (Postgres `events` inserted last N minutes vs. ClickHouse ingested) and alerting on divergence above 0.01%. The second failure mode is **the cache poisoning or stampede on `accounts`**: if a high-cardinality invalidation event (bulk account update, plan migration) hits simultaneously, you can lose the cache and slam the replica \u2014 use probabilistic early expiration or request coalescing (e.g., `Rails.cache` with `race_condition_ttl`) rather than strict TTL. The third is **ClickHouse schema ossification**: columnar stores are cheap on reads but expensive on schema changes (adding columns mid-table on 4B rows takes time), so design your event schema with a JSON/Map column escape hatch for new attributes from day one.\n\n**7. When to revisit the recommendation**\n\nRe-evaluate the columnar migration if, after Q1's relief valve, primary CPU drops below 50% and stays there \u2014 this would suggest the `accounts` read amplification was doing more damage than diagnosed, and path (a) alone may be sufficient for another 12\u201318 months, buying time to tackle `events` with less urgency. Conversely, escalate the timeline if write throughput on `events` grows faster than projected (e.g., a new customer onboarding doubles event volume) and Postgres WAL or autovacuum starts falling behind, because at that point you have both a read and a write crisis simultaneously and the dual-write migration window will be under active fire.",
+          "input_tokens": 343,
+          "output_tokens": 1725,
+          "seconds": 44.4,
+          "run": 2
+        },
+        {
+          "text": "Phase 1: Skeleton\n\n1. Diagnosis \u2014 where the load actually comes from\n2. Recommended path \u2014 option (a) first, then (c)\n3. Quarter 1 execution plan \u2014 replicas + accounts cache\n4. Quarter 2 execution plan \u2014 migrate events to columnar store\n5. What you are trading away\n6. Failure modes and mitigations\n7. When to revisit sharding (option b)\n\n---\n\nPhase 2: Expansion\n\n**1. Diagnosis \u2014 where the load actually comes from**\n\nBefore prescribing, it is worth naming the two distinct problems: `accounts` is a hot-read problem (2M rows, nearly every request, likely causing buffer-pool churn and repeated identical query plans), while `events` is a write-amplification and scan problem (4B append-only rows, almost certainly driving sequential scans and autovacuum pressure). These are different root causes and they respond to different tools, which is why a single intervention like sharding addresses only one of them while adding operational weight that a 9-person team will feel immediately. The 80% CPU during business hours suggests both problems are active simultaneously, so the sequencing must buy relief fast before it buys elegance.\n\n**2. Recommended path \u2014 option (a) first, then (c)**\n\nThe recommendation is **(a) now, (c) in Q2**, with sharding explicitly deferred. A read replica plus an application-level cache for `accounts` is low-risk, reversible, and can be shipped by one engineer in days \u2014 it directly attacks the high-frequency hot-read problem and will visibly drop primary CPU. Option (c), moving `events` to a columnar or time-series store (Redshift, BigQuery, ClickHouse, or Timescale columnar depending on your query shape), is architecturally the right long-term home for an append-only, analytically queried, 4B-row table \u2014 columnar compression alone will shrink storage by 5\u201310\u00d7, and vectorized scan engines will reduce analytic query time by orders of magnitude. Sharding (b) is rejected because it imposes cross-shard query complexity, requires tenant-aware application rewrites, and delivers no benefit for `accounts` at all; it is the most expensive option for a team your size and solves a narrower problem than (c) does.\n\n**3. Quarter 1 execution plan \u2014 replicas + accounts cache**\n\nWeek 1\u20132: provision one streaming read replica (RDS, Cloud SQL, or Fly.io depending on your stack) and route all `SELECT` queries against `accounts` and any non-transactional reads to it via a `Makara`-style Rails adapter or a simple `ApplicationRecord` secondary connection. Week 3\u20134: layer a Redis (or Solid Cache if you prefer staying in Postgres) LRU cache in front of `accounts` lookups with a short TTL (30\u2013120 seconds is usually safe for B2B account metadata), instrumented with hit-rate tracking from day one so you can prove the cache is working. By end of Q1 you should see primary CPU drop materially \u2014 if it does not, that is a signal that `events` scans are the dominant load and you should accelerate the Q2 migration.\n\n**4. Quarter 2 execution plan \u2014 migrate events to columnar store**\n\nChoose your columnar target based on query patterns: if your analytics are primarily tenant-scoped time-range aggregations, ClickHouse or Timescale Columnstore are excellent self-hosted options; if you want managed and already live in AWS, Redshift Serverless is low-ops. Implement a dual-write shim in Rails (write to both Postgres and the new store) for 4\u20136 weeks, then run your existing analytic queries against both and diff the results before cutting over reads. Once read traffic is confirmed correct, drop the `events` table from Postgres (or archive it to cold storage), remove the dual-write shim, and reclaim the primary for transactional work \u2014 at this point your Postgres instance is handling ~2M-row relational data it was designed for, and your columnar store is handling append-only analytics it was designed for.\n\n**5. What you are trading away**\n\nYou are trading *operational simplicity* for *fit-for-purpose architecture*. After Q2 you have two data stores to monitor, back up, secure, and reason about in queries \u2014 joins across the boundary become application-level joins or ETL jobs, not SQL. You are also trading the ability to do ad-hoc cross-table transactional queries between `events` and other Postgres tables; any feature that requires, say, \"delete all events for account X immediately upon account deletion\" now requires a two-system write with the attendant consistency gap. Finally, the dual-write period in Q2 temporarily increases write latency and introduces a failure surface: if the columnar store is unavailable, you must decide whether to buffer, fail, or skip those writes.\n\n**6. Failure modes and mitigations**\n\nThe most dangerous failure mode is **cache-staleness on `accounts`**: if a tenant's plan, permissions, or billing status changes and your cache serves stale data, you may expose data to the wrong account or allow access that should be revoked. Mitigate this with explicit cache invalidation on every `Account` write (ActiveRecord callbacks are sufficient) plus a TTL as a safety net \u2014 never TTL-only. The second failure mode is **dual-write divergence** during the migration: a Rails deploy that writes to Postgres but not the columnar store (e.g., a network partition or a missed code path) will silently create data gaps. Mitigate by running a nightly row-count and checksum reconciliation job during the migration window and having a documented rollback plan (reads can be flipped back to Postgres in one config change). Third, **replica lag** under write spikes can cause your application to read stale data from the replica; add a lag-aware routing rule that falls back to primary if replication lag exceeds a threshold (Makara supports this natively).\n\n**7. When to revisit sharding (option b)**\n\nRevisit sharding if, after completing the (a)+(c) path, you find that `events` ingestion rate is overwhelming even the columnar store's write path, or if multi-tenant data isolation becomes a contractual or regulatory requirement (some enterprise B2B customers require physical data separation). At that point you will be sharding a purpose-built store that already understands your data model, not a general-purpose OLTP engine \u2014 which is a far more tractable problem. For a 9-person team at current scale, sharding before exhausting simpler options is a complexity loan you will pay interest on every day.",
+          "input_tokens": 343,
+          "output_tokens": 1526,
+          "seconds": 37.37,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "efficiency"
+        ],
+        "self_preference_delta": -2
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.1,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 2,
+          "justification": "The runs are relevant and partially correct, but the recommended sequencing is materially off from the reference. The reference says split the problems and prioritize option (a) for `accounts` first, while (c) is for `events`; Run 1 and Run 2 recommend moving `events` to a dedicated store as the primary path, and Run 3 says 'Recommended Path (a) then (c)' but still lacks the specific rationale and tradeoffs required. Several runs also miss key correctness markers like read-after-write consistency for replicas and concrete cache invalidation strategy.",
+          "evidence": "Run 1: 'We recommend path (c): moving `events` to a purpose-built columnar/time-series store.' Run 2: 'Path (c) is the most effective long-term solution.' Run 3: 'The recommended path is to first implement read replicas and application-level caching for `accounts` (Option a), then... migrate `events`... (Option c).' None of the runs explicitly address replica lag/read-after-write consistency or concrete cache invalidation.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "All runs cover a recommendation, two-quarter sequencing, trade-offs, and failure modes at a surface level. However, none include the 'decision triggers / what would change this' section (a required heading per the reference). Failure-mode sections lack required specifics: no run identifies replica lag, cache stampede/staleness, or dual-write divergence during migration by name. Expansion depth is over-uniform \u2014 all sections receive similar sentence counts, violating the requirement that load-bearing sections (recommendation rationale, failure modes) get the full 4 sentences with specifics while lighter sections stay shorter.",
+          "evidence": "No run includes a heading or expansion corresponding to 'what would change this' or 'decision triggers'. Run 1 failure-mode expansions: 'Complex joins or transactions spanning both systems will become impossible' \u2014 generic. Run 3 failure modes: 'challenges might arise from choosing the wrong specialized store' \u2014 not the named failure modes (replica lag, cache stampede, dual-write divergence).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The responses roughly follow a two-phase structure, but they do not comply with the exact format requirements. Phase 1 should be 3-7 short bullets with no elaboration, yet the bullets include substantive recommendations and reasons. Phase 2 should repeat the same headings in identical order with 2-4 sentence expansions under each, but Run 2 introduces a new heading ('Why Not (a) or (b).') and the runs often use bolding and sentence fragments rather than clean heading-plus-prose structure.",
+          "evidence": "Run 1 Phase 1: '1. **Recommendation: Events to dedicated store.**' and '5. **Failure Mode: Data Consistency/Integration.**' are not neutral skeleton headings only. Run 2 Phase 2 contains '3. **Why Not (a) or (b).**' which was not present in Phase 1. Run 3 uses markdown emphasis in both phases and headings like 'Recommended Path (a) then (c).' that already encode the answer.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 2.67,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally pragmatic, technical, and aimed at an engineering audience, which is close to the requested staff-level memo style. However, it is somewhat generic and survey-like in places, and several runs hedge with broad statements rather than crisp, opinionated guidance. It is not badly mismatched, just not pitch-perfect.",
+          "evidence": "Run 3: 'This phased approach prioritizes immediate relief with less complexity before tackling a more significant architectural shift.' Run 2: 'This path introduces architectural complexity...' These are professional and technical, but not especially decisive or concrete in the style requested.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and does not contain harmful, biased, or inappropriate material. It discusses database architecture and operational tradeoffs only.",
+          "evidence": "Across all runs the output stays within system design advice, e.g. 'read replicas', 'columnar or time-series database', and 'cache invalidation logic'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "Token counts (1811, 2642, 2373) are moderately high for the quality delivered. Run 2 is notably padded with a 'Why Not (a) or (b)' section that largely restates points already made in the recommendation section. All runs repeat the '9-person team' framing across multiple sections. The quality of substantive content does not justify the verbosity \u2014 deeper specifics (replica lag, cache invalidation strategy) that would justify the tokens are absent, replaced by repetitive operational-complexity warnings.",
+          "evidence": "Run 2 'Why Not (a) or (b)': 'Option (a)...is a band-aid...Option (b)...introduces significant architectural complexity' \u2014 these points are re-covered in the trade-offs and recommendation sections. Run 1 expands 'Failure Mode: Operational Overload' with three sentences that largely restate the complexity concern from 'Trade-off: Increased Tech Stack Complexity.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 2,
+          "justification": "The runs are semantically related but differ materially in recommendation, sequencing, and skeleton structure. Run 1 and Run 2 choose option (c) first; Run 3 chooses (a) then (c). Run 2 introduces a new expansion heading not present in the skeleton, while Run 1 and Run 3 use different skeleton structures and depth distributions. This is more than wording variation; it is structural and strategic divergence. [lexical similarity ratio: 0.043]",
+          "evidence": "Run 1: 'We recommend path (c)...' Run 2: 'Path (c) is the most effective long-term solution.' Run 3: 'The recommended path is to first implement read replicas and application-level caching for `accounts` (Option a), then... migrate `events`...' Run 2 Phase 2 adds 'Why Not (a) or (b).' absent from Phase 1.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.67,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          },
+          "lexical_similarity": 0.043
+        }
+      },
+      "judge_summary": "The responses correctly identify the relevant solution space (replica+cache for accounts, columnar store for events, dismiss sharding) but fail on nearly every quality dimension the reference cares about. The defining structural failure across all runs is phase-bleed: Phase 1 headings reveal the chosen option rather than serving as neutral topic labels. Two of three runs invert the required sequencing (cheap-reversible before expensive-sticky), making the core recommendation wrong for typical behavior. No run names the specific failure modes (replica lag, cache stampede, dual-write divergence) or a concrete cache-invalidation strategy. Expansion depth is uniformly shallow across load-bearing and non-load-bearing sections alike. Consistency is weak because the sequencing \u2014 the central decision \u2014 flips between runs.",
+      "runs": [
+        {
+          "text": "Phase 1: Skeleton\n\n1.  **Recommendation: Events to dedicated store.**\n2.  **Sequencing Q1: Migrate Events.**\n3.  **Sequencing Q2: Add Replicas, Cache.**\n4.  **Trade-off: Increased Tech Stack Complexity.**\n5.  **Failure Mode: Data Consistency/Integration.**\n6.  **Failure Mode: Operational Overload.**\n\nPhase 2: Expansion\n\n1.  **Recommendation: Events to dedicated store.**\n    We recommend path (c): moving `events` to a purpose-built columnar/time-series store. This table's characteristics (write-heavy, append-only, 4B rows) make it an ideal candidate for such specialized databases, which are designed for high-volume ingestion and analytical queries. Offloading `events` completely will provide the most significant immediate relief to the primary Postgres CPU.\n2.  **Sequencing Q1: Migrate Events.**\n    The first quarter should focus entirely on selecting and migrating `events` to a new store (e.g., ClickHouse, TimescaleDB, Cassandra, or a managed data warehouse service). This involves establishing the new data pipeline for writes and updating application queries to read from the new system. This step directly addresses the largest contributor to the primary Postgres's load.\n3.  **Sequencing Q2: Add Replicas, Cache.**\n    Once `events` is offloaded, the second quarter should implement path (a) for the remaining Postgres instance. Add read replicas to distribute general read load and implement an application-level cache for the `accounts` table. This dual approach will effectively tackle the `accounts` read-heavy access patterns and provide scalable reads for other tables.\n4.  **Trade-off: Increased Tech Stack Complexity.**\n    This recommendation trades away the simplicity of a single database technology for specialized performance. Your 9-person team will now need to understand, operate, and maintain a new database system, including its monitoring, backup, and recovery procedures. This adds to the cognitive load and potential for knowledge silos within the team.\n5.  **Failure Mode: Data Consistency/Integration.**\n    A significant failure mode involves challenges with data consistency and integration if `events` data is frequently needed alongside other Postgres data. Complex joins or transactions spanning both systems will become impossible or require elaborate, potentially brittle, application-level synchronization. Careful architectural design is needed to minimize cross-database dependencies.\n6.  **Failure Mode: Operational Overload.**\n    Introducing a new database system without sufficient automation or expertise can quickly overwhelm a 9-person team. The learning curve for the new technology, combined with ongoing maintenance and troubleshooting, could lead to burnout or neglected operational tasks. This path requires a dedicated focus on building operational maturity around the new stack.",
+          "input_tokens": 322,
+          "output_tokens": 1811,
+          "seconds": 10.57,
+          "run": 1
+        },
+        {
+          "text": "Phase 1: Skeleton\n\n1.  Recommend Path (c): Columnar Store for Events.\n2.  Implementation Sequencing.\n3.  Why Not (a) or (b).\n4.  Trade-offs of Path (c).\n5.  Failure Modes of Path (c).\n\nPhase 2: Expansion\n\n1.  **Recommend Path (c): Columnar Store for Events.**\n    Path (c) is the most effective long-term solution. The `events` table, being 4 billion rows, write-heavy, and append-only, perfectly fits the profile for a purpose-built columnar or time-series store. Offloading this massive table will significantly reduce the primary Postgres instance's CPU load, as both writes and analytical reads will be moved to a specialized system. This allows Postgres to focus on `accounts` and transactional data, where it excels.\n\n2.  **Implementation Sequencing.**\n    First, select and provision the appropriate columnar/time-series database (e.g., ClickHouse, TimescaleDB, Druid). Next, implement a dual-write strategy for new `events` data, sending it to both Postgres and the new store. Concurrently, backfill historical `events` data into the new system. Once data parity is achieved and validated, migrate all `events`-related read queries from Postgres to the new store. Finally, once confidence is high, the `events` table can be dropped from the primary Postgres instance, after which any remaining `accounts` performance issues can be addressed with an application-level cache.\n\n3.  **Why Not (a) or (b).**\n    Option (a) (read replicas + app cache for `accounts`) is a band-aid, as the primary bottleneck likely stems from `events`'s immense write load, which read replicas do not address. While `accounts` caching could help, it won't solve the core CPU issue driven by `events` writes. Option (b) (sharding `events` by tenant) introduces significant architectural complexity for a small team, effectively sharding a monolith, and still uses Postgres for a workload it's not optimally designed for at this scale.\n\n4.  **Trade-offs of Path (c).**\n    This path introduces architectural complexity by adding a new data store technology to the stack, requiring the team to learn and maintain an additional system. It necessitates careful data migration and synchronization, posing risks of data inconsistency or loss if not handled meticulously. There will also be an increased operational burden and potentially higher infrastructure costs associated with running and managing a second, specialized database.\n\n5.  **Failure Modes of Path (c).**\n    Key failure modes include selecting the wrong columnar/time-series store that doesn't meet future query patterns or scale requirements, leading to suboptimal performance or further migrations. Errors during the data migration (dual-writes, backfills) could result in data corruption, loss, or inconsistencies between systems. The team might also struggle with the operational overhead of managing a new database, leading to slow incident response, misconfigurations, or new bottlenecks, potentially introducing new points of failure.",
+          "input_tokens": 322,
+          "output_tokens": 2642,
+          "seconds": 14.14,
+          "run": 2
+        },
+        {
+          "text": "**Phase 1: Skeleton**\n\n1.  Recommended Path (a) then (c).\n2.  Quarter 1: Implement Read Replicas, Caching.\n3.  Quarter 2: Migrate `events` to Specialized Store.\n4.  Trading Away: Complexity, Data Consistency.\n5.  Failure Modes: Cache issues, new tech struggles.\n\n**Phase 2: Expansion**\n\n1.  **Recommended Path (a) then (c).**\n    The recommended path is to first implement read replicas and application-level caching for `accounts` (Option a), then, in a subsequent phase, migrate `events` to a purpose-built columnar/time-series store (Option c). This phased approach prioritizes immediate relief with less complexity before tackling a more significant architectural shift. It addresses both dominant load sources in a measured manner, suitable for a 9-person team.\n\n2.  **Quarter 1: Implement Read Replicas, Caching.**\n    In the first quarter, focus on setting up one or more Postgres read replicas for the primary instance. Simultaneously, implement an application-level cache (e.g., Redis) for the `accounts` table, leveraging its read-heavy nature and relatively small size. Route read queries from `accounts` to the cache or replicas, significantly reducing load on the primary and improving p99 latency for many requests across the monolith.\n\n3.  **Quarter 2: Migrate `events` to Specialized Store.**\n    Following the initial read scaling, dedicate the second quarter to migrating the `events` table to a specialized columnar or time-series database (e.g., ClickHouse, TimescaleDB). This move capitalizes on `events`' append-only, write-heavy nature, offloading its substantial write, storage, and indexing load from Postgres. This dedicated store will also provide superior performance for analytical queries on events data, further reducing overall database strain.\n\n4.  **Trading Away: Complexity, Data Consistency.**\n    This approach trades off increased architectural complexity by introducing a new database system and the overhead of managing distributed data. With multiple data sources, ensuring data consistency across the ecosystem, particularly for event-driven workflows and analytical reports, becomes a more significant concern. The team will also invest substantial time in learning, operating, and maintaining the new specialized store.\n\n5.  **Failure Modes: Cache issues, new tech struggles.**\n    Potential failure modes include issues with cache invalidation logic leading to stale `accounts` data, and application bugs arising from incorrect replica routing or connection management. For the events migration, challenges might arise from choosing the wrong specialized store, significant rewrite effort for event-related queries in the Rails monolith, and a steep learning curve for the team in operating and tuning the new database technology. Data migration complexity and potential downtime during the transition are also critical risks.",
+          "input_tokens": 322,
+          "output_tokens": 2373,
+          "seconds": 12.29,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1.14,
+        "max_spread": 2,
+        "contested_dims": [
+          "format_compliance",
+          "tone_style"
+        ],
+        "self_preference_delta": 4.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

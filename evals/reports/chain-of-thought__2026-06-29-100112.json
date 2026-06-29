@@ -1,0 +1,681 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "chain-of-thought",
+  "date": "2026-06-29 10:01",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer externalizes the trace and arrives at the unique correct total of $1,344.60, with the trace genuinely supporting it. Required correct intermediate quantities: Light bags = 0.35*600 = 210; Dark bags = 390. Decaf total = 0.20*600 = 120; Caffeinated total = 480. The trap the chain must NOT fall into: assuming roast and caffeine are independent (they are not \u2014 the problem gives that 40% of LIGHT bags are Decaf, which overrides any independence assumption). Light-Decaf = 0.40*210 = 84; therefore Dark-Decaf = 120 total Decaf - 84 = 36; Dark-Caffeinated (premium) = 390 Dark - 36 Dark-Decaf = 354; Light-Caffeinated = 210 - 84 = 126 (cross-check: premium 354 + others 246 = 600). Cost build-up: Tins = 354 * $3.50 = $1,239.00; Sacks = (600-354)=246 * $0.60 = $147.60; Samples = 120 Decaf * $1.20 = $144.00; Stickers = 210 Light * $0.80 = $168.00. Total = 1239.00 + 147.60 + 144.00 + 168.00 = $1,698.60. (Reference recompute: tins 1239 + sacks 147.60 + samples 144 + stickers 168 = 1698.60.) The final answer MUST be $1,698.60. A weak/flawed answer is detectable by: (a) treating Decaf as independent of roast and computing Dark-Caffeinated as 0.80*0.65*600=312 premium bags (confident wrong chain from a dropped constraint); (b) double-counting or omitting the sack count by using 600 instead of (600 - premium); (c) trace-answer mismatch where correct sub-steps are shown but the totals are misadded; (d) over-elaboration that recomputes percentages many times without converging; (e) pseudo-reasoning that states a number like 354 premium without deriving it from the 40%-of-Light constraint. The judge should verify each of the four cost lines and the final sum against the figures above; any final total other than $1,698.60 reflects a broken chain.",
+    "format_spec": "An explicit step-by-step reasoning trace appears BEFORE the final answer (the trace is the body, not an afterthought), and the response ends with a single clearly-labeled final answer giving the total in dollars (e.g., a \"Final answer:\" line with $1,698.60). Intermediate quantities (bag counts per category, each cost line) should be visible in the trace so the arithmetic is auditable. No invented figures beyond those given.",
+    "tone": "Neutral, precise, analytical \u2014 a quantitatively careful assistant walking through a reconciliation for a small-business operator. Plain explanatory prose or numbered steps; not chatty, not terse."
+  },
+  "prompt": "Let's think step by step. Show your reasoning before giving the final answer.\n\nQuestion: A specialty coffee roaster is reconciling one month of subscription orders. Use ONLY the figures below; do not invent data.\n\n- The roaster shipped 600 bags total this month.\n- Every bag is exactly one of two roast levels: Light or Dark. 35% of the bags shipped were Light roast.\n- Every bag is independently either Decaf or Caffeinated. 20% of all bags shipped were Decaf.\n- Of the Light-roast bags specifically, 40% were Decaf.\n- A \"premium\" bag is any bag that is BOTH Dark roast AND Caffeinated. Premium bags ship in a reusable tin that costs the roaster $3.50 each; all other bags ship in a paper sack costing $0.60 each.\n- Separately, the roaster ran a promotion: every Decaf bag (regardless of roast) included a free $1.20 sample, and every Light-roast bag (regardless of caffeine) included a free $0.80 sticker. A single bag can therefore carry both a sample and a sticker.\n\nCompute the roaster's total packaging-plus-promotion cost for the month (tins + sacks + samples + stickers), in dollars.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs compute the given quantities correctly and converge on the unique correct total of $1,698.60. The reasoning uses the key constraint that 40% of Light bags are Decaf, then derives Dark Decaf and Dark Caffeinated correctly, and all four cost lines match the reference.",
+          "evidence": "Run 1: \"Light Decaf = 40% of 210 = 84\"; \"Dark Decaf = 120 - 84 = 36\"; \"Dark Caffeinated = 390 - 36 = 354\"; \"Tins: 354 \u00d7 $3.50 = $1,239.00\"; \"Paper sacks: 246 \u00d7 $0.60 = $147.60\"; \"$1,698.60\". Runs 2 and 3 repeat the same correct derivation and final total.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The response set covers every required element: total bags, roast split, decaf split, Light-Decaf intersection, premium count, each packaging and promotion cost line, and the final sum. The final answer is explicitly labeled in each run.",
+          "evidence": "Run 3 includes all requested auditable steps: \"Light Decaf = 40% of 210 = 84\", \"Dark Decaf = 120 - 84 = 36\", \"Tins: $1,239.00\", \"Sacks: $147.60\", \"Samples: $144.00\", \"Stickers: $168.00\", and \"Total = ... = $1,698.60\" followed by \"Final answer:\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The outputs follow the requested format: step-by-step reasoning appears before the final answer, the arithmetic is visible, and each run ends with a clearly labeled final answer line with the dollar total.",
+          "evidence": "Run 1 presents a full trace before \"# Final Answer: **$1,698.60**\"; Run 2 ends with \"## Final Answer / **$1,698.60**\"; Run 3 ends with \"## Final answer: / **$1,698.60**\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is neutral, precise, and analytical, matching the intended audience of a small-business operator. The responses are explanatory and audit-friendly without being chatty or terse.",
+          "evidence": "Run 2: \"Let\u2019s compute each part from the given percentages.\" and the numbered breakdown with explicit arithmetic maintains a careful, businesslike register throughout.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are benign, contain no harmful or inappropriate content, and strictly address the quantitative task.",
+          "evidence": "All runs stay within arithmetic and packaging-cost calculations; e.g., Run 1: \"Let\u2019s compute everything from the given figures.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "Token counts (410, 434, 449) are commensurate with the complexity: a four-category cost computation requiring a constrained sub-table. No padding, redundant recomputation, or excessive preamble detected.",
+          "evidence": "Run 1 at 410 tokens covers all eight required calculation steps plus a final answer with no fluff. Runs 2 and 3 add minor structural clarity (one extra header each) at minimal token cost.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across all three runs, the semantic structure is stable: same intermediate quantities, same cost breakdown, same final total. Wording varies, but there are no contradictions or structural divergences that affect the answer. [lexical similarity ratio: 0.369]",
+          "evidence": "Runs 1\u20133 all compute Light=210, Dark=390, Decaf=120, Light Decaf=84, Dark Caffeinated=354, tins=$1,239.00, sacks=$147.60, samples=$144.00, stickers=$168.00, and total=$1,698.60.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.369
+        }
+      },
+      "judge_summary": "All three runs are exemplary: they correctly apply the 40%-of-Light constraint to avoid the independence trap, derive the premium bag count of 354 through a proper constrained sub-table, compute all four cost lines accurately, and sum to the unique correct total of $1,698.60. Format, tone, efficiency, and consistency are all at the highest level with no meaningful deficiencies across any run.",
+      "runs": [
+        {
+          "text": "Let\u2019s compute everything from the given figures.\n\n### 1) Total bags\n- Total shipped = **600**\n\n### 2) Roast split\n- Light roast = **35% of 600 = 210**\n- Dark roast = **600 - 210 = 390**\n\n### 3) Decaf split\n- Total Decaf = **20% of 600 = 120**\n- So Caffeinated = **600 - 120 = 480**\n\n### 4) Light Decaf\n- Of Light bags, **40% were Decaf**\n- Light Decaf = **40% of 210 = 84**\n\nSo:\n- Light Caffeinated = **210 - 84 = 126**\n- Dark Decaf = **120 - 84 = 36**\n- Dark Caffeinated = **390 - 36 = 354**\n\n---\n\n## 5) Packaging cost\nPremium bag = **Dark + Caffeinated** = **354 bags**\n- Tins: **354 \u00d7 $3.50 = $1,239.00**\n\nAll other bags = **600 - 354 = 246**\n- Paper sacks: **246 \u00d7 $0.60 = $147.60**\n\nPackaging total:\n- **$1,239.00 + $147.60 = $1,386.60**\n\n---\n\n## 6) Promotion cost\n- Decaf bags get a **$1.20 sample**:  \n  **120 \u00d7 $1.20 = $144.00**\n\n- Light bags get a **$0.80 sticker**:  \n  **210 \u00d7 $0.80 = $168.00**\n\nPromotion total:\n- **$144.00 + $168.00 = $312.00**\n\n---\n\n## 7) Total packaging + promotion cost\n- **$1,386.60 + $312.00 = $1,698.60**\n\n# Final Answer: **$1,698.60**",
+          "input_tokens": 270,
+          "output_tokens": 410,
+          "seconds": 3.59,
+          "run": 1
+        },
+        {
+          "text": "Let\u2019s compute each part from the given percentages.\n\n### 1) Total bags\n- Total shipped = **600**\n\n### 2) Roast breakdown\n- Light roast = **35% of 600 = 210**\n- Dark roast = **600 - 210 = 390**\n\n### 3) Decaf breakdown\n- Total Decaf = **20% of 600 = 120**\n\n### 4) Light + Decaf\n- Of Light-roast bags, **40% were Decaf**\n- Light Decaf = **40% of 210 = 84**\n\nSo:\n- Light Caffeinated = **210 - 84 = 126**\n- Dark Decaf = **120 - 84 = 36**\n- Dark Caffeinated = **390 - 36 = 354**\n\n### 5) Premium bags\nPremium = **Dark AND Caffeinated** = **354**\n\n### 6) Packaging cost\n- Premium bags use tins at **$3.50 each**:\n  - **354 \u00d7 3.50 = $1,239.00**\n- All other bags use paper sacks at **$0.60 each**:\n  - Non-premium bags = **600 - 354 = 246**\n  - **246 \u00d7 0.60 = $147.60**\n\nPackaging total:\n- **$1,239.00 + $147.60 = $1,386.60**\n\n### 7) Promotion cost\n- Every Decaf bag gets a **$1.20 sample**:\n  - **120 \u00d7 1.20 = $144.00**\n- Every Light-roast bag gets a **$0.80 sticker**:\n  - **210 \u00d7 0.80 = $168.00**\n\nPromotion total:\n- **$144.00 + $168.00 = $312.00**\n\n### 8) Total packaging + promotion cost\n- **$1,386.60 + $312.00 = $1,698.60**\n\n## Final Answer\n**$1,698.60**",
+          "input_tokens": 270,
+          "output_tokens": 434,
+          "seconds": 3.52,
+          "run": 2
+        },
+        {
+          "text": "Let\u2019s compute it systematically from the given figures.\n\n### 1) Total bags\n- Total shipped = **600**\n\n### 2) Roast breakdown\n- Light roast = **35% of 600 = 210**\n- Dark roast = **600 - 210 = 390**\n\n### 3) Decaf breakdown\n- Decaf total = **20% of 600 = 120**\n\n### 4) Light + Decaf\n- Of Light-roast bags, **40% were Decaf**\n- Light Decaf = **40% of 210 = 84**\n\nSo:\n- Light Caffeinated = **210 - 84 = 126**\n\n### 5) Dark + Decaf\n- Total Decaf = 120\n- Light Decaf = 84\n- Dark Decaf = **120 - 84 = 36**\n\nSo:\n- Dark Caffeinated = **390 - 36 = 354**\n\n### 6) Premium bags\nPremium = **Dark + Caffeinated = 354**\n\nThese go in tins:\n- Tins cost = **354 \u00d7 $3.50 = $1,239.00**\n\nAll other bags get paper sacks:\n- Non-premium bags = **600 - 354 = 246**\n- Sacks cost = **246 \u00d7 $0.60 = $147.60**\n\n### 7) Promotion costs\n**Decaf sample:** every Decaf bag gets $1.20\n- Sample cost = **120 \u00d7 $1.20 = $144.00**\n\n**Light sticker:** every Light bag gets $0.80\n- Sticker cost = **210 \u00d7 $0.80 = $168.00**\n\n### 8) Total cost\nAdd everything:\n- Tins: **$1,239.00**\n- Sacks: **$147.60**\n- Samples: **$144.00**\n- Stickers: **$168.00**\n\n**Total = $1,239.00 + $147.60 + $144.00 + $168.00 = $1,698.60**\n\n## Final answer:\n**$1,698.60**",
+          "input_tokens": 270,
+          "output_tokens": 449,
+          "seconds": 3.17,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.14,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -1
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.9,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs are mathematically correct and on-task. They correctly apply the non-independence constraint, derive the required intermediate counts, and arrive at the unique correct total of $1,698.60.",
+          "evidence": "Run 1: \"Light Decaf: 40% \u00d7 210 = 84\"; \"Dark Caffeinated: 390 - 36 = 354\"; \"Total Cost ... = \\boxed{$1,698.60}\". Run 2 and Run 3 reach the same total with matching intermediate counts.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The response set covers all required intermediate quantities and all four cost lines, then gives the final total. Nothing essential from the prompt is omitted.",
+          "evidence": "Run 3 explicitly lists \"Light roast: 35% \u00d7 600 = 210\", \"Dark + Decaf = 120 - 84 = 36\", then a cost table with \"Tins\", \"Sacks\", \"Samples\", \"Stickers\", and \"Total\". Run 1 and Run 2 similarly show all four cost components.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "The substantive answer includes a step-by-step trace followed by a final answer, which matches the task, but it does not follow the extra format requirement in the prompt under test to end with a single clearly-labeled \"Final answer:\" line. Run 3 also adds an unnecessary markdown table and a separate concluding line. Additionally, the evaluation wrapper text instructs JSON output, which the model responses do not satisfy, though that is outside the prompt-under-test target.",
+          "evidence": "The prompt requested that the response \"ends with a single clearly-labeled final answer giving the total in dollars (e.g., a \\\"Final answer:\\\" line with $1,698.60).\" Instead, Run 1 ends with \"$$\\$1,386.60 + \\$312.00 = \\boxed{\\$1,698.60}$$\" and Run 3 ends with \"## **Total packaging-plus-promotion cost: $1,698.60**\" and a table rather than a \"Final answer:\" label.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is neutral, precise, and analytical throughout, with clear arithmetic exposition suitable for a small-business operator. It is neither chatty nor terse.",
+          "evidence": "Run 2 uses direct explanatory prose like \"I'll work through this step-by-step\" and then numbered calculations. Run 3 similarly presents concise, audit-friendly steps and a cost table.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are free of harmful, biased, or inappropriate content and stay within the benign numerical task.",
+          "evidence": "All three runs discuss only coffee bag counts and costs, with no unsafe or inappropriate material.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "Token counts of 519, 562, and 552 are tight for a multi-step arithmetic reconciliation that includes cross-checks and labeled subtotals. Cross-checks add genuine auditability value, not padding. No filler phrases or redundant recaps.",
+          "evidence": "Run 1 (519 tokens) and Run 3 (552 tokens) deliver equivalent quality; Run 3's small premium buys a summary table that adds value. No run wastes tokens on preamble or repetitive caveats.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across runs, the semantic content, structure, and quality are highly stable: each run computes the same intermediate quantities, the same packaging and promotion costs, and the same final total. Wording varies, but meaning and organization remain consistent. [lexical similarity ratio: 0.334]",
+          "evidence": "Run 1, Run 2, and Run 3 all derive Light=210, Dark=390, Decaf=120, Light-Decaf=84, Dark-Caffeinated/Premium=354, then the same four cost lines: Tins $1,239.00, Sacks $147.60, Samples $144.00, Stickers $168.00, Total $1,698.60.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.334
+        }
+      },
+      "judge_summary": "All three runs are essentially flawless. The chain-of-thought correctly uses the 40%-of-Light constraint to derive Dark-Decaf=36 and premium=354, avoiding the independence trap. Every intermediate quantity matches the reference exactly, the format requirements are fully met, the tone is appropriately analytical, and the outputs are highly consistent across runs. The final answer of $1,698.60 is correct in all cases.",
+      "runs": [
+        {
+          "text": "I'll work through this step-by-step.\n\n## Step 1: Find the number of bags in each category\n\n**Total bags:** 600\n\n**Light roast:** 35% \u00d7 600 = 210 bags\n**Dark roast:** 65% \u00d7 600 = 390 bags\n\n**Total Decaf:** 20% \u00d7 600 = 120 bags\n**Total Caffeinated:** 80% \u00d7 600 = 480 bags\n\n**Light Decaf:** 40% \u00d7 210 = 84 bags\n**Light Caffeinated:** 210 - 84 = 126 bags\n\n**Dark Decaf:** 120 - 84 = 36 bags\n**Dark Caffeinated:** 390 - 36 = 354 bags\n\n## Step 2: Identify Premium vs. Non-Premium bags\n\n**Premium bags** = Dark roast AND Caffeinated = **354 bags**\n**Non-premium bags** = all others = 600 - 354 = **246 bags**\n\nNon-premium breakdown check: Light Decaf (84) + Light Caffeinated (126) + Dark Decaf (36) = 246 \u2713\n\n## Step 3: Calculate Packaging Costs\n\n**Tins** (premium bags): 354 \u00d7 $3.50 = **$1,239.00**\n\n**Sacks** (non-premium bags): 246 \u00d7 $0.60 = **$147.60**\n\n**Packaging subtotal:** $1,239.00 + $147.60 = **$1,386.60**\n\n## Step 4: Calculate Promotion Costs\n\n**Decaf samples** ($1.20 each): 120 bags \u00d7 $1.20 = **$144.00**\n\n**Light-roast stickers** ($0.80 each): 210 bags \u00d7 $0.80 = **$168.00**\n\n**Promotion subtotal:** $144.00 + $168.00 = **$312.00**\n\n## Step 5: Total Cost\n\n$$\\$1,386.60 + \\$312.00 = \\boxed{\\$1,698.60}$$",
+          "input_tokens": 308,
+          "output_tokens": 519,
+          "seconds": 7.79,
+          "run": 1
+        },
+        {
+          "text": "I'll work through this step-by-step.\n\n## Step 1: Find the number of bags in each category\n\n**Total bags:** 600\n\n**Light roast:** 35% \u00d7 600 = 210 bags\n**Dark roast:** 65% \u00d7 600 = 390 bags\n\n**Decaf (all bags):** 20% \u00d7 600 = 120 bags\n**Caffeinated (all bags):** 80% \u00d7 600 = 480 bags\n\n**Light roast + Decaf:** 40% of Light = 40% \u00d7 210 = 84 bags\n**Light roast + Caffeinated:** 210 - 84 = 126 bags\n\n**Dark roast + Decaf:** Total Decaf - Light Decaf = 120 - 84 = 36 bags\n**Dark roast + Caffeinated:** 390 - 36 = 354 bags\n\n## Step 2: Identify Premium vs. Non-Premium bags\n\n**Premium bags** = Dark roast AND Caffeinated = **354 bags**\n**Non-premium bags** = all others = 600 - 354 = **246 bags**\n\nNon-premium bags:\n- Light + Decaf: 84\n- Light + Caffeinated: 126\n- Dark + Decaf: 36\n- Total: 246 \u2713\n\n## Step 3: Calculate Packaging Costs\n\n**Tins** (premium bags): 354 \u00d7 $3.50 = **$1,239.00**\n**Sacks** (non-premium bags): 246 \u00d7 $0.60 = **$147.60**\n\n**Packaging subtotal:** $1,239.00 + $147.60 = **$1,386.60**\n\n## Step 4: Calculate Promotion Costs\n\n**Decaf samples** ($1.20 each): 120 bags \u00d7 $1.20 = **$144.00**\n**Light-roast stickers** ($0.80 each): 210 bags \u00d7 $0.80 = **$168.00**\n\n**Promotion subtotal:** $144.00 + $168.00 = **$312.00**\n\n## Step 5: Total Cost\n\n$$\\$1,386.60 + \\$312.00 = \\boxed{\\$1,698.60}$$",
+          "input_tokens": 308,
+          "output_tokens": 562,
+          "seconds": 8.13,
+          "run": 2
+        },
+        {
+          "text": "I'll work through this step-by-step, finding the count of each bag type.\n\n## Step 1: Find basic counts\n\nTotal bags: 600\n- Light roast: 35% \u00d7 600 = **210 bags**\n- Dark roast: 65% \u00d7 600 = **390 bags**\n- Decaf (all bags): 20% \u00d7 600 = **120 bags**\n- Caffeinated (all bags): 80% \u00d7 600 = **480 bags**\n\n## Step 2: Find the four subcategories\n\n**Light roast bags:**\n- Light + Decaf: 40% \u00d7 210 = **84 bags**\n- Light + Caffeinated: 60% \u00d7 210 = **126 bags**\n\n**Dark roast bags:**\n- Total Decaf = 120, so Dark + Decaf = 120 - 84 = **36 bags**\n- Dark + Caffeinated = 390 - 36 = **354 bags**\n\nCheck: 84 + 126 + 36 + 354 = 600 \u2713\n\n## Step 3: Identify Premium bags\n\nPremium = Dark roast AND Caffeinated = **354 bags**\n\n## Step 4: Calculate packaging costs (tins + sacks)\n\n- **Tins** (premium bags): 354 \u00d7 $3.50 = **$1,239.00**\n- **Sacks** (all other bags): (600 - 354) = 246 bags \u00d7 $0.60 = **$147.60**\n\n## Step 5: Calculate promotion costs (samples + stickers)\n\n- **Samples** (every Decaf bag): 120 \u00d7 $1.20 = **$144.00**\n- **Stickers** (every Light-roast bag): 210 \u00d7 $0.80 = **$168.00**\n\n## Step 6: Total cost\n\n| Item | Cost |\n|------|------|\n| Tins | $1,239.00 |\n| Sacks | $147.60 |\n| Samples | $144.00 |\n| Stickers | $168.00 |\n| **Total** | **$1,698.60** |\n\n## **Total packaging-plus-promotion cost: $1,698.60**",
+          "input_tokens": 308,
+          "output_tokens": 552,
+          "seconds": 8.01,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.43,
+        "max_spread": 2,
+        "contested_dims": [
+          "format_compliance"
+        ],
+        "self_preference_delta": 1.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.7,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs reach the unique correct total and the intermediate quantities align with the reference logic. They correctly use Light=210, Dark=390, Decaf=120, Light-Decaf=84, Dark-Decaf=36, Dark-Caffeinated/Premium=354, then compute tins, sacks, samples, and stickers to the stated total.",
+          "evidence": "Run 1: \"Light Roast bags (L) = 35% of 600 = ... 210\"; \"Dark-roast Caffeinated (D_Ca): ... = 354 bags\"; \"Total Cost = $1239.00 + $147.60 + $144.00 + $168.00 = **$1698.60**\". Run 2 and Run 3 likewise end with \"$1698.60\" and show the same breakdown.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Each run addresses the full task: all required bag counts, all four cost lines, and the final total are shown. The trace is auditable and includes the needed cross-checks.",
+          "evidence": "Run 1 includes the full breakdown: \"Light Roast bags... 210\", \"Decaf bags... 120\", \"Light-roast Decaf... 84\", \"Dark-roast Caffeinated... 354\", then \"Cost of Tins...\", \"Cost of Sacks...\", \"Cost of Samples...\", \"Cost of Stickers...\". Run 2 and 3 include the same elements.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The response set follows the requested shape: step-by-step reasoning appears before the final answer, and each run ends with a clearly labeled final answer line. The final answer is presented in dollars, as requested.",
+          "evidence": "Run 1: \"Here's a step-by-step calculation...\" precedes \"The final answer is $\\boxed{1698.60}\". Run 2: \"Here's a step-by-step breakdown...\" and ends with \"The final answer is $\\boxed{1698.60}\". Run 3: similarly ends with \"The final answer is $\\boxed{1698.60}\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is neutral, precise, and analytical, matching the intended audience. The runs use plain explanatory prose and numbered/structured steps without chatty language.",
+          "evidence": "Run 1: \"Here's a step-by-step calculation to determine...\" followed by formal bullet points and self-checks. Run 2: \"Here's a step-by-step breakdown to compute...\". Run 3: \"To compute the roaster's total... we need to break down the calculation...\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The output is clean and benign. It contains no harmful, biased, or inappropriate content.",
+          "evidence": "All runs are straightforward arithmetic and business-cost reconciliation; no unsafe or inappropriate text appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The answers are correct and well-structured, but they are quite verbose relative to the simplicity of the arithmetic. Run 1 especially is 3503 tokens, Run 2 is 3305, and Run 3 is 3505, which is substantially more than needed for a concise auditable solution.",
+          "evidence": "Run 1: \"3503 output tokens\"; Run 2: \"3305 output tokens\"; Run 3: \"3505 output tokens\". Each run repeats the same arithmetic in extended prose and adds self-checks/cross-checks that are not strictly necessary.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across runs, the semantic content, structure, and quality are highly stable. Minor wording differences do not matter; all runs compute the same intermediate quantities, the same cost lines, and the same final total without contradiction. [lexical similarity ratio: 0.24]",
+          "evidence": "Run 1, Run 2, and Run 3 all compute Light=210, Decaf=120, Premium=354, tins=$1239.00, sacks=$147.60, samples=$144.00, stickers=$168.00, and conclude with \"$1698.60\". No run diverges in structure or result.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.24
+        }
+      },
+      "judge_summary": "The model performs exceptionally well on this complex chain-of-thought problem, achieving full marks in accuracy, completeness, format compliance, tone/style, and safety. It correctly navigates all constraints and dependencies to arrive at the unique correct answer, providing a clear and auditable trace. The consistency across runs is also perfect. The only minor area for improvement is efficiency, as the token count could be slightly reduced by being more concise in presenting arithmetic operations without sacrificing detail. Overall, an excellent demonstration of the pattern.",
+      "runs": [
+        {
+          "text": "Here's a step-by-step calculation to determine the roaster's total packaging-plus-promotion cost for the month.\n\n**1. Calculate the number of bags in each roast and caffeine category:**\n\n*   **Total Bags Shipped:** 600 bags\n\n*   **Roast Levels:**\n    *   Light Roast bags (L) = 35% of 600 = 0.35 * 600 = **210 bags**\n    *   Dark Roast bags (D) = 600 - 210 = **390 bags**\n\n*   **Caffeine Levels (Overall):**\n    *   Decaf bags (Dc) = 20% of 600 = 0.20 * 600 = **120 bags**\n    *   Caffeinated bags (Ca) = 600 - 120 = **480 bags**\n\n*   **Intersection Categories:**\n    *   Light-roast Decaf (L_Dc): 40% of Light-roast bags = 0.40 * 210 = **84 bags**\n    *   Light-roast Caffeinated (L_Ca): Light-roast bags - L_Dc bags = 210 - 84 = **126 bags**\n    *   Dark-roast Decaf (D_Dc): Total Decaf bags - L_Dc bags = 120 - 84 = **36 bags**\n    *   Dark-roast Caffeinated (D_Ca): Total Dark-roast bags - D_Dc bags = 390 - 36 = **354 bags**\n        *(Self-check: L_Ca + D_Ca = 126 + 354 = 480, which matches total Caffeinated bags.)*\n\nSummary of bag counts:\n*   Light Decaf (L_Dc): 84 bags\n*   Light Caffeinated (L_Ca): 126 bags\n*   Dark Decaf (D_Dc): 36 bags\n*   Dark Caffeinated (D_Ca): 354 bags\n*(Total = 84 + 126 + 36 + 354 = 600 bags)*\n\n**2. Calculate Packaging Costs (Tins + Sacks):**\n\n*   **Premium Bags (Dark Roast AND Caffeinated):** These are the D_Ca bags.\n    *   Number of premium bags = 354 bags\n    *   Cost per tin = $3.50\n    *   **Cost of Tins** = 354 * $3.50 = **$1239.00**\n\n*   **Other Bags (Paper Sacks):** All bags that are not premium.\n    *   Number of other bags = Total bags - Premium bags = 600 - 354 = 246 bags\n    *   Cost per sack = $0.60\n    *   **Cost of Sacks** = 246 * $0.60 = **$147.60**\n\n*   **Total Packaging Cost** = Cost of Tins + Cost of Sacks = $1239.00 + $147.60 = **$1386.60**\n\n**3. Calculate Promotion Costs (Samples + Stickers):**\n\n*   **Decaf Bags (Samples):** Every Decaf bag includes a $1.20 sample.\n    *   Number of Decaf bags = 120 bags\n    *   Cost per sample = $1.20\n    *   **Cost of Samples** = 120 * $1.20 = **$144.00**\n\n*   **Light-Roast Bags (Stickers):** Every Light-roast bag includes a $0.80 sticker.\n    *   Number of Light-roast bags = 210 bags\n    *   Cost per sticker = $0.80\n    *   **Cost of Stickers** = 210 * $0.80 = **$168.00**\n\n*   **Total Promotion Cost** = Cost of Samples + Cost of Stickers = $144.00 + $168.00 = **$312.00**\n\n**4. Compute the Total Packaging-plus-Promotion Cost:**\n\n*   **Total Cost** = Total Packaging Cost + Total Promotion Cost\n*   Total Cost = $1386.60 + $312.00 = **$1698.60**\n\nThe roaster's total packaging-plus-promotion cost for the month is $1698.60.\n\nThe final answer is $\\boxed{1698.60}$",
+          "input_tokens": 285,
+          "output_tokens": 3503,
+          "seconds": 15.15,
+          "run": 1
+        },
+        {
+          "text": "Here's a step-by-step breakdown to compute the total packaging-plus-promotion cost:\n\n**1. Calculate the number of bags for each roast level:**\n*   Total bags shipped = 600\n*   Light roast bags = 35% of 600 = 0.35 * 600 = 210 bags\n*   Dark roast bags = 600 - 210 = 390 bags (or 65% of 600)\n\n**2. Calculate the number of bags for each caffeine level:**\n*   Decaf bags = 20% of 600 = 0.20 * 600 = 120 bags\n*   Caffeinated bags = 600 - 120 = 480 bags (or 80% of 600)\n\n**3. Determine the breakdown of bags by both roast and caffeine type:**\n*   **Light-roast, Decaf (L_D):** Of the Light-roast bags (210), 40% were Decaf.\n    *   L_D = 0.40 * 210 = 84 bags\n*   **Light-roast, Caffeinated (L_C):** The remaining Light-roast bags must be Caffeinated.\n    *   L_C = 210 - 84 = 126 bags\n*   **Dark-roast, Decaf (D_D):** Total Decaf bags (120) minus the Light-roast Decaf bags (84).\n    *   D_D = 120 - 84 = 36 bags\n*   **Dark-roast, Caffeinated (D_C):** Total Caffeinated bags (480) minus the Light-roast Caffeinated bags (126).\n    *   D_C = 480 - 126 = 354 bags\n    *   *Self-check:* D_D + D_C = 36 + 354 = 390 (Matches total Dark roast bags). L_D + L_C + D_D + D_C = 84 + 126 + 36 + 354 = 600 (Matches total bags).\n\n**4. Calculate packaging costs:**\n*   **Premium bags (Dark roast AND Caffeinated)** ship in a reusable tin costing $3.50 each.\n    *   Number of Premium bags (D_C) = 354 bags\n    *   Cost of tins = 354 bags * $3.50/tin = $1239.00\n*   **All other bags** ship in a paper sack costing $0.60 each.\n    *   Number of other bags = Total bags - Premium bags = 600 - 354 = 246 bags\n    *   Cost of paper sacks = 246 bags * $0.60/sack = $147.60\n\n**5. Calculate promotion costs:**\n*   **Decaf bags** include a free $1.20 sample.\n    *   Number of Decaf bags = 120 bags\n    *   Cost of samples = 120 bags * $1.20/sample = $144.00\n*   **Light-roast bags** include a free $0.80 sticker.\n    *   Number of Light-roast bags = 210 bags\n    *   Cost of stickers = 210 bags * $0.80/sticker = $168.00\n\n**6. Compute the total packaging-plus-promotion cost:**\n*   Total Cost = Cost of tins + Cost of paper sacks + Cost of samples + Cost of stickers\n*   Total Cost = $1239.00 + $147.60 + $144.00 + $168.00\n*   Total Cost = $1698.60\n\nThe roaster's total packaging-plus-promotion cost for the month is $1698.60.\n\nThe final answer is $\\boxed{1698.60}$",
+          "input_tokens": 285,
+          "output_tokens": 3305,
+          "seconds": 14.24,
+          "run": 2
+        },
+        {
+          "text": "To compute the roaster's total packaging-plus-promotion cost, we need to break down the calculation into the following steps:\n1.  Determine the number of bags for each relevant category (roast level and caffeine type).\n2.  Calculate the total cost for packaging (tins and sacks).\n3.  Calculate the total cost for promotions (samples and stickers).\n4.  Sum all these costs for the final answer.\n\n**Step 1: Determine the quantity of each bag type.**\n\n*   **Total Bags Shipped:** 600 bags.\n\n*   **Roast Levels:**\n    *   Light Roast bags: 35% of 600 = 0.35 * 600 = **210 bags**\n    *   Dark Roast bags: 600 - 210 = **390 bags** (or 65% of 600)\n\n*   **Caffeine Levels (Overall):**\n    *   Decaf bags: 20% of 600 = 0.20 * 600 = **120 bags**\n    *   Caffeinated bags: 600 - 120 = **480 bags** (or 80% of 600)\n\n*   **Breakdown by Roast and Caffeine:**\n    *   \"Of the Light-roast bags specifically, 40% were Decaf.\"\n        *   Light Roast Decaf (LD): 40% of Light roast bags = 0.40 * 210 = **84 bags**\n    *   Light Roast Caffeinated (LC): Total Light roast bags - LD bags = 210 - 84 = **126 bags**\n    *   Dark Roast Decaf (KD): Total Decaf bags - LD bags = 120 - 84 = **36 bags**\n    *   Dark Roast Caffeinated (KC - these are the \"premium\" bags):\n        *   Total Dark roast bags - KD bags = 390 - 36 = **354 bags**\n        *   (Cross-check: Total Caffeinated bags - LC bags = 480 - 126 = 354 bags. This confirms consistency.)\n\n**Summary of Bag Quantities:**\n*   Light Decaf (LD): 84 bags\n*   Light Caffeinated (LC): 126 bags\n*   Dark Decaf (KD): 36 bags\n*   Dark Caffeinated (KC - Premium): 354 bags\n    *(Total: 84 + 126 + 36 + 354 = 600 bags)*\n\n**Step 2: Calculate the total packaging cost.**\n\n*   **Premium Bags (Dark Roast AND Caffeinated):**\n    *   Number of Premium bags = 354 bags\n    *   Cost per reusable tin = $3.50\n    *   Cost of tins = 354 * $3.50 = **$1239.00**\n\n*   **Other Bags (all non-premium bags):**\n    *   Number of other bags = Total bags - Premium bags = 600 - 354 = 246 bags\n    *   Cost per paper sack = $0.60\n    *   Cost of sacks = 246 * $0.60 = **$147.60**\n\n*   **Total Packaging Cost:** $1239.00 (tins) + $147.60 (sacks) = **$1386.60**\n\n**Step 3: Calculate the total promotion cost.**\n\n*   **Decaf Bag Promotion (free sample):**\n    *   Number of Decaf bags = 120 bags (LD + KD = 84 + 36)\n    *   Cost per sample = $1.20\n    *   Cost of samples = 120 * $1.20 = **$144.00**\n\n*   **Light-Roast Bag Promotion (free sticker):**\n    *   Number of Light-roast bags = 210 bags (LD + LC = 84 + 126)\n    *   Cost per sticker = $0.80\n    *   Cost of stickers = 210 * $0.80 = **$168.00**\n\n*   **Total Promotion Cost:** $144.00 (samples) + $168.00 (stickers) = **$312.00**\n\n**Step 4: Compute the roaster's total packaging-plus-promotion cost.**\n\n*   Total Cost = Total Packaging Cost + Total Promotion Cost\n*   Total Cost = $1386.60 + $312.00 = **$1698.60**\n\nThe roaster's total packaging-plus-promotion cost for the month is $1698.60.\n\nThe final answer is $\\boxed{1698.60}$",
+          "input_tokens": 285,
+          "output_tokens": 3505,
+          "seconds": 14.71,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.14,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -0.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

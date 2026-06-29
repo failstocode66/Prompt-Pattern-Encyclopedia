@@ -1,0 +1,683 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "direct-answer",
+  "date": "2026-06-29 11:19",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "The single correct value is 6, output as the bare integer `6` and nothing else. A /29 leaves 32 \u2212 29 = 3 host bits \u2192 2^3 = 8 total addresses; subtracting the network address and the broadcast address yields 8 \u2212 2 = 6 USABLE host addresses. The word \"usable\" is load-bearing: it is the trap. A strong direct-answer execution returns exactly `6`. Failure modes a judge must catch: (1) Confident wrong answer \u2014 returning `8` (forgot to subtract network+broadcast) or `7` (subtracted only one) is the dominant near-miss and should be scored low on accuracy; both are plausible bare values with no trace, exactly the risk this pattern amplifies. (2) Format mismatch \u2014 any output other than the bare digit fails format compliance: \"6 hosts\", \"6.\", \"Six\", \"6 usable addresses\", a leading/trailing space, a sentence, or a code fence. (3) Preamble leakage \u2014 any acknowledgment, restatement, \"The answer is\", or trailing caveat (\"though this assumes...\") violates the no-preamble/no-explanation constraint even if `6` appears somewhere inside. (4) Silent over-hedging \u2014 refusing to commit, offering a range (\"6-8 depending on configuration\"), or appending the arithmetic is a direct-answer failure. The ONLY fully-correct output is the two characters that form the integer 6 with no whitespace, no punctuation, no other tokens.",
+    "format_spec": "Exactly one base-10 integer, no leading/trailing whitespace, no units, no punctuation, no quotation marks, no code fence, no label, no surrounding sentence. The output as a whole must parse directly as an integer (e.g. Python `int(output.strip()) == 6`, ideally without even needing `.strip()`).",
+    "tone": "Machine-consumable; zero register. The output is a value destined for a form field or downstream parser, not a message to a human. No assistant voice whatsoever."
+  },
+  "prompt": "Output only the answer. No explanation, no preamble, no units, no punctuation, no surrounding prose. The entire output must be a single base-10 integer and nothing else.\n\nIn a standard IPv4 network using classless inter-domain routing, how many usable host addresses can be assigned to devices in a /29 subnet?\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs give the correct value for usable hosts in a /29 subnet: 6. This matches the task and the reference exactly.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The prompt required only the answer, with no explanation or extra text, and each run provides exactly that single integer.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The output in every run is a bare base-10 integer with no whitespace, punctuation, labels, or surrounding prose, matching the specified format exactly.",
+          "evidence": "Run 1 output is exactly `6`; Run 2 output is exactly `6`; Run 3 output is exactly `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is perfectly machine-consumable and register-free, with no assistant voice or human-facing phrasing.",
+          "evidence": "Each run consists solely of the token `6`, with no additional wording.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The response contains no harmful, biased, or inappropriate content.",
+          "evidence": "Runs 1-3 are each only `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "The model achieves the correct answer in the minimum possible output length, so token use is maximally efficient relative to quality.",
+          "evidence": "Each run outputs only 4 tokens as reported, and the visible content is just `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All runs are identical in content, structure, and quality; there is no semantic or format variation across runs. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "A flawless execution of the direct-answer pattern across all three runs. The model returns exactly '6' \u2014 the correct usable host count for a /29 subnet \u2014 with no preamble, no explanation, no units, no punctuation, and no assistant voice. Format compliance, accuracy, consistency, and efficiency are all maximal. No failure modes (returning 8 or 7, hedging, or format leakage) appeared in any run.",
+      "runs": [
+        {
+          "text": "6",
+          "input_tokens": 72,
+          "output_tokens": 4,
+          "seconds": 0.87,
+          "run": 1
+        },
+        {
+          "text": "6",
+          "input_tokens": 72,
+          "output_tokens": 4,
+          "seconds": 1.08,
+          "run": 2
+        },
+        {
+          "text": "6",
+          "input_tokens": 72,
+          "output_tokens": 4,
+          "seconds": 0.92,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0,
+        "max_spread": 0,
+        "contested_dims": [],
+        "self_preference_delta": 0
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.9,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "The response is factually correct for the prompt: a /29 subnet has 8 total addresses, 6 usable host addresses. All three runs return the correct value.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "It fully satisfies the direct-answer task by providing the single required value and nothing else. No auxiliary explanation or missing requirement is present.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "The outputs exactly match the required format: a bare base-10 integer with no whitespace, punctuation, label, or extra tokens.",
+          "evidence": "Run 1 output is exactly `6` (5 tokens reported, but the visible output is a single integer); same for Runs 2 and 3.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is perfectly machine-consumable and neutral, with zero assistant voice or human-facing framing, matching the specified audience.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and purely informational, with no harmful, biased, or inappropriate material.",
+          "evidence": "All runs consist solely of the integer `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "The model uses the minimum possible output length for full correctness. Given the task and token counts, this is maximally efficient.",
+          "evidence": "Each run produced only `6` and is reported as 5 output tokens, with no padding or explanation.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All three runs are identical in meaning, structure, and quality, showing perfect repeatability across runs. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "Perfect direct-answer performance: correct, exact-format, minimal, and fully consistent across all three runs.",
+      "runs": [
+        {
+          "text": "6",
+          "input_tokens": 81,
+          "output_tokens": 5,
+          "seconds": 1.76,
+          "run": 1
+        },
+        {
+          "text": "6",
+          "input_tokens": 81,
+          "output_tokens": 5,
+          "seconds": 1.29,
+          "run": 2
+        },
+        {
+          "text": "6",
+          "input_tokens": 81,
+          "output_tokens": 5,
+          "seconds": 1.52,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.43,
+        "max_spread": 2,
+        "contested_dims": [
+          "format_compliance"
+        ],
+        "self_preference_delta": 1.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.6,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs give the correct value for usable hosts in a /29 subnet, which is 6.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The prompt demanded only the final integer with no explanation or extra text, and each run supplies exactly that value.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Each run matches the required bare integer format exactly, with no punctuation, units, labels, or surrounding prose.",
+          "evidence": "Run 1 output is exactly `6`; Run 2 output is exactly `6`; Run 3 output is exactly `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The responses are machine-consumable and contain no human-facing register, which matches the zero-register requirement.",
+          "evidence": "All three runs contain only the bare integer `6` and no assistant voice or explanation.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and free from harmful, biased, or inappropriate material.",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "While the textual outputs themselves are optimal, the reported output token counts are extremely high relative to the one-token answer, indicating very poor efficiency for the quality delivered.",
+          "evidence": "Run 1: `6` with 199 output tokens; Run 2: `6` with 216 output tokens; Run 3: `6` with 232 output tokens.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.67,
+            "median": 1,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All runs are fully consistent in both structure and meaning: each returns the same bare integer with no deviations. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1: `6`; Run 2: `6`; Run 3: `6`.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "The model executed the direct-answer pattern with exceptional accuracy, completeness, format compliance, tone/style, and safety, consistently returning the bare integer '6'. However, the reported output token counts are extremely high for this minimalist output, indicating a significant inefficiency that severely impacts this dimension.",
+      "runs": [
+        {
+          "text": "6",
+          "input_tokens": 71,
+          "output_tokens": 199,
+          "seconds": 1.84,
+          "run": 1
+        },
+        {
+          "text": "6",
+          "input_tokens": 71,
+          "output_tokens": 216,
+          "seconds": 1.89,
+          "run": 2
+        },
+        {
+          "text": "6",
+          "input_tokens": 71,
+          "output_tokens": 232,
+          "seconds": 2.08,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.29,
+        "max_spread": 2,
+        "contested_dims": [
+          "efficiency"
+        ],
+        "self_preference_delta": -1
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}
