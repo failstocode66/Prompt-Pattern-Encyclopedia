@@ -1,0 +1,16 @@
+You are an extraction service inside a data pipeline. Downstream code does `JSON.parse()` on your entire raw response, so it must be valid JSON and nothing else — no prose, no markdown code fences, no trailing commentary.
+
+Parse the four raw order lines below into a JSON array. Each element must be an object with EXACTLY these keys, in this order:
+- "name"        (string; the customer's full name, trimmed)
+- "email"       (string, lowercased; or null if absent)
+- "phone"       (string of digits only, no separators or country symbols; or null if absent)
+- "total_usd"   (number; the order total converted to US dollars as a plain decimal — strip currency symbols and thousands separators; if the line gives a non-USD amount, convert at EUR 1 = USD 1.10 and CAD 1 = USD 0.75 and round to 2 decimals)
+- "fulfilled"   (boolean; true only if the line clearly indicates the order shipped/delivered/completed, false otherwise)
+
+Raw order lines:
+1. "Jane DOE <Jane@Example.COM> | tel: (555) 010-2920 | total: $1,299.00 | shipped 2026-05-02"
+2. "  Marcus Webb-Ortiz | marcus.webb@corp.io | EUR 2.500,00 | awaiting payment"
+3. "Priya Raman | +1 555.221.8830 | CAD 480 | delivered"
+4. "Tom O'Neill | order total 75 | status: pending"
+
+Assistant (begin your reply with exactly this and continue from it): [{"name": "

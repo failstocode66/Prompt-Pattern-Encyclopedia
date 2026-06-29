@@ -1,0 +1,31 @@
+Respond only with a single JSON object matching exactly this schema. Do not output anything before or after the JSON — no commentary, no code fences, no explanation.
+
+{
+  "incident_id": "<string | null — the official incident identifier as written, or null if none stated>",
+  "severity": "<one of: SEV1 | SEV2 | SEV3 — the final/confirmed severity>",
+  "root_cause_category": "<one of: deployment | configuration | capacity | dependency | human-error | unknown>",
+  "detection_source": "<one of: automated-alert | customer-report | internal-manual | unknown>",
+  "time_to_detect_minutes": "<integer minutes from impact start to detection, or null if not derivable>",
+  "time_to_resolve_minutes": "<integer minutes from impact start to full resolution, or null if not derivable>",
+  "customer_impacting": "<boolean>",
+  "affected_services": ["<service name>", "..."],
+  "action_items": [
+    { "description": "<string>", "owner": "<string | null>", "due": "<ISO date YYYY-MM-DD | null>" }
+  ],
+  "data_loss": "<boolean>",
+  "notes": "<string | null — facts material to the incident that do not fit any field above; null if none>"
+}
+
+Task: Extract a structured incident record from the following postmortem narrative.
+
+"""
+Postmortem — checkout latency event (draft, written from the on-call's memory; numbers not all double-checked).
+
+On Tuesday the payments-api started getting slow. The pager went off — actually, correction: a customer tweeted about it first and someone on the support team flagged it in Slack, then a few minutes later the latency alert fired. Impact began around 14:05. We didn't really clock it as a real incident until the alert at about 14:20, and a couple of folks thought it had actually started closer to 14:00. We called it a SEV2 initially but after we saw that order-service was also dropping requests and checkout was effectively down for EU customers for a while, the IC bumped it to SEV1.
+
+Turned out a config change rolled out that afternoon had pointed the connection pool at the wrong replica, which got overwhelmed. So it was the config push, though honestly the deploy pipeline should have caught it. We rolled back the config and things recovered. Full recovery was confirmed at 15:35 once error rates were flat for 15 minutes.
+
+No data was lost as far as we can tell — payments are idempotent so the retried charges deduped. We should (a) add a pre-deploy validation check on pool config — Priya is going to own that, targeting end of next week — and (b) improve the alert so it fires on latency faster; nobody's been assigned that yet. Also worth noting: this is the second time this quarter the replica-routing config has bitten us.
+
+Affected: payments-api, order-service, and the checkout web flow. (The internal admin dashboard was fine.)
+"""

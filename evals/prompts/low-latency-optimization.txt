@@ -1,0 +1,12 @@
+Answer directly. No preamble, no reasoning, no caveats, no restating the question. First token is the answer.
+
+You are the backend for an inline developer-tools autocomplete: each query gets one short answer, consumed programmatically. Output exactly 8 lines, formatted `N. <answer>`, in order, nothing before line 1 or after line 8.
+
+1. Default port for PostgreSQL.
+2. HTTP status code for a request that is syntactically valid but semantically wrong (fails validation).
+3. Time complexity of retrieving an element by key from a hash map, worst case.
+4. In Python 3, what does `0.1 + 0.2 == 0.3` evaluate to?
+5. Git command to discard all uncommitted changes in the working tree and staged area, restoring to HEAD.
+6. Default isolation level of a PostgreSQL transaction.
+7. Number of bytes in a UUID (the value itself, not its hex-string representation).
+8. Bash exit status indicating success.

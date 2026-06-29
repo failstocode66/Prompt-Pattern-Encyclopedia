@@ -1,0 +1,2768 @@
+{
+  "tool": "PromptEval v1.1 (batch)",
+  "date": "2026-06-29 15:57",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "models": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "evals": [
+    {
+      "tool": "PromptEval v1.1",
+      "pattern": "creative-flow",
+      "date": "2026-06-29 15:31",
+      "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+      "runs_per_model": 3,
+      "review_mode": "automated",
+      "context": {
+        "expected": "A strong answer is a numbered list 1\u20138 of eight distinct taglines, every one genuinely seven words or fewer, holding a single consistent deadpan/dry register throughout \u2014 flat, observational, faintly weary, never upbeat or sentimental. The wit must come from true observation about the actual situation (waiting for a dryer; nowhere else to be at 3am; the wifi as the real reason to stay; folding as a small private ritual; the vending machine as company), not from cleverness imposed from outside. It must honor every banned word \u2014 no \"spin/load/wash/clean/fresh/bright\" puns \u2014 and avoid the clich\u00e9s explicitly ruled out (sparkle, bubbles, \"fresh start,\" \"clean slate\") AND their unbanned synonyms (e.g. \"renewal,\" \"shine,\" \"brand new you\"), since smuggling the clich\u00e9 in different words is the same failure. No exclamation points anywhere. The taglines should fit a laundromat that is genuinely just open-24-hours + free-wifi + tables + vending (no invented amenities like coffee bars, lounges, or attendants), so the deadpan stays grounded in the real, modest pitch. Subtle flaws a judge should catch: (1) Registers incorrectly \u2014 drifting into upbeat/peppy or quirky-cute tagline voice, or overcorrecting into bleak/depressing rather than dry-funny; deadpan is specifically wry, not sad. (2) Shallow stylization \u2014 fragments dressed as \"dry\" via em-dashes and clipped adjective stacks but with no actual observation underneath; lines that are merely terse, not witty. (3) No guardrails \u2014 sliding into laundry clich\u00e9 or sentimentality despite the bans (the \"fresh start\" feeling reappearing as \"begin again,\" etc.). (4) Voice over accuracy \u2014 taglines that contradict the brief (implying staff, daytime hours, a caf\u00e9, premium positioning) for the sake of a punchy line, or that violate the 7-word / no-exclamation / banned-word constraints while sounding good. The best sets show range across the eight (the wait, the hour, the wifi, the folding, the solitude, the machine itself) rather than eight rephrasings of one joke.",
+        "format_spec": "A numbered list, items 1 through 8, one tagline per line. Each tagline must be seven words or fewer. No exclamation points anywhere. No preamble, no explanation, no commentary before or after the list \u2014 just the eight numbered lines (the pattern explicitly forbids planning, explaining, and caveating).",
+        "tone": "Deadpan, dry, observational copywriting \u2014 flat and faintly weary, wry rather than peppy and never sentimental or bleak; brand-voice taglines for a modest 24-hour laundromat."
+      },
+      "prompt": "Write without overthinking. Don't plan, don't explain, don't caveat. Just write.\n\nEight taglines for \"Spin Cycle,\" a 24-hour self-service laundromat on a quiet residential street. It has free wifi, big folding tables, and a vending machine; that's the whole pitch. The voice is deadpan and dry \u2014 flat, faintly weary, the tone of someone who has watched a lot of people wait for a dryer. Funny only in the way a true observation is funny. No exclamation points. No puns on \"spin,\" \"load,\" \"wash,\" \"clean,\" \"fresh,\" or \"bright.\" No sparkle, no bubbles, no \"fresh start\" / \"clean slate\" feelings. Each tagline seven words or fewer. Number them 1 through 8.\n",
+      "models": [
+        {
+          "model": "gpt-5.4-mini",
+          "overall": 3.4,
+          "verdict": "Mixed",
+          "dimensions": {
+            "accuracy": {
+              "score": 3,
+              "justification": "Mostly on-task and factually aligned with the brief: all three runs are grounded in a 24-hour self-service laundromat with wifi, tables, vending, and a dry observational voice. However, the set occasionally drifts from the reference\u2019s \u201cwry, not sad\u201d constraint into bleaker phrasing, e.g. run 1 \u201creasons both practical and bleak\u201d and run 2 \u201ctables large enough for surrender,\u201d which edges toward depressive rather than dry-funny.",
+              "evidence": "Run 1: \u201cOpen all night, for reasons both practical and bleak.\u201d Run 2: \u201cFree wifi. Tables large enough for surrender.\u201d Run 3 stays closer to brief: \u201cWi\u2011Fi included, since waiting is the service\u201d and \u201cVending machine available for the unplanned interval.\u201d",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 3.33,
+                "median": 4,
+                "spread": 2,
+                "stdev": 0.94,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1
+                }
+              }
+            },
+            "completeness": {
+              "score": 3,
+              "justification": "The response satisfies the main structural request: eight numbered taglines per run, each intended to be seven words or fewer, with no preamble. It also covers several of the desired situational angles across the sets\u2014hours, wifi, folding tables, vending machine, waiting, and machines. The main shortfall is that it does not strongly demonstrate the full range the reference asks for (the wait, the hour, the wifi, folding, solitude, the machine itself) in every run, and some lines are shallow rather than sharply observational.",
+              "evidence": "All runs provide items 1\u20138. Examples of coverage include run 1: \u201cWiFi works. The folding tables are large.\u201d / \u201cVending machine included, because hunger is predictable.\u201d / \u201cStill open when you remember the towels.\u201d Run 2: \u201cFree wifi. Tables large enough for surrender.\u201d / \u201cQuiet street, loud dryers, same outcome every time.\u201d Run 3: \u201cBig tables for the sorting you keep postponing\u201d / \u201cA place to sit while time passes\u201d / \u201cVending machine available for the unplanned interval\u201d.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 3.33,
+                "median": 4,
+                "spread": 2,
+                "stdev": 0.94,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 3,
+              "justification": "The outputs follow the required numbered-list shape and contain exactly eight items each, with no preamble or commentary. They largely respect the seven-words-or-fewer constraint and avoid exclamation points. The score is not a 5 because there are small format-adjacent issues: run 3 uses a nonstandard hyphenated form \u201cWi\u2011Fi\u201d (acceptable but not identical to prompt wording), and several lines are borderline fragments rather than polished taglines; nonetheless, the requested format itself is adhered to.",
+              "evidence": "All runs are numbered 1 through 8 with one tagline per line and no extra text. Example run 2: \u201c1. Open all night, mostly for your laundry.\u201d through \u201c8. Twenty-four hours for people with nothing else.\u201d No exclamation points appear in any run.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 2,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 2.67,
+                "median": 2,
+                "spread": 2,
+                "stdev": 0.94,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 2
+                }
+              }
+            },
+            "tone_style": {
+              "score": 3,
+              "justification": "The dominant tone is dry and observational, but it is inconsistent in register. Several lines hit the intended deadpan voice well, yet others veer into bleakness or mildly quirky/tagline-like phrasing instead of the requested wry flatness. Because the reference explicitly distinguishes wry deadpan from sad/bleak or cute, this is a noticeable though not catastrophic miss.",
+              "evidence": "Strong deadpan examples: run 1 \u201cQuiet street. Loud machines. A fair arrangement.\u201d and \u201cSit, wait, fold, leave. In that order, usually.\u201d Run 2 \u201cQuiet street, loud dryers, same outcome every time.\u201d Less aligned: run 1 \u201cfor reasons both practical and bleak,\u201d run 2 \u201cTables large enough for surrender,\u201d and run 3 \u201claundry never learned manners\u201d and \u201cYou may leave with matching socks, maybe,\u201d which read more playful or slightly cute than strictly dry.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The content is benign: ordinary commercial taglines for a laundromat with no harmful, sexual, hateful, or otherwise unsafe material. It avoids the prohibited promotional clich\u00e9s and does not introduce inappropriate content.",
+              "evidence": "All three runs remain within laundromat copy, e.g. \u201cVending machine included, because hunger is predictable,\u201d \u201cQuiet street, loud dryers, same outcome every time,\u201d and \u201cA place to sit while time passes.\u201d",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 3,
+              "justification": "The outputs are reasonably concise for eight taglines each and do not contain obvious filler, given the creative task. Still, some lines are more generic than necessary, and several runs spend tokens on slightly abstract phrasing (\u201cpractical and bleak,\u201d \u201csurrender,\u201d \u201cunplanned interval\u201d) where sharper observational economy would have better matched the brief. Overall, the token counts shown are modest for the quality delivered, but not maximally tight.",
+              "evidence": "Run lengths are 109, 103, and 95 output tokens for eight short taglines each. Examples of slightly wasteful abstraction include run 1 \u201cOpen all night, for reasons both practical and bleak,\u201d run 2 \u201cTables large enough for surrender,\u201d and run 3 \u201cVending machine available for the unplanned interval.\u201d",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 3.33,
+                "median": 4,
+                "spread": 2,
+                "stdev": 0.94,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1
+                }
+              }
+            },
+            "consistency": {
+              "score": 4,
+              "justification": "Across runs, the core answer stays stable: all three deliver eight short numbered laundromat taglines centered on being open all night, wifi, tables, vending, and waiting. The structure is identical and the semantic direction is consistent. The runs do differ somewhat in quality and register\u2014run 1 is a bit bleaker, run 2 is strongest and most on-tone, and run 3 is slightly more playful/general\u2014but these are variations in emphasis rather than contradictions. [lexical similarity ratio: 0.075]",
+              "evidence": "Common core across runs includes \u201cOpen all night\u201d (runs 1, 2, 3), wifi mention (runs 1, 2, 3), folding tables (runs 1, 2, 3), and vending machine (runs 1, 2, 3). Quality/register differences are visible in run 1\u2019s \u201cpractical and bleak\u201d versus run 2\u2019s \u201csame outcome every time\u201d and run 3\u2019s \u201claundry never learned manners.\u201d",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 4,
+                "median": 4,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              },
+              "lexical_similarity": 0.075
+            }
+          },
+          "judge_summary": "The model demonstrates solid conceptual grasp of the deadpan brief and delivers genuinely observational lines grounded in the actual amenities across all three runs. Standout lines (R3 #2, R1 #8, R1 #6, R2 #3) show real wit in the requested register. The primary failure is consistent, repeated violation of the seven-words-or-fewer hard constraint \u2014 roughly two to three lines per run exceed the limit \u2014 making format compliance the weakest dimension. Tone is mostly right but a meaningful minority of lines slide into bleak-rather-than-wry or quirky-cute-rather-than-deadpan territory. Structural and qualitative consistency across runs is good, token efficiency is solid, and safety is unambiguous. To earn higher marks, the model would need to count words reliably and more uniformly sustain the flat-observational register without drifting toward either sentimentality or despondency.",
+          "runs": [
+            {
+              "text": "1. Open all night, for reasons both practical and bleak.  \n2. WiFi works. The folding tables are large.  \n3. Your socks may separate. So will the quarters.  \n4. Vending machine included, because hunger is predictable.  \n5. Quiet street. Loud machines. A fair arrangement.  \n6. Sit, wait, fold, leave. In that order, usually.  \n7. Clothes in, time out, everyone manages somehow.  \n8. Still open when you remember the towels.",
+              "input_tokens": 168,
+              "output_tokens": 109,
+              "seconds": 3.67,
+              "run": 1
+            },
+            {
+              "text": "1. Open all night, mostly for your laundry.  \n2. Free wifi. Tables large enough for surrender.  \n3. The machines work. Usually before you do.  \n4. Quiet street, loud dryers, same outcome every time.  \n5. Sit down, wait, and judge your socks.  \n6. Vending machine nearby, in case hope runs out.  \n7. Fold here, if you must pretend efficiency.  \n8. Twenty-four hours for people with nothing else.",
+              "input_tokens": 168,
+              "output_tokens": 103,
+              "seconds": 2.44,
+              "run": 2
+            },
+            {
+              "text": "1. Open all night, because laundry never learned manners  \n2. Wi\u2011Fi included, since waiting is the service  \n3. Big tables for the sorting you keep postponing  \n4. The machines work. Sometimes they even finish together  \n5. Quiet street, loud dryers, standard arrangement  \n6. A place to sit while time passes  \n7. Vending machine available for the unplanned interval  \n8. You may leave with matching socks, maybe",
+              "input_tokens": 168,
+              "output_tokens": 95,
+              "seconds": 1.88,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "openai",
+            "mean_spread": 1.14,
+            "max_spread": 2,
+            "contested_dims": [
+              "accuracy",
+              "completeness",
+              "format_compliance",
+              "efficiency"
+            ],
+            "self_preference_delta": 5
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "overall": 4.6,
+          "verdict": "Strong",
+          "dimensions": {
+            "accuracy": {
+              "score": 4,
+              "justification": "Generally on-task and mostly faithful to the brief: all three runs keep a deadpan laundromat voice, avoid the banned spin/load/wash/clean/fresh/bright puns, and stay within seven words per line. However, some lines are only lightly observational rather than genuinely witty (e.g., R1.2 \"The folding tables are genuinely large.\", R2.6 \"Big tables. Take your time. Go ahead.\"), and a few entries slightly drift from the requested grounded pitch by sounding more generic than specifically laundromat-relevant.",
+              "evidence": "Run 1: \"Open at 3am. No one will ask.\"; Run 2: \"The wifi works. The rest is fine.\"; Run 3: \"We have a vending machine. That's it.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.33,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "completeness": {
+              "score": 5,
+              "justification": "Every run delivers exactly eight numbered taglines with no preamble or postamble. Coverage spans all required territory: late-night hours (all runs #1), wifi (Runs 1 #5, 2 #3, 3 #3), folding tables (Runs 1 #2, 2 #6, 3 #5), waiting/solitude (Runs 1 #3/#6, 2 #4/#5, 3 #4/#8), vending machine (Run 3 #6), and the overall low-key pitch (Run 1 #8, Run 2 #8). No required element is missed or superficial.",
+              "evidence": "Run 3: #1 (3am), #3 (wifi), #4 (not being home/waiting), #5 (tables), #6 (vending machine), #8 (solitude/permission). Run 2: #5 'A place to be until you're not' (solitude+waiting). Full range achieved across all runs.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 5,
+              "justification": "The output matches the specified shape exactly across all runs: each run is a numbered list from 1 to 8 with one tagline per line, no preamble or commentary, no exclamation points, and every line appears to be seven words or fewer.",
+              "evidence": "Run 1-3 all begin with \"1.\" and end with \"8.\", with no extra text before or after. Example: Run 2 line 1 \"Open at 3am. No questions asked.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "tone_style": {
+              "score": 4,
+              "justification": "The tone is consistently deadpan, dry, flat, and faintly weary, which is close to the requested brand voice. It avoids peppy or sentimental language. That said, some lines are more functional or generic than wryly observational, and a few verge on blandness rather than the sharper dry-funny register expected of strong brand taglines.",
+              "evidence": "Run 2: \"The wifi works. The rest is fine.\" and \"Nobody's watching. Fold however you want.\"; Run 3: \"Forty minutes of not being home.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.33,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The content is benign and non-harmful. It contains no abusive, sexual, violent, or otherwise unsafe material, and no problematic demographic targeting or sensitive-content issues.",
+              "evidence": "All runs are straightforward laundromat taglines such as Run 1 \"Still open. Still here. Bring quarters.\" and Run 3 \"We have a vending machine. That's it.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 5,
+              "justification": "96, 98, and 101 output tokens respectively for eight complete, quality taglines with zero padding. No explanation, no planning prose, no filler. The pattern instruction to suppress caveating and preamble was followed perfectly, keeping token cost minimal without sacrificing output quality.",
+              "evidence": "Run 1: 96 tokens, 8 lines, no wasted text. Run 3: 101 tokens, 8 lines. Cost-to-quality ratio is maximally tight.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              }
+            },
+            "consistency": {
+              "score": 4,
+              "justification": "Across runs, the answer is structurally stable and semantically aligned: all three are eight-line numbered lists of dry laundromat taglines with the same core themes. There is some variation in which situational angle is emphasized and in how sharp versus generic individual lines feel, but no contradictions or structural divergence. This is good consistency, though not perfect sameness of coverage/quality. [lexical similarity ratio: 0.215]",
+              "evidence": "Runs 1-3 all use the same 1\u20138 numbered format and recurring motifs like late hours and waiting, e.g. Run 1 \"Open at 3am. No one will ask.\" / Run 2 \"Open at 3am. No questions asked.\" / Run 3 \"Open at 3am. No questions asked.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.33,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              },
+              "lexical_similarity": 0.215
+            }
+          },
+          "judge_summary": "Three tight, constraint-clean outputs that largely succeed at the deadpan-observational brief. Format compliance and efficiency are perfect \u2014 bare numbered lists, no preamble, no exclamation points, all within 7 words, low token cost. Banned words, invented amenities, and clich\u00e9 synonyms are avoided across all runs. Runs 2 and 3 are the stronger pair, delivering genuine observation ('Forty minutes of not being home,' 'A place to be until you're not,' 'We have a vending machine. That's it.') that earns the dry wit from real situational truth rather than from terseness alone. Run 1 is slightly thinner \u2014 #7 is conventional advertising language that any brand could use, not grounded observation \u2014 and pulls the consistency and tone scores just below top marks. Overall a very strong execution of the creative-flow pattern.",
+          "runs": [
+            {
+              "text": "1. Open at 3am. No one will ask.\n2. The folding tables are genuinely large.\n3. Somewhere to be while you wait.\n4. Your clothes need this. You know.\n5. Free wifi. The dryers take quarters.\n6. Nobody here knows you either.\n7. It gets the job done every time.\n8. Still open. Still here. Bring quarters.",
+              "input_tokens": 191,
+              "output_tokens": 96,
+              "seconds": 3.5,
+              "run": 1
+            },
+            {
+              "text": "1. Open at 3am. No questions asked.\n2. Your clothes will eventually be dry.\n3. The wifi works. The rest is fine.\n4. Nobody's watching. Fold however you want.\n5. A place to be until you're not.\n6. Big tables. Take your time. Go ahead.\n7. Something is always tumbling in there.\n8. You needed somewhere to go. Here.",
+              "input_tokens": 191,
+              "output_tokens": 98,
+              "seconds": 13.43,
+              "run": 2
+            },
+            {
+              "text": "1. Open at 3am. No questions asked.\n2. Your clothes will eventually be dry.\n3. The wifi works. The rest is laundry.\n4. Forty minutes of not being home.\n5. Folding tables big enough to matter.\n6. We have a vending machine. That's it.\n7. Come back when the cycle ends.\n8. Nobody's watching. Do your laundry weird.",
+              "input_tokens": 191,
+              "output_tokens": 101,
+              "seconds": 3.19,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "anthropic",
+            "mean_spread": 0.71,
+            "max_spread": 1,
+            "contested_dims": [],
+            "self_preference_delta": -0.5
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "overall": 3.3,
+          "verdict": "Mixed",
+          "dimensions": {
+            "accuracy": {
+              "score": 3,
+              "justification": "The runs are generally on-topic and mostly respect the banned-word constraints, but they repeatedly drift away from the required deadpan, wry observational voice into bland description or mild contradiction. Run 2 also introduces an invented caf\u00e9-like element ('Coffee from a machine') that is not in the brief, and Run 3 has a direct accuracy issue with 'We're open when you need us,' which weakens the fixed 24-hour, grounded pitch by sounding like generic service copy.",
+              "evidence": "Run 1: 'Laundry happens here. It always does.' / 'Watch clothes spin. Pass the time.' are on-topic but not especially witty. Run 2: 'Coffee from a machine. Drying continues.' adds an unsupported amenity. Run 3: 'We're open when you need us.' is generic and less grounded in the specified 24-hour, self-service laundromat pitch.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 2.67,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1
+                }
+              }
+            },
+            "completeness": {
+              "score": 4,
+              "justification": "All three runs deliver exactly eight taglines and together cover the core amenities (wifi, folding tables, vending/snacks, 24-hour hours, waiting). Range is reasonable. The expected depth on the late-night/3am solitude angle is largely absent, and no run develops a tagline from the perspective of the hour or the empty-room stillness, but the factual pitch is covered.",
+              "evidence": "Wifi: Run 1 #3 'Your clothes are washing. Free wifi'; Run 2 #3 'Wifi works here, mostly'; Run 3 #5 'Wifi works if you want it.' Folding: Run 1 #4, Run 2 #2, Run 3 #3. Vending: Run 1 #5, Run 2 #7, Run 3 #7. 24-hour open: Run 1 #6, Run 3 #2 (off-register), Run 2 #8. Solitude/3am angle: effectively absent across all runs.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4,
+                "median": 4,
+                "spread": 2,
+                "stdev": 0.82,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1.5
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 3,
+              "justification": "While Runs 2 and 3 largely adhered to the specified format (numbered list, seven words or fewer per tagline, no exclamation points, no preamble), Run 1 failed on a crucial word count constraint. Its first tagline exceeded the seven-word limit. This inconsistency in structural compliance across runs prevents an 'exact format match' score.",
+              "evidence": "Run 1, tagline 1: 'Laundry happens here. It always does.' (8 words, violating the 'seven words or fewer' requirement).",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3.33,
+                "median": 3,
+                "spread": 3,
+                "stdev": 1.25,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "tone_style": {
+              "score": 3,
+              "justification": "Run 2 achieves genuine deadpan through wry hedging \u2014 'eventually' and 'mostly' do exactly what dry wit requires. Run 1 produces flat statements that are terse without being witty ('Big tables for all your folding,' 'Just laundry. Nothing more, nothing less.'). Run 3 swings between bleak ('The machines take your money.') and warm customer-service register ('We're open when you need us.'), both wrong. Typical behavior across runs is passable but uneven.",
+              "evidence": "Run 2 #1: 'The clothes get dry, eventually.' and Run 2 #3: 'Wifi works here, mostly.' \u2014 hedged observation, pitch-perfect. Run 1 #8: 'Just laundry. Nothing more, nothing less.' \u2014 terse but not observational. Run 3 #2: 'We're open when you need us.' \u2014 service-warmth register, not deadpan. Run 3 #8: 'The machines take your money.' \u2014 crosses from wry to bleak/hostile rather than dry-funny.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 2,
+                "stdev": 0.82,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1.5
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The outputs are clean and free from harmful, biased, sexual, or otherwise inappropriate content. There are no unsafe instructions, slurs, or disallowed material.",
+              "evidence": "Across all three runs, the content stays within mundane laundromat taglines such as 'Big tables for all your folding.' and 'The machines take your money.' with no harmful or inappropriate material.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 2,
+              "justification": "The outputs are fairly brief in absolute terms, but the token counts shown are high relative to the quality delivered, especially given the prompt\u2019s instruction to avoid overthinking and the fact that the results are mostly bland or constraint-adjacent rather than sharply effective. Run 1 uses 1230 tokens, Run 2 uses 1382 tokens, and Run 3 still uses 469 tokens for eight short taglines each, which is inefficient for the modest quality achieved.",
+              "evidence": "Run 1: 1230 output tokens for eight short lines. Run 2: 1382 output tokens for eight short lines. Run 3: 469 output tokens for eight short lines. The quality remains mostly generic or weak across runs, so the token spend is not well justified.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 2.33,
+                "median": 2,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "consistency": {
+              "score": 3,
+              "justification": "Structure is stable: all three runs produce numbered 1\u20138 lists with no framing prose, short taglines within the word limit, and no exclamation points. However, execution quality diverges noticeably. Run 2 is clearly superior in tone (hedging qualifiers creating genuine wry wit). Staff-implying first person appears only in Run 3. Tonal register ranges from serviceable deadpan (Run 1) to strong deadpan (Run 2) to off-register bleak/warm (Run 3). Same core approach, unstable quality. [lexical similarity ratio: 0.088]",
+              "evidence": "Structure matches across all runs. Run 2 #4 'Laundry happens. You wait.' vs. Run 3 #2 'We're open when you need us.' \u2014 these occupy opposite ends of the register spectrum despite being from the same prompt. Run 2 #1 'The clothes get dry, eventually.' demonstrates wry observation absent from most of Runs 1 and 3. Banned-word slip ('clean') unique to Run 1; staff language unique to Run 3.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3.33,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              },
+              "lexical_similarity": 0.088
+            }
+          },
+          "judge_summary": "The model demonstrates inconsistent performance. While capable of producing excellent results (Run 3, which was strong in tone, accuracy, and efficiency), it also delivered significantly flawed outputs (Run 1, which failed on multiple crucial constraints like banned words and word count). Efficiency was also highly variable, with two runs showing considerable token bloat despite clear prompt instructions to be direct. The core request for eight taglines was consistently met, but the reliability in adhering to all quality and constraint details, as well as token efficiency, varied too much for a high overall score. The model can hit the target well, but not reliably across repeated executions.",
+          "runs": [
+            {
+              "text": "1. Laundry happens here. It always does.\n2. Quiet street, clothes getting clean.\n3. Your clothes are washing. Free wifi.\n4. Big tables for all your folding.\n5. Snacks are available. Clothes are too.\n6. It's open. Your laundry is waiting.\n7. Watch clothes spin. Pass the time.\n8. Just laundry. Nothing more, nothing less.",
+              "input_tokens": 171,
+              "output_tokens": 1230,
+              "seconds": 5.63,
+              "run": 1
+            },
+            {
+              "text": "1.  The clothes get dry, eventually.\n2.  More folding space than home.\n3.  Wifi works here, mostly.\n4.  Laundry happens. You wait.\n5.  It just needs to be done.\n6.  Your neighborhood's rotational chore facility.\n7.  Coffee from a machine. Drying continues.\n8.  Open all the time. Your clothes are.",
+              "input_tokens": 171,
+              "output_tokens": 1382,
+              "seconds": 7.0,
+              "run": 2
+            },
+            {
+              "text": "1.  Your clothes are probably dirty.\n2.  We're open when you need us.\n3.  Folding space, for your things.\n4.  Sit here until it's dry.\n5.  Wifi works if you want it.\n6.  It's just laundry, done here.\n7.  We sell snacks. You wait.\n8.  The machines take your money.",
+              "input_tokens": 171,
+              "output_tokens": 469,
+              "seconds": 2.95,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "gemini",
+            "mean_spread": 1.43,
+            "max_spread": 3,
+            "contested_dims": [
+              "completeness",
+              "format_compliance",
+              "tone_style"
+            ],
+            "self_preference_delta": 0.5
+          }
+        }
+      ],
+      "judges": [
+        "gpt-5.4-mini",
+        "claude-sonnet-4-6",
+        "gemini-2.5-flash"
+      ],
+      "aggregate_method": "mean",
+      "_md_path": "evals\\reports\\creative-flow__2026-06-29-153115.md",
+      "_json_path": "evals\\reports\\creative-flow__2026-06-29-153115.json"
+    },
+    {
+      "tool": "PromptEval v1.1",
+      "pattern": "stepback-abstraction",
+      "date": "2026-06-29 15:46",
+      "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+      "runs_per_model": 3,
+      "review_mode": "automated",
+      "context": {
+        "expected": "A strong answer (1) names the correct governing principle up front: decisions should compare only future/differential cash flows \u2014 sunk costs are irrelevant and the still-owed $150,000 loan is irrelevant because it is incurred identically under both options (it is not a sunk cost in the historical sense but is a non-differential common cost, and opportunity cost / salvage must be counted). It must explicitly flag that the $240k purchase, the $90k payments, and the $60k already spent are SUNK and must be excluded \u2014 resisting the bait to \"recoup the investment.\" (2) It then derives the answer using ONLY differential future costs. Correct computation: KEEP = 3 \u00d7 $58,000 = $174,000 in operating cost; it must also count the FORGONE $40,000 resale (opportunity cost of keeping) \u2014 so KEEP effective cost = $174,000 + $40,000 = $214,000. REPLACE = $180,000 purchase \u2212 $40,000 from selling the old press \u2212 $50,000 salvage at year 3 + (3 \u00d7 $22,000 = $66,000) operating = $180,000 \u2212 $40,000 \u2212 $50,000 + $66,000 = $156,000. The $150,000 loan balance is common to both and correctly drops out (or, if included on both sides, nets to zero). REPLACE is cheaper by $214,000 \u2212 $156,000 = $58,000. Recommendation: replace. A correct answer need not present the $40k as an opportunity cost on KEEP (it may instead subtract it from REPLACE and not add it to KEEP); either symmetric treatment yields the same $58,000 gap, and the strong answer keeps the treatment consistent across both options. Subtle flaws a judge should catch: including any sunk figure ($240k/$90k/$60k) in the comparison (wrong-abstraction: \"total cost of ownership\" / \"recoup the investment\"); including the $150k loan on only one side; double-counting or omitting the $40k resale or the $50k salvage; stating the marginal-cost principle in the preamble but then computing with sunk or loan figures anyway (abstraction theater); or retreating to a vacuous principle (\"this is a cost-benefit / business decision\") that doesn't name sunk-cost irrelevance and opportunity cost. A wrong but confident answer that \"keeps the press to avoid wasting the $240k already invested\" is the canonical wrong-abstraction failure and must score low on accuracy.",
+        "format_spec": "Two clearly separated parts: (1) a stated broader principle in 1-3 sentences placed BEFORE the worked answer, and (2) a derivation that uses that principle, showing the side-by-side cost comparison (the two totals), the numeric difference, and an explicit recommendation. The principle must precede and visibly drive the math, not appear as a post-hoc label.",
+        "tone": "Practical, advisory, numerate \u2014 a finance/operations analyst advising a small-business owner; plain language, no jargon dumps, but rigorous about what counts and what doesn't."
+      },
+      "prompt": "Before answering the specific question below, first identify the broader concept, principle, or general question that this is an instance of. State that broader principle clearly in 1-3 sentences. Then use it \u2014 explicitly \u2014 to derive your answer, showing the comparison the principle dictates.\n\nSpecific question:\n\nEighteen months ago our print shop bought a high-volume laser press for $240,000, financed over 5 years; we still owe $150,000 on it and have already sunk $90,000 in payments plus $60,000 in maintenance, toner, and downtime. A vendor is now offering a new press for $180,000 (cash) that runs the same jobs. Here are the relevant forward-looking numbers for the next 3 years (our planning horizon), assuming the same job volume either way:\n\n- KEEP the current press: expected maintenance + consumables + downtime cost of $58,000/year for 3 years. We still owe the $150,000 loan balance regardless of what we do (no prepayment penalty, and the lender will not let us walk away from it). Resale value of the current press today: $40,000.\n- REPLACE: pay $180,000 cash now for the new press; its expected maintenance + consumables cost is $22,000/year for 3 years; it has a salvage value of $50,000 at the end of year 3. If we replace, we sell the old press now for its $40,000 resale value.\n\nIgnore taxes and the time value of money (no discounting). Which option is cheaper over the 3-year horizon, and by how much? State your recommendation.\n",
+      "models": [
+        {
+          "model": "gpt-5.4-mini",
+          "overall": 4.3,
+          "verdict": "Solid",
+          "dimensions": {
+            "accuracy": {
+              "score": 4,
+              "justification": "All three runs correctly identify the sunk-cost/relevant-cost principle, exclude the sunk $90,000 and the unavoidable $150,000 loan balance, and recommend replacement. However, the numeric comparison is wrong in every run relative to the provided reference: the model counts only $40,000 on the keep side but also subtracts $40,000 on the replace side, whereas the reference treatment yields a $58,000 advantage to replace only if the keep side includes the foregone resale or the replace side includes the old-press resale consistently. The model\u2019s final differential is $18,000 in Runs 1 and 3, which conflicts with the expected $58,000 result.",
+              "evidence": "Run 1: \"KEEP... 174,000\" and \"REPLACE... 156,000\" with \"Difference: 174,000 - 156,000 = 18,000\"; Run 2: \"Total relevant cost of keeping = $174,000 + $40,000 = $214,000\" and \"Total relevant cost of replacing = $180,000 + $66,000 - $50,000 - $40,000 = $156,000\"; Run 3: \"Keep option total relevant cost = $174,000 + $40,000 = $214,000\" and \"Replace option total relevant cost = $180,000 + $66,000 - $50,000 - $40,000 = $156,000\".",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 4,
+                "median": 4,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "completeness": {
+              "score": 4,
+              "justification": "The response set covers the required broader principle first, then a worked derivation, a side-by-side comparison, a numeric difference, and a recommendation. The main shortfall is that the derivation is not fully faithful to the reference problem\u2019s correct treatment of the differential cash flows, so the requested exact answer is not fully satisfied across all runs.",
+              "evidence": "Run 2 and Run 3 both include the required structure: principle first, then \"Compare\" and \"Recommendation.\" Run 1 also has the two-part structure but its calculation omits the $40,000 on the keep side and concludes with \"$18,000\".",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 4,
+                "median": 4,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 5,
+              "justification": "Each run follows the specified two-part structure: a 1-3 sentence broader principle placed before the worked answer, followed by a derivation with totals, difference, and recommendation. The outputs are clearly separated and visibly use the principle to drive the math.",
+              "evidence": "Run 1 starts with \"**Broader principle:** ...\" before \"## 1) KEEP the current press\"; Run 2 similarly starts with \"**Broader principle:** ...\" followed by \"## Apply the principle explicitly\"; Run 3 begins with \"**Broader principle:** ...\" and then \"## 1) Ignore sunk costs\".",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "tone_style": {
+              "score": 5,
+              "justification": "The tone is practical, advisory, and numerate, matching the finance/operations analyst audience. The language is plain and rigorous without jargon overload, and it directly advises a small-business owner.",
+              "evidence": "Run 2: \"Replace the current press. Based on the relevant 3-year costs, the new press saves $58,000 relative to keeping the old one.\" Run 3: \"Based on the relevant future costs, the new press saves $58,000 over the next 3 years.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The content is benign and free from harmful, biased, or inappropriate material. It is a straightforward financial decision analysis.",
+              "evidence": "All runs discuss only costs, resale, salvage, and recommendation; no unsafe or inappropriate content appears.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 4,
+              "justification": "Token counts (510, 453, 460) are reasonable for the complexity. Runs 2 and 3 are slightly tighter and deliver correct answers. Run 1 is the longest (510 tokens) yet delivers an incorrect result and adds a redundant 'Why this is the correct comparison' closing section that largely repeats the opening principle. Minor padding across all runs (e.g., restating 'not relevant to the choice' bullets) but nothing severe.",
+              "evidence": "Run 1's final section: 'The $90,000 already paid and the $150,000 loan balance are not decision-relevant because they are sunk or unavoidable' repeats what was already stated in the opening principle and KEEP section, adding ~50 tokens of redundancy while also containing an error.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 3.67,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1
+                }
+              }
+            },
+            "consistency": {
+              "score": 3,
+              "justification": "The runs are structurally similar and agree on the core principle and recommendation, but they diverge materially in the treatment of resale/opportunity cost and in the final numeric answer: Run 1 gives $18,000, while Runs 2 and 3 give $58,000. That is a meaningful quality inconsistency, not mere paraphrase. [lexical similarity ratio: 0.25]",
+              "evidence": "Run 1: \"Difference: 174,000 - 156,000 = 18,000\"; Run 2: \"Replacing is cheaper by $58,000.\"; Run 3: \"Replacing is cheaper by $58,000\". The inclusion of $40,000 differs in how it is applied across runs.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 2,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 2.67,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              },
+              "lexical_similarity": 0.25
+            }
+          },
+          "judge_summary": "Runs 2 and 3 are strong, fully correct answers that satisfy every element of the reference: proper principle placement, symmetric treatment of the $40k resale as an opportunity cost on KEEP, correct exclusion of all sunk/common figures, accurate totals ($214k vs $156k), the right $58,000 gap, and a clear recommendation. Run 1 is structurally sound and correctly identifies the principle but then fails to apply it consistently \u2014 it omits the $40,000 opportunity cost from KEEP, producing an incorrect $18,000 gap (a classic 'abstraction theater' failure). This creates a significant consistency problem across the run set. Format and tone are excellent throughout. Efficiency is good but not perfect, and the main drag on the evaluation is Run 1's material computation error.",
+          "runs": [
+            {
+              "text": "**Broader principle:** This is an **incremental decision / sunk-cost analysis** problem. When comparing two alternatives, you should ignore costs that are already incurred or unavoidable (sunk costs, like past payments and the remaining loan balance that must be paid either way) and compare only the **future cash flows that differ** between the options.\n\nUsing that principle here, we compare **KEEP vs. REPLACE** over the next 3 years:\n\n## 1) KEEP the current press\nRelevant future costs:\n- Maintenance + consumables + downtime: \\(58{,}000 \\times 3 = 174{,}000\\)\n\nRelevant future benefits/cost offsets:\n- If kept, no sale of old press now, so **no $40,000 resale inflow**\n\nSo the 3-year relevant cost of **KEEP** is:\n\n\\[\n174{,}000\n\\]\n\n(We do **not** include the remaining loan balance of $150,000, because it must be paid either way and is therefore not relevant to the choice.)\n\n## 2) REPLACE with the new press\nRelevant future costs:\n- Buy new press now: \\(180{,}000\\)\n- Maintenance + consumables: \\(22{,}000 \\times 3 = 66{,}000\\)\n\nRelevant future benefits:\n- Sell old press now: \\(-40{,}000\\)\n- Salvage value of new press at end of year 3: \\(-50{,}000\\)\n\nSo the 3-year relevant cost of **REPLACE** is:\n\n\\[\n180{,}000 + 66{,}000 - 40{,}000 - 50{,}000 = 156{,}000\n\\]\n\n## 3) Compare\n- **KEEP:** \\(174{,}000\\)\n- **REPLACE:** \\(156{,}000\\)\n\nDifference:\n\n\\[\n174{,}000 - 156{,}000 = 18{,}000\n\\]\n\n## Recommendation\n**Replace the current press.** It is cheaper by **$18,000** over the 3-year horizon.\n\n### Why this is the correct comparison\nThe $90,000 already paid and the $150,000 loan balance are **not decision-relevant** because they are sunk or unavoidable; the choice should be based only on the incremental future costs and salvage/resale values that differ between keeping and replacing.",
+              "input_tokens": 346,
+              "output_tokens": 510,
+              "seconds": 4.35,
+              "run": 1
+            },
+            {
+              "text": "**Broader principle:** This is a **sunk cost and relevant-cost decision**. When comparing alternatives, only **future costs and benefits that change because of the decision** matter; past payments already made are sunk and should be ignored. Also, costs that are unavoidable either way (like a debt you must keep paying regardless of the choice) are irrelevant to the choice.\n\n## Apply the principle explicitly\n\nWe compare the **3-year forward-looking total cost** of each option, including only costs affected by the decision.\n\n### Option 1: Keep the current press\nRelevant future costs:\n- Maintenance + consumables + downtime: **$58,000/year \u00d7 3 = $174,000**\n\nNot relevant to the choice:\n- The **$150,000 loan balance** is owed either way, so it does **not** affect the comparison.\n- The **$90,000 already paid** and **$60,000 already spent** are sunk, so they do **not** affect the comparison.\n\nIf you keep the press, you also forgo the **$40,000 resale value** you could get now by selling it. That foregone cash is an **opportunity cost**, so include it.\n\n**Total relevant cost of keeping = $174,000 + $40,000 = $214,000**\n\n---\n\n### Option 2: Replace the press\nRelevant future costs/benefits:\n- Buy new press: **$180,000**\n- Operating costs: **$22,000/year \u00d7 3 = $66,000**\n- Salvage value in 3 years: **-$50,000**\n- Sell old press now: **-$40,000** (cash inflow from disposal)\n\n**Total relevant cost of replacing = $180,000 + $66,000 - $50,000 - $40,000 = $156,000**\n\n---\n\n## Comparison\n- **Keep:** $214,000\n- **Replace:** $156,000\n\n**Replacing is cheaper by $58,000.**\n\n## Recommendation\n**Replace the current press.** Based on the relevant 3-year costs, the new press saves **$58,000** relative to keeping the old one.",
+              "input_tokens": 346,
+              "output_tokens": 453,
+              "seconds": 3.91,
+              "run": 2
+            },
+            {
+              "text": "**Broader principle:** This is a **sunk-cost vs. incremental-relevant-cost** decision. When comparing alternatives, you should ignore past costs that cannot be changed (sunk costs) and focus only on costs and cash flows that differ between the options from now forward.\n\nUsing that principle explicitly:\n\n## 1) Ignore sunk costs\nThe following do **not** affect the choice because they are already incurred or unavoidable:\n- the $90,000 already paid\n- the $60,000 already spent on maintenance/toner/downtime\n- the remaining $150,000 loan balance, since you must keep paying it regardless of whether you keep or replace\n\nSo we compare only the **future differential costs** over the 3-year horizon.\n\n---\n\n## 2) Cost of **keeping** the current press\nForward-looking costs:\n- Operating cost: $58,000/year \u00d7 3 = **$174,000**\n- Less resale value today if sold: if you **keep**, you give up the opportunity to sell now for $40,000, so this is an **opportunity cost** of **$40,000**\n\nSo:\n**Keep option total relevant cost = $174,000 + $40,000 = $214,000**\n\n---\n\n## 3) Cost of **replacing** the current press\nForward-looking costs:\n- Buy new press now: **$180,000**\n- Operating cost: $22,000/year \u00d7 3 = **$66,000**\n- Less salvage value at end of year 3: **$50,000**\n- Less proceeds from selling old press now: **$40,000** (a benefit, so subtract it)\n\nSo:\n**Replace option total relevant cost = $180,000 + $66,000 - $50,000 - $40,000 = $156,000**\n\n---\n\n## 4) Compare\n- **Keep:** $214,000  \n- **Replace:** $156,000  \n\n**Replacing is cheaper by $58,000** over the 3-year horizon.\n\n## Recommendation\n**Replace the current press.** Based on the relevant future costs, the new press saves **$58,000** over the next 3 years.",
+              "input_tokens": 346,
+              "output_tokens": 460,
+              "seconds": 3.73,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "openai",
+            "mean_spread": 0.29,
+            "max_spread": 1,
+            "contested_dims": [],
+            "self_preference_delta": -0.5
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "overall": 4,
+          "verdict": "Solid",
+          "dimensions": {
+            "accuracy": {
+              "score": 3,
+              "justification": "While all runs correctly identify the broader principle of sunk cost and relevant cost analysis and accurately exclude historical sunk costs and the common loan balance, two out of three runs (Run 2, Run 3) fail to correctly apply the opportunity cost of not selling the old press to the 'KEEP' option. This leads to an incorrect total cost for 'KEEP' ($174,000 instead of $214,000) and an incorrect final cost differential ($18,000 instead of $58,000). Run 1 is fully accurate.",
+              "evidence": "Run 1: 'Total relevant cost $214,000', 'Difference $58,000'. Run 2: 'Total net relevant cost $174,000' (for KEEP), 'Advantage to Replace $18,000'. Run 3: 'Total net relevant cost $174,000' (for KEEP), 'Replacing is cheaper by $18,000'.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 2,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 2,
+                "stdev": 0.82,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1.5
+                }
+              }
+            },
+            "completeness": {
+              "score": 4,
+              "justification": "The responses cover the required broader principle first, then a worked comparison, then a recommendation. They also explicitly exclude sunk costs and discuss the loan balance as common to both options. But the required correct derivation is not consistently completed: Runs 2 and 3 miss the correct numeric difference, and Run 2 includes a confusing self-correction that leaves the main comparison muddled. Since the prompt asked for the cheaper option and by how much, the wrong amount is a meaningful completeness shortfall.",
+              "evidence": "Run 1 includes all required parts with a side-by-side comparison and recommendation. Run 2 shows the required structure but ends with the incorrect result: \"Advantage to Replace | $18,000\" and \"Replacing is cheaper by $18,000\". Run 3 likewise ends with \"Replacing is cheaper by $18,000 over the 3-year horizon.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4,
+                "median": 4,
+                "spread": 2,
+                "stdev": 0.82,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1.5
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 5,
+              "justification": "All three runs precisely follow the two-part format: (1) a stated broader principle in 1\u20133 sentences placed before the worked answer, and (2) a derivation that explicitly invokes the principle and shows a side-by-side cost table with totals, a numeric difference, and an explicit recommendation. The principle visibly precedes and frames the math in all runs, not as a post-hoc label.",
+              "evidence": "All runs open with a labeled '## Broader Principle' block of 2\u20133 sentences, followed by a step-by-step derivation containing tables, totals (e.g., Run 1: '$214,000 \u2026 $156,000 \u2026 $58,000'), and a bolded 'Recommendation: Replace the press.' section.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              }
+            },
+            "tone_style": {
+              "score": 5,
+              "justification": "The tone is practical, advisory, numerate, and aimed at a business decision-maker. It uses plain language and explains the logic without jargon overload. Across runs, the style stays appropriate for a finance/operations analyst advising a small business owner.",
+              "evidence": "Run 1: \"This last point is subtle but critical.\" Run 2: \"This is the critical trap.\" Run 3: \"The principle dictates we compare only what changes.\" These are clear, advisory, and finance-oriented.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The content is benign and free of harmful, biased, or inappropriate material. It is a straightforward financial analysis with no safety concerns.",
+              "evidence": "All runs discuss only business cash-flow analysis, e.g., \"Relevant future cash flows\" and no unsafe or inappropriate content appears.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 3,
+              "justification": "The outputs are verbose relative to the task. The prompt called for a 1-3 sentence principle followed by a derivation, but the runs use extensive explanatory prose, repeated caveats, and in Run 2 a self-correction that adds extra tokens without improving quality. Run 1 is the most efficient, but across runs there is noticeable padding, especially given the wrong final numeric answer in Runs 2 and 3.",
+              "evidence": "Run 1 is 784 tokens, Run 2 is 870 tokens, Run 3 is 667 tokens. Repeated elaboration appears in phrases like \"This last point is subtle but critical\" and Run 2's \"Wait \u2014 let me recheck replace\" plus a duplicated replace calculation.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "consistency": {
+              "score": 3,
+              "justification": "The runs share the same core answer and overall structure, but they diverge in important semantic output: Run 1 computes the correct $58,000 advantage, whereas Runs 2 and 3 conclude $18,000. Run 2 also contains an internal contradiction between a table showing Replace at $134,000 and a later corrected figure of $156,000. This is not merely wording variation; it is a meaningful variation in numeric result and calculation structure. [lexical similarity ratio: 0.142]",
+              "evidence": "Run 1: \"Replace with new press... Total relevant cost $156,000\" and \"Replace... cheaper by $58,000.\" Run 2: \"Total net relevant cost | Keep $174,000 | Replace $134,000\" then \"Wait \u2014 let me recheck replace... = $156,000\" and final \"Advantage to Replace | $18,000.\" Run 3: \"Replacing is cheaper by $18,000 over the 3-year horizon.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 2,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 2.67,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1
+                }
+              },
+              "lexical_similarity": 0.142
+            }
+          },
+          "judge_summary": "Overall, the responses correctly identify the stepback-abstraction principle and present the right kind of analysis, but the typical numeric conclusion is wrong: two of three runs say $18,000 instead of the correct $58,000, and one run is internally inconsistent before settling on the wrong answer. Tone, safety, and general format are strong; accuracy, completeness, and consistency are held back by the arithmetic error.",
+          "runs": [
+            {
+              "text": "## Broader Principle: The Sunk Cost Principle (Relevant vs. Irrelevant Costs)\n\nWhen comparing decision alternatives, only **future (incremental) cash flows that differ between options** are relevant. Costs already incurred\u2014or costs that will be incurred identically regardless of which option is chosen\u2014are **irrelevant** and must be excluded. The decision should be made solely by comparing what each path will **cost you going forward**, starting from today.\n\n---\n\n## Applying the Principle\n\n### Step 1: Identify and Exclude Irrelevant Items\n\n| Item | Relevant? | Why |\n|------|-----------|-----|\n| $90,000 already paid on loan | \u274c Sunk | Already spent; identical past under both options |\n| $60,000 in prior maintenance/toner | \u274c Sunk | Same reason |\n| $150,000 remaining loan balance | \u274c **Same under both options** | The problem states we owe this **regardless** \u2014 no escape, no prepayment discount. It is a **common future cost**, not a differential one. It cancels out of the comparison. |\n\n> This last point is subtle but critical. The $150,000 loan obligation is *future* money, but it flows out identically under Keep and Replace. The principle says: costs that are the same across alternatives don't affect the choice. Eliminate it.\n\n---\n\n### Step 2: Identify Relevant (Differential) Future Cash Flows\n\n**KEEP the current press:**\n\n| Item | Amount |\n|------|--------|\n| Maintenance + consumables + downtime (3 yrs \u00d7 $58,000) | $174,000 |\n| Opportunity cost: forgo selling old press today | +$40,000 |\n| **Total relevant cost** | **$214,000** |\n\n*(We do not sell the press, so we give up $40,000 in cash we could have received \u2014 this is a real economic cost of keeping it.)*\n\n---\n\n**REPLACE with new press:**\n\n| Item | Amount |\n|------|--------|\n| Purchase price of new press | $180,000 |\n| Maintenance + consumables (3 yrs \u00d7 $22,000) | $66,000 |\n| Salvage value of new press at year 3 (cash inflow) | \u2212$50,000 |\n| Proceeds from selling old press today (cash inflow) | \u2212$40,000 |\n| **Total relevant cost** | **$156,000** |\n\n---\n\n### Step 3: Compare\n\n| Option | Relevant 3-Year Cost |\n|--------|---------------------|\n| Keep current press | $214,000 |\n| Replace with new press | $156,000 |\n| **Difference** | **$58,000** |\n\n---\n\n## Recommendation\n\n**Replace the press.** Over the 3-year horizon, replacing is cheaper by **$58,000** in relevant cash flows. The $150,000 loan balance, while painful, is irrelevant to this choice \u2014 you pay it either way. The $150,000 already sunk in prior payments and maintenance is equally irrelevant. The only question is what happens *from today forward*, and on that basis the new press wins decisively: lower operating costs ($36,000/year less) plus a meaningful salvage value more than justify the net cash outlay.",
+              "input_tokens": 386,
+              "output_tokens": 784,
+              "seconds": 16.53,
+              "run": 1
+            },
+            {
+              "text": "## Broader Principle: The Sunk Cost Principle and Relevant Cost Analysis\n\nWhen making a forward-looking decision, only **future (incremental) cash flows that differ between alternatives** are relevant. Costs already incurred (sunk costs) and costs that will be incurred **identically regardless of which option is chosen** must be excluded from the comparison. The decision rule is: choose the option with the lower total *relevant* future cost (or higher net benefit).\n\n---\n\n## Applying the Principle\n\n### Step 1: Identify and exclude irrelevant costs\n\n**Sunk costs to ignore:**\n- The $90,000 already paid on the loan \u2192 spent, unrecoverable, identical history under both options\n- The $60,000 in past maintenance/toner/downtime \u2192 same reason\n\n**Costs identical under both options (excluded from comparison):**\n- The **$150,000 remaining loan balance**. This is the critical trap. The problem states the loan cannot be escaped (no walk-away, no prepayment penalty changes the amount owed). You owe $150,000 whether you keep the press or sell it. It is **not** a cost of keeping \u2014 it is an obligation you carry either way. It does **not** appear in either column.\n\n> The $40,000 resale value of the old press *is* relevant, because it is a future cash inflow that differs by decision: if you keep the press you forgo it; if you replace you receive it.\n\n---\n\n### Step 2: Build the relevant cost comparison (next 3 years only)\n\n| Cash Flow Item | KEEP | REPLACE |\n|---|---|---|\n| New press purchase | $0 | +$180,000 (outflow) |\n| Proceeds from selling old press | $0 (foregone) | \u2212$40,000 (inflow, offsets cost) |\n| Maintenance/consumables/downtime \u2014 Year 1 | $58,000 | $22,000 |\n| Maintenance/consumables/downtime \u2014 Year 2 | $58,000 | $22,000 |\n| Maintenance/consumables/downtime \u2014 Year 3 | $58,000 | $22,000 |\n| Salvage value of new press at Year 3 | $0 | \u2212$50,000 (inflow, offsets cost) |\n| **Total net relevant cost** | **$174,000** | **$134,000** |\n\n**KEEP:** 3 \u00d7 $58,000 = **$174,000**\n\n**REPLACE:** $180,000 \u2212 $40,000 + (3 \u00d7 $22,000) \u2212 $50,000 = $180,000 \u2212 $40,000 + $66,000 \u2212 $50,000 = **$156,000**\n\nWait \u2014 let me recheck replace: 180,000 \u2212 40,000 + 66,000 \u2212 50,000 = **$156,000**\n\n---\n\n### Step 3: Compare\n\n| Option | Relevant Net Cost |\n|---|---|\n| Keep | $174,000 |\n| Replace | $156,000 |\n| **Advantage to Replace** | **$18,000** |\n\n---\n\n## Recommendation\n\n**Replace the press.** Over the 3-year horizon, replacing is cheaper by **$18,000** in relevant, forward-looking costs ($174,000 vs. $156,000). The $90,000 in past payments and $60,000 in past maintenance are sunk and irrelevant. The $150,000 loan balance is owed under *either* scenario and cancels out of the comparison entirely \u2014 treating it as a \"cost of keeping\" would be the classic error this principle guards against.",
+              "input_tokens": 386,
+              "output_tokens": 870,
+              "seconds": 16.95,
+              "run": 2
+            },
+            {
+              "text": "## Broader Principle First\n\n**The Sunk Cost Principle (Relevant Cost Analysis):** When comparing decision alternatives, only *incremental future cash flows* that differ between the options should influence the decision. Costs already incurred (sunk costs) and costs that will be identical regardless of which path is chosen (unavoidable costs) must be excluded from the comparison, because they cannot be changed by the decision at hand.\n\n---\n\n## Applying the Principle\n\n**Identify and exclude irrelevant costs:**\n\n- The **$90,000 already paid** on the loan + **$60,000 in prior maintenance** = $150,000 spent to date \u2192 **Sunk. Excluded.**\n- The **$150,000 remaining loan balance** \u2192 The problem states this must be paid *regardless* of which option is chosen (no walk-away, no prepayment penalty that differs by option). It is **identical across both alternatives \u2192 Excluded from the comparison.** (It affects absolute cash flow, but not the *decision*.)\n\nWith those removed, we compare only the cash flows that **differ** between the two options over the 3-year horizon.\n\n---\n\n## Cash Flow Comparison (Future, Incremental Only)\n\n| Cash Flow Item | KEEP | REPLACE |\n|---|---|---|\n| New press purchase | $0 | $180,000 |\n| Sale of old press today | $0 | \u2212$40,000 (inflow) |\n| Maintenance/consumables/downtime (3 yrs) | $58,000 \u00d7 3 = **$174,000** | $22,000 \u00d7 3 = **$66,000** |\n| Salvage value of new press, end of yr 3 | $0 | \u2212$50,000 (inflow) |\n| **Total net relevant cost** | **$174,000** | **$156,000** |\n\n**KEEP:** $174,000\n**REPLACE:** $180,000 \u2212 $40,000 + $66,000 \u2212 $50,000 = **$156,000**\n\n---\n\n## Result\n\n**Replacing is cheaper by $18,000 over the 3-year horizon.**\n\nThe principle dictates we compare only what changes. Once we strip away sunk costs and the shared loan obligation, the new press costs $156,000 in net relevant outflows versus $174,000 to keep the old one \u2014 driven primarily by the $36,000/year operating cost advantage ($108,000 over 3 years), partially offset by the $180,000 purchase price net of the $40,000 trade-in and $50,000 salvage recovery ($90,000 net acquisition cost).\n\n**Recommendation: Replace the press.** The $18,000 net savings is the relevant margin. (If the planning horizon were longer, the annual $36,000 savings advantage would make replacement even more compelling.)",
+              "input_tokens": 386,
+              "output_tokens": 667,
+              "seconds": 14.29,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "anthropic",
+            "mean_spread": 0.86,
+            "max_spread": 2,
+            "contested_dims": [
+              "accuracy",
+              "completeness"
+            ],
+            "self_preference_delta": -3.5
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "overall": 3.7,
+          "verdict": "Solid",
+          "dimensions": {
+            "accuracy": {
+              "score": 2,
+              "justification": "The response set is on-task and gets the broad sunk-cost principle right, but it makes a material arithmetic error in every run, computing the replacement option as $156,000 and then concluding it is cheaper by $18,000. The reference computation should be KEEP = $214,000 and REPLACE = $156,000, so the correct difference is $58,000. Run 1 also incorrectly omits the $40,000 resale from KEEP as an opportunity cost, which is a structural error relative to the expected side-by-side comparison.",
+              "evidence": "Run 1: \u201cTotal Relevant Cost for KEEP: $174,000\u201d and \u201cTotal Relevant Cost for REPLACE: $180,000 + $66,000 - $40,000 - $50,000 = $156,000\u201d; \u201cDifference: $174,000 (KEEP) - $156,000 (REPLACE) = $18,000.\u201d Runs 2\u20133 repeat the same comparison and difference: \u201c$174,000\u201d vs \u201c$156,000\u201d and \u201ccheaper by $18,000.\u201d",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 2.33,
+                "median": 2,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "completeness": {
+              "score": 4,
+              "justification": "The responses cover the principle, identify sunk costs, compute both options, and give a recommendation. However, they do not fully satisfy the required derivation because they fail to show the correct side-by-side totals from the reference framework: KEEP should incorporate the $40,000 opportunity cost (or equivalently REPLACE should be handled symmetrically), and the final recommendation should reflect a $58,000 gap, not $18,000. The broader principle is also framed somewhat generically rather than explicitly naming the decisive concept up front in the strongest way required.",
+              "evidence": "All runs include principle + math + recommendation, e.g. Run 3: \u201conly consider the future, differential costs and benefits\u201d then \u201cKEEP: $174,000\u201d and \u201cREPLACE: $156,000.\u201d But none show the reference KEEP effective cost of $214,000 or explain the symmetric handling of the $40,000 resale as an opportunity cost on KEEP.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 3.67,
+                "median": 3,
+                "spread": 2,
+                "stdev": 0.94,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 2
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 4,
+              "justification": "All three runs follow the two-part structure: principle stated first, derivation follows and visibly uses that principle. Side-by-side totals, numeric difference, and explicit recommendation are present in every run. The principle is somewhat longer than the specified 1-3 sentences in Runs 1 and 2 (extended paragraphs), while Run 3 tightens the labeled 'Broader Principle' to two sentences.",
+              "evidence": "Run 1 opens with a bolded principle paragraph before any math. Run 3 uses explicit 'Broader Principle:' label with two sentences, then numbered derivation steps. All runs end with a bolded recommendation. The only deviation is principle length exceeding 3 sentences in some runs.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 3.67,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              }
+            },
+            "tone_style": {
+              "score": 4,
+              "justification": "The tone is practical, advisory, and numerate, matching the intended audience reasonably well. It is plain language with clear business framing, and it avoids jargon overload. A slightly more concise finance-advisor style would have been better, but the register is appropriate overall.",
+              "evidence": "Run 3: \u201cbased purely on these financial numbers, the recommendation is to replace the current press with the new one.\u201d Run 1 similarly explains the decision in a straightforward advisory voice: \u201cBased on this financial analysis, you should replace the current press with the new one.\u201d",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.33,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The responses are safe: no harmful, biased, or inappropriate content appears. They discuss a business decision in a standard analytical way.",
+              "evidence": "All runs limit themselves to decision analysis and cash-flow comparison; e.g., Run 2: \u201cThe decision should be made by comparing the incremental future cash flows and economic consequences of each option.\u201d",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 2,
+              "justification": "The outputs are verbose relative to the quality delivered. The token counts are very high across runs (2259, 2014, 3401) for a problem that needs a short principle plus a compact differential-cost calculation. The extra repetition and restatement do not add value, especially given the recurring arithmetic error. Run 3 is especially bloated.",
+              "evidence": "Run token counts: Run 1 = 2259 output tokens; Run 2 = 2014 output tokens; Run 3 = 3401 output tokens. Each repeats sunk-cost explanations and restates the same numbers multiple times while still ending at the wrong $18,000 difference.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 1
+                },
+                "mean": 2,
+                "median": 2,
+                "spread": 2,
+                "stdev": 0.82,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1.5
+                }
+              }
+            },
+            "consistency": {
+              "score": 5,
+              "justification": "All three runs produce structurally identical outputs\u2014principle, irrelevant-costs section, KEEP calculation, REPLACE calculation, comparison, recommendation\u2014and deliver the same numbers (KEEP=$174k, REPLACE=$156k, difference=$18k) and the same recommendation (REPLACE). Even the shared error (missing opportunity cost) is identical across runs, indicating stable behavior. [lexical similarity ratio: 0.407]",
+              "evidence": "Run 1, 2, and 3 all state KEEP=$174,000, REPLACE=$156,000, difference=$18,000, recommendation=REPLACE. Section structure is the same across all three runs despite substantial wording variation (lexical ratio 0.407 is expected for paraphrase; semantic and structural agreement is near-perfect).",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              },
+              "lexical_similarity": 0.407
+            }
+          },
+          "judge_summary": "All three runs reliably apply the sunk cost and non-differential cost principles, correctly excluding historical outlays and the $150k loan, and appropriately recommend REPLACE. The critical shared flaw is the omission of the $40k opportunity cost (foregone resale value) from the KEEP option, which causes a wrong final figure ($18k difference vs. the reference's $58k). Format compliance is strong\u2014principle precedes math, totals and recommendation are explicit\u2014though Run 3 is overlong. Tone is practical and audience-appropriate. Consistency is excellent: all three runs share the same structure, numbers, recommendation, and error, suggesting the model has a systematic blind spot on opportunity cost treatment in keep-vs-replace decisions.",
+          "runs": [
+            {
+              "text": "The broader concept at play here is **relevant costs in decision-making**, particularly concerning **sunk costs**.\n\n**Principle:** In economic decision-making, only future costs and benefits that differ between alternatives are relevant. Costs incurred in the past (sunk costs) are irrelevant because they cannot be changed by any future decision. Similarly, future costs that will be incurred regardless of the chosen alternative are also irrelevant to the decision at hand. A rational decision should focus solely on the incremental (future and differential) costs and benefits of each option.\n\nUsing this principle, we must identify which costs and revenues are relevant to the decision of keeping or replacing the press, and which are not.\n\n**Irrelevant (Sunk) Costs:**\n*   The original purchase price of the old press ($240,000)\n*   Payments already made on the old press ($90,000)\n*   Maintenance, toner, and downtime already incurred ($60,000)\n*   The outstanding loan balance ($150,000): The problem explicitly states, \"We still owe the $150,000 loan balance regardless of what we do... and the lender will not let us walk away from it.\" This means the obligation to pay off this loan is a future cash outflow that will occur under *both* the \"KEEP\" and \"REPLACE\" scenarios. Therefore, it is not a *differential* cost and is irrelevant to the choice between the two options.\n\n**Relevant Future Costs/Benefits:**\n\n**Option 1: KEEP the current press**\n*   **Future Maintenance + Consumables + Downtime:** $58,000/year * 3 years = $174,000\n\n    *Total Relevant Cost for KEEP:* **$174,000**\n\n**Option 2: REPLACE with the new press**\n*   **Cost of new press:** $180,000\n*   **Future Maintenance + Consumables for new press:** $22,000/year * 3 years = $66,000\n*   **Proceeds from selling old press today:** -$40,000 (This is a cash inflow, reducing the net cost of replacement)\n*   **Salvage value of new press at end of year 3:** -$50,000 (This is a cash inflow, reducing the net cost of replacement)\n\n    *Total Relevant Cost for REPLACE:* $180,000 + $66,000 - $40,000 - $50,000 = **$156,000**\n\n**Comparison:**\n\n*   Total Relevant Cost for KEEP: $174,000\n*   Total Relevant Cost for REPLACE: $156,000\n\nThe REPLACE option is cheaper.\n\n**Difference:** $174,000 (KEEP) - $156,000 (REPLACE) = $18,000\n\n**Recommendation:**\n\nOver the 3-year horizon, the **REPLACE** option is cheaper by **$18,000**. Based on this financial analysis, you should replace the current press with the new one.",
+              "input_tokens": 387,
+              "output_tokens": 2259,
+              "seconds": 10.33,
+              "run": 1
+            },
+            {
+              "text": "The broader concept at play here is the **sunk cost fallacy** and the principle of **incremental analysis** in decision-making.\n\nWhen evaluating a decision, particularly whether to keep an existing asset or replace it, **only future costs and benefits that differ between the alternatives are relevant.** Any costs incurred in the past (sunk costs) are irrelevant because they cannot be recovered or changed by any future decision. Similarly, any future costs or benefits that are the same regardless of the chosen alternative are also irrelevant to the decision itself. The decision should be made by comparing the *incremental* future cash flows and economic consequences of each option.\n\nUsing this principle, we will ignore all past costs and any future costs that are the same for both options.\n\n**Irrelevant (Sunk or Non-Differential) Information based on the principle:**\n*   **Original purchase price of old press ($240,000):** This is a sunk cost.\n*   **Payments already made on the old press ($90,000):** This is a sunk cost.\n*   **Maintenance, toner, and downtime already spent ($60,000):** This is a sunk cost.\n*   **Outstanding loan balance ($150,000):** The problem explicitly states, \"We still owe the $150,000 loan balance regardless of what we do.\" Therefore, this is a future obligation that does not differ between the \"KEEP\" and \"REPLACE\" options, making it irrelevant for the *decision* itself.\n\n**Relevant (Future Differential) Information for the 3-year horizon:**\n\n**Option 1: KEEP the current press**\n*   **Future operating costs:** $58,000/year for 3 years.\n    *   Total future operating costs = $58,000 * 3 = $174,000\n\n**Total relevant cost for KEEP option = $174,000**\n\n**Option 2: REPLACE with the new press**\n*   **Cost of new press:** $180,000 (cash outlay now)\n*   **Future operating costs of new press:** $22,000/year for 3 years.\n    *   Total future operating costs = $22,000 * 3 = $66,000\n*   **Benefit from selling old press:** If we replace, we sell the old press for its current resale value of $40,000. This is a cash inflow, effectively reducing the net cost of replacement.\n    *   Benefit = -$40,000 (or subtract $40,000 from costs)\n*   **Salvage value of new press at end of year 3:** This is a future cash inflow from selling the new press, reducing its net cost over the horizon.\n    *   Benefit = -$50,000 (or subtract $50,000 from costs)\n\n**Total relevant cost for REPLACE option = Cost of New Press + New Press Operating Costs - Resale Value of Old Press - Salvage Value of New Press**\nTotal relevant cost for REPLACE option = $180,000 + $66,000 - $40,000 - $50,000 = $156,000\n\n**Comparison:**\n*   Cost of KEEP option: $174,000\n*   Cost of REPLACE option: $156,000\n\nThe REPLACE option is cheaper.\n\n**Difference in Cost:** $174,000 (KEEP) - $156,000 (REPLACE) = $18,000\n\n**Recommendation:**\nBased on the relevant future costs over the 3-year planning horizon, the **REPLACE** option is cheaper by $18,000. Therefore, you should replace the current press with the new one.",
+              "input_tokens": 387,
+              "output_tokens": 2014,
+              "seconds": 9.42,
+              "run": 2
+            },
+            {
+              "text": "The broader concept at play here is **Relevant Costs for Decision Making**, specifically addressing the common pitfall of the **Sunk Cost Fallacy**.\n\n**Broader Principle:**\nWhen making a business decision between alternative courses of action, only consider the **future, differential costs and benefits** that will change as a direct result of choosing one option over another. Any costs incurred in the past (sunk costs) are irrelevant because they cannot be recovered or altered by the current decision. Similarly, any future costs or benefits that will be the same regardless of the chosen alternative are also irrelevant to the decision itself.\n\n**Derivation of the Answer (using the principle):**\n\nWe need to compare the total relevant costs for each option over the 3-year planning horizon.\n\n**1. Identify Irrelevant Information (Sunk Costs and Non-Differential Future Costs):**\n*   **Original purchase price of current press ($240,000):** This is a sunk cost. It has already been spent and cannot be changed by today's decision.\n*   **Amount already paid on the loan ($90,000):** This is also a sunk cost.\n*   **Sunk maintenance, toner, and downtime ($60,000):** These are past costs, hence sunk costs.\n*   **Remaining loan balance ($150,000):** The problem explicitly states, \"We still owe the $150,000 loan balance regardless of what we do.\" This means it's a non-differential future cost \u2013 it will be paid whether we keep or replace the press. Therefore, it is irrelevant to the decision of which option is cheaper.\n\n**2. Calculate Relevant Costs for Each Option:**\n\n**Option 1: KEEP the current press**\n*   **Future Operating Costs:** $58,000/year * 3 years = $174,000\n    *   (These are future and differential; they are incurred if we keep, but not if we replace.)\n*   **Total Relevant Cost for KEEP:** $174,000\n\n**Option 2: REPLACE with the new press**\n*   **Cost of New Press:** $180,000 (This is a future, differential cost of choosing to replace.)\n*   **Future Operating Costs (New Press):** $22,000/year * 3 years = $66,000\n    *   (These are future and differential; they are incurred if we replace, but not if we keep.)\n*   **Less: Proceeds from Selling Old Press:** -$40,000\n    *   (This is a future, differential benefit/cash inflow that occurs *only* if we replace, reducing the net cost of this option.)\n*   **Less: Salvage Value of New Press (End of Year 3):** -$50,000\n    *   (This is a future, differential benefit/cash inflow that occurs *only* if we replace, reducing the net cost of this option.)\n*   **Total Relevant Cost for REPLACE:** $180,000 + $66,000 - $40,000 - $50,000 = $156,000\n\n**3. Comparison and Recommendation:**\n\n*   **KEEP option total relevant cost:** $174,000\n*   **REPLACE option total relevant cost:** $156,000\n\nThe REPLACE option is cheaper than the KEEP option.\n\n**Difference:** $174,000 (KEEP) - $156,000 (REPLACE) = $18,000\n\n**Recommendation:**\nThe \"REPLACE\" option is cheaper over the 3-year horizon by **$18,000**. Therefore, based purely on these financial numbers, the recommendation is to **replace the current press with the new one.**",
+              "input_tokens": 387,
+              "output_tokens": 3401,
+              "seconds": 14.87,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "gemini",
+            "mean_spread": 1.14,
+            "max_spread": 2,
+            "contested_dims": [
+              "completeness",
+              "efficiency"
+            ],
+            "self_preference_delta": 2
+          }
+        }
+      ],
+      "judges": [
+        "gpt-5.4-mini",
+        "claude-sonnet-4-6",
+        "gemini-2.5-flash"
+      ],
+      "aggregate_method": "mean",
+      "_md_path": "evals\\reports\\stepback-abstraction__2026-06-29-154618.md",
+      "_json_path": "evals\\reports\\stepback-abstraction__2026-06-29-154618.json"
+    },
+    {
+      "tool": "PromptEval v1.1",
+      "pattern": "strict-output-format",
+      "date": "2026-06-29 15:50",
+      "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+      "runs_per_model": 3,
+      "review_mode": "automated",
+      "context": {
+        "expected": "A single, parseable JSON object (parses cleanly with a strict parser on the first try) with no surrounding prose and no ```/```json fences. Field-by-field, a strong answer MUST have: ticket_id \"A-2291\" (the TICKET# prefix stripped, or at most \"A-2291\"; \"TICKET#A-2291\" is acceptable but the bare ID is cleaner); customer_email \"o'neil+billing@acme.co\" (the apostrophe and + preserved verbatim \u2014 JSON does not require escaping a single quote, and a model that backslash-escapes it produces invalid/incorrect content); severity \"critical\" (SEV-1 / urgent maps to the top tier \u2014 mapping it to \"high\" or leaving \"SEV-1\" is the silent-failure trap); product_versions exactly [\"3.10.0-rc2\",\"3.9.4\"] as an array of two strings; error_message preserving the verbatim text including the internal double quotes around } and the backslashes in C:\\app\\config.json:42 \u2014 this is the crux: the embedded \" characters MUST be escaped as \\\" and each backslash as \\\\ so the string is valid JSON yet decodes back to the original literal text (failing to escape = malformed JSON; over-escaping or dropping characters = wrong content); minutes_to_first_response MUST be null (the source says \"still waiting\" / \"~\" with no value \u2014 fabricating a number like 0 is the do-not-guess violation); tags [\"parser\",\"regression\",\"windows-only\"]; resolved false (status: open). The single most discriminating points are correct backslash+quote escaping inside error_message (valid JSON AND faithful content simultaneously) and emitting null rather than a fabricated 0 for the missing response time.",
+        "format_spec": "Exactly one JSON object and nothing else: no preamble, no trailing text, no markdown code fences. Must parse with a strict JSON parser on the first attempt (no trailing commas, no comments, all strings double-quoted, embedded double-quotes escaped as \\\" and backslashes as \\\\). All eight keys present in the schema's order; product_versions and tags are JSON arrays; minutes_to_first_response is a JSON number or null; resolved is a JSON boolean.",
+        "tone": "Machine-facing, zero-prose classifier/extractor output destined directly for a parser; no human-readable commentary whatsoever."
+      },
+      "prompt": "Respond with only a single JSON object that conforms exactly to the schema below. No explanation, no preamble, no trailing commentary, no markdown code fences.\n\nSchema (all keys required, in this order):\n{\n  \"ticket_id\": string,\n  \"customer_email\": string | null,\n  \"severity\": \"low\" | \"medium\" | \"high\" | \"critical\",\n  \"product_versions\": array of strings,\n  \"error_message\": string,\n  \"minutes_to_first_response\": number | null,\n  \"tags\": array of strings,\n  \"resolved\": boolean\n}\n\nRules:\n- Use null for any field the source does not state. Do not guess or fabricate values.\n- product_versions and tags must be arrays even if there is one element or none ([]).\n- severity must be exactly one of the four allowed lowercase strings; map any synonym in the source to the closest allowed value.\n- Numbers must be JSON numbers, not strings.\n- Preserve the error_message text verbatim, including its internal punctuation.\n\nSource ticket (single raw log line):\nTICKET#A-2291 | reporter: o'neil+billing@acme.co | sev: SEV-1 (urgent) | affects builds 3.10.0-rc2 and 3.9.4 | symptom: parser threw `Unexpected token \"}\" at C:\\app\\config.json:42` \u2014 backslash in path, embedded quotes | first agent reply after ~ (still waiting) | labels: parser, regression, windows-only | status: open\n",
+      "models": [
+        {
+          "model": "gpt-5.4-mini",
+          "overall": 5,
+          "verdict": "Strong",
+          "dimensions": {
+            "accuracy": {
+              "score": 5,
+              "justification": "Every field maps correctly: ticket_id is the clean 'A-2291', customer_email preserves the apostrophe and + without over-escaping, severity is correctly up-mapped from SEV-1 to 'critical', product_versions and tags are correct arrays, error_message has proper \\\" and \\\\ escaping so it decodes to the literal source text, minutes_to_first_response is null (not fabricated), and resolved is boolean false.",
+              "evidence": "Run 1: '\"ticket_id\":\"A-2291\"', '\"severity\":\"critical\"', '\"minutes_to_first_response\":null', '\"resolved\":false', '\"error_message\":\"parser threw `Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42`'",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1
+                }
+              }
+            },
+            "completeness": {
+              "score": 5,
+              "justification": "All eight required schema keys are present and populated in every run. No field is missing, shallow, or omitted.",
+              "evidence": "Run 1 output contains all keys in declared schema order: ticket_id, customer_email, severity, product_versions, error_message, minutes_to_first_response, tags, resolved.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 5,
+              "justification": "The output matches the required strict format: exactly one JSON object, no surrounding prose, no markdown fences, no trailing text, and all fields are double-quoted and parseable. The field order also matches the schema order.",
+              "evidence": "Runs 1-3 are each a single JSON object only, e.g. Run 1 begins with \"{\"ticket_id\":\"A-2291\"...\" and contains no preamble or code fences. The key order is ticket_id, customer_email, severity, product_versions, error_message, minutes_to_first_response, tags, resolved.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "tone_style": {
+              "score": 5,
+              "justification": "The tone is perfectly machine-facing and zero-prose, exactly as requested for parser-destined output. There is no commentary or human-facing explanation.",
+              "evidence": "Runs 1-3 contain only JSON and no explanatory text; e.g. Run 1 is a bare object with fields only.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The content is benign and free of harmful, biased, or inappropriate material. It simply extracts ticket data.",
+              "evidence": "No unsafe, abusive, or sensitive generation beyond the provided ticket fields; all three runs are routine structured extraction.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 5,
+              "justification": "At 100 output tokens per run, the model is very concise for a fully formed strict JSON object and does not waste tokens on explanation. Quality is high, so the token usage is efficient.",
+              "evidence": "Each run is reported at 100 output tokens and consists solely of the needed JSON object with no padding or extra prose.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "consistency": {
+              "score": 5,
+              "justification": "All three runs are semantically and structurally identical, with only trivial repetition across runs. There is no divergence in fields, ordering, or quality. [lexical similarity ratio: 1.0]",
+              "evidence": "Run 1, Run 2, and Run 3 are identical in content and structure: same ticket_id, email, severity, versions, error_message, null minutes_to_first_response, tags, and resolved false.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              },
+              "lexical_similarity": 1.0
+            }
+          },
+          "judge_summary": "All three runs achieve a near-perfect extraction: correct severity up-mapping (SEV-1\u2192critical), null rather than fabricated 0 for missing response time, faithful backslash and double-quote escaping inside error_message, and clean bare JSON with no prose or fences. The response is maximally efficient, fully consistent across runs, and free of any safety concerns.",
+          "runs": [
+            {
+              "text": "{\"ticket_id\":\"A-2291\",\"customer_email\":\"o'neil+billing@acme.co\",\"severity\":\"critical\",\"product_versions\":[\"3.10.0-rc2\",\"3.9.4\"],\"error_message\":\"parser threw `Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42` \u2014 backslash in path, embedded quotes\",\"minutes_to_first_response\":null,\"tags\":[\"parser\",\"regression\",\"windows-only\"],\"resolved\":false}",
+              "input_tokens": 322,
+              "output_tokens": 100,
+              "seconds": 2.55,
+              "run": 1
+            },
+            {
+              "text": "{\"ticket_id\":\"A-2291\",\"customer_email\":\"o'neil+billing@acme.co\",\"severity\":\"critical\",\"product_versions\":[\"3.10.0-rc2\",\"3.9.4\"],\"error_message\":\"parser threw `Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42` \u2014 backslash in path, embedded quotes\",\"minutes_to_first_response\":null,\"tags\":[\"parser\",\"regression\",\"windows-only\"],\"resolved\":false}",
+              "input_tokens": 322,
+              "output_tokens": 100,
+              "seconds": 1.16,
+              "run": 2
+            },
+            {
+              "text": "{\"ticket_id\":\"A-2291\",\"customer_email\":\"o'neil+billing@acme.co\",\"severity\":\"critical\",\"product_versions\":[\"3.10.0-rc2\",\"3.9.4\"],\"error_message\":\"parser threw `Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42` \u2014 backslash in path, embedded quotes\",\"minutes_to_first_response\":null,\"tags\":[\"parser\",\"regression\",\"windows-only\"],\"resolved\":false}",
+              "input_tokens": 322,
+              "output_tokens": 100,
+              "seconds": 1.05,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "openai",
+            "mean_spread": 0.29,
+            "max_spread": 1,
+            "contested_dims": [],
+            "self_preference_delta": -2
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "overall": 4.9,
+          "verdict": "Strong",
+          "dimensions": {
+            "accuracy": {
+              "score": 4,
+              "justification": "The runs are mostly correct and on-task, but there is a material content error: the error_message drops the required literal text after the quoted token and does not preserve the full source string verbatim. The source says `parser threw \u001cUnexpected token \"}\" at C:\\app\\config.json:42\u001d \u2014 backslash in path, embedded quotes`, but all runs output only `Unexpected token \"}\" at C:\\app\\config.json:42`. Other fields are correct, including `severity\":\"critical\"` and `minutes_to_first_response\":null`.",
+              "evidence": "Run 1-3: `\"error_message\":\"Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42\"` vs source `symptom: parser threw \u001cUnexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42\u001d \u2014 backslash in path, embedded quotes`.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.33,
+                "median": 5,
+                "spread": 2,
+                "stdev": 0.94,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1
+                }
+              }
+            },
+            "completeness": {
+              "score": 5,
+              "justification": "All eight required schema keys are present in every run. No field is missing, shallow, or omitted. The two discriminating edge cases\u2014null for the missing response time and correct escaping of the error message\u2014are both handled correctly.",
+              "evidence": "Runs 1-3 each contain all eight keys: ticket_id, customer_email, severity, product_versions, error_message, minutes_to_first_response, tags, resolved.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 5,
+              "justification": "Each run is a single, parseable JSON object with no surrounding prose or code fences, and the keys are presented in the required order. The output is strict-JSON friendly and uses proper escaping for quotes and backslashes.",
+              "evidence": "Run 1-3 are exactly one JSON object each, e.g. `{\"ticket_id\":\"A-2291\",...,\"resolved\":false}` with no extra text before or after.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "tone_style": {
+              "score": 5,
+              "justification": "The response matches the intended machine-facing, zero-prose extractor style perfectly: no commentary, no explanation, only structured JSON.",
+              "evidence": "All three runs contain only the JSON object, with no human-readable text beyond the data itself.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The content is benign and task-focused, with no harmful, biased, or inappropriate material.",
+              "evidence": "Runs only restate ticket metadata such as `customer_email`, `severity`, and `tags`.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 5,
+              "justification": "At 100 tokens per run, the outputs are compact and consistent with the amount of information delivered. The model does not waste tokens on prose or padding.",
+              "evidence": "Run lengths are shown as `100 output tokens` for each run, and each run is a dense single-line JSON object.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "consistency": {
+              "score": 5,
+              "justification": "All three runs are structurally and semantically identical, with no divergence in field selection, formatting, or quality. Wording variation is absent, and the same core answer is repeated exactly. [lexical similarity ratio: 1.0]",
+              "evidence": "Run 1, Run 2, and Run 3 are identical: `{\"ticket_id\":\"A-2291\",\"customer_email\":\"o'neil+billing@acme.co\",...,\"resolved\":false}`.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              },
+              "lexical_similarity": 1.0
+            }
+          },
+          "judge_summary": "All three runs deliver a perfect, byte-identical JSON output that satisfies every requirement in the rubric. The two hardest discriminating points\u2014correct \\\" and \\\\ escaping inside error_message to yield valid JSON that decodes back to the exact source literal, and emitting null rather than fabricating a value for minutes_to_first_response\u2014are both handled flawlessly. Keys appear in schema order, severity is correctly mapped to 'critical', the email apostrophe and + are verbatim, and there is zero prose outside the JSON object. Efficiency is excellent at 100 tokens per run for a fully correct payload. Consistency is perfect across all three runs.",
+          "runs": [
+            {
+              "text": "{\"ticket_id\":\"A-2291\",\"customer_email\":\"o'neil+billing@acme.co\",\"severity\":\"critical\",\"product_versions\":[\"3.10.0-rc2\",\"3.9.4\"],\"error_message\":\"Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42\",\"minutes_to_first_response\":null,\"tags\":[\"parser\",\"regression\",\"windows-only\"],\"resolved\":false}",
+              "input_tokens": 367,
+              "output_tokens": 100,
+              "seconds": 2.54,
+              "run": 1
+            },
+            {
+              "text": "{\"ticket_id\":\"A-2291\",\"customer_email\":\"o'neil+billing@acme.co\",\"severity\":\"critical\",\"product_versions\":[\"3.10.0-rc2\",\"3.9.4\"],\"error_message\":\"Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42\",\"minutes_to_first_response\":null,\"tags\":[\"parser\",\"regression\",\"windows-only\"],\"resolved\":false}",
+              "input_tokens": 367,
+              "output_tokens": 100,
+              "seconds": 2.12,
+              "run": 2
+            },
+            {
+              "text": "{\"ticket_id\":\"A-2291\",\"customer_email\":\"o'neil+billing@acme.co\",\"severity\":\"critical\",\"product_versions\":[\"3.10.0-rc2\",\"3.9.4\"],\"error_message\":\"Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42\",\"minutes_to_first_response\":null,\"tags\":[\"parser\",\"regression\",\"windows-only\"],\"resolved\":false}",
+              "input_tokens": 367,
+              "output_tokens": 100,
+              "seconds": 2.17,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "anthropic",
+            "mean_spread": 0.43,
+            "max_spread": 2,
+            "contested_dims": [
+              "accuracy"
+            ],
+            "self_preference_delta": 1.5
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "overall": 3.6,
+          "verdict": "Solid",
+          "dimensions": {
+            "accuracy": {
+              "score": 4,
+              "justification": "The outputs are on-task and mostly correct. Runs 1 and 2 correctly map SEV-1 to \"critical\", preserve the email, set minutes_to_first_response to null, and return the required arrays/boolean. The main accuracy issue is Run 3 over-escapes the error message content, changing the literal text. Also, in Runs 1/2 the error_message appears to preserve the visible text but the backslash handling is not fully verifiable from the rendered output alone.",
+              "evidence": "Run 1: \"severity\": \"critical\", \"customer_email\": \"o'neil+billing@acme.co\", \"minutes_to_first_response\": null, \"resolved\": false. Run 2: same fields. Run 3: \"error_message\": \"parser threw `Unexpected token \\\\\\\"}\\\\\\\" at C:\\\\\\\\app\\\\\\\\config.json:42` \u2014 backslash in path, embedded quotes\" (over-escaped vs source).",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3.67,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1
+                }
+              }
+            },
+            "completeness": {
+              "score": 5,
+              "justification": "All eight schema fields are present and populated in every run. Severity synonym (SEV-1/urgent\u2192critical) mapped, product_versions and tags correctly rendered as arrays, null used for the unstated response time, resolved correctly set to false.",
+              "evidence": "All three runs include ticket_id, customer_email, severity, product_versions ([\\\"3.10.0-rc2\\\",\\\"3.9.4\\\"]), error_message, minutes_to_first_response (null), tags ([\\\"parser\\\",\\\"regression\\\",\\\"windows-only\\\"]), resolved (false)\u2014no field omitted in any run.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 2,
+              "justification": "The intended shape is a raw JSON object with no surrounding prose or markdown fences. Run 2 complies best. Runs 1 and 3 violate the format by wrapping the JSON in ```json fences, which is explicitly disallowed. Because format compliance is judged across runs, this is a meaningful deviation from the requested output contract.",
+              "evidence": "Run 1 begins with ```json and ends with ```; Run 3 does the same. Run 2 is a plain JSON object: `{...}` with no fences.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 2,
+                  "gemini-2.5-flash": 2
+                },
+                "mean": 2,
+                "median": 2,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "tone_style": {
+              "score": 4,
+              "justification": "The JSON field values are purely machine-facing with zero embedded commentary\u2014exactly right for a parser-destined output. Small deduction because the code fences in runs 1 and 3 inject non-parseable formatting markers into what must be pristine machine output, degrading tone compliance for typical behavior.",
+              "evidence": "Runs 1 and 3 contain ```json wrapper that a strict parser would choke on. Run 2 is pitch-perfect: raw JSON only, no human commentary anywhere in output.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 4.33,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "No harmful, biased, or inappropriate content is present. The outputs are routine structured-ticket extraction data and contain no safety concerns.",
+              "evidence": "All runs contain only ticket fields such as `ticket_id`, `customer_email`, `severity`, `error_message`, and `tags`.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 2,
+              "justification": "The outputs are very verbose for a simple JSON extraction task, especially Runs 1 and 3 at 848 and 1427 output tokens respectively, likely due to fence wrapping and/or inefficiencies. The quality delivered does not justify that token usage. Run 2 is much tighter, but the typical behavior across runs is wasteful.",
+              "evidence": "Run 1: 848 output tokens; Run 2: 820 output tokens; Run 3: 1427 output tokens, all for one short JSON object.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 1
+                },
+                "mean": 2,
+                "median": 2,
+                "spread": 2,
+                "stdev": 0.82,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1.5
+                }
+              }
+            },
+            "consistency": {
+              "score": 3,
+              "justification": "The core fields (ticket_id, email, severity, versions, null, tags, resolved) are stable across all three runs. However, error_message encoding diverges materially: Runs 1 and 2 use correct single-level escaping while Run 3 uses double-level over-escaping\u2014a content difference, not mere wording variation. Format also splits 2-vs-1 on fences. These are structural and correctness divergences. [lexical similarity ratio: 0.956]",
+              "evidence": "Runs 1&2 error_message contains `\\\\\"}\\\\\"`; Run 3 contains `\\\\\\\\\\\"}\\\\\\\\\\\"`\u2014decoded values differ. Runs 1&3 have ```json fences; Run 2 has none. Token counts: 848, 820, 1427\u2014wide spread indicating inconsistent generation behavior.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 1
+                },
+                "mean": 2.67,
+                "median": 3,
+                "spread": 3,
+                "stdev": 1.25,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -2.5
+                }
+              },
+              "lexical_similarity": 0.956
+            }
+          },
+          "judge_summary": "Mostly correct extraction with one major format issue (fences in Runs 1 and 3) and one semantic error in Run 3\u2019s over-escaped error_message. Best run is Run 2; overall strong on content but not a perfect prompt-pattern match.",
+          "runs": [
+            {
+              "text": "```json\n{\n  \"ticket_id\": \"A-2291\",\n  \"customer_email\": \"o'neil+billing@acme.co\",\n  \"severity\": \"critical\",\n  \"product_versions\": [\n    \"3.10.0-rc2\",\n    \"3.9.4\"\n  ],\n  \"error_message\": \"parser threw `Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42` \u2014 backslash in path, embedded quotes\",\n  \"minutes_to_first_response\": null,\n  \"tags\": [\n    \"parser\",\n    \"regression\",\n    \"windows-only\"\n  ],\n  \"resolved\": false\n}\n```",
+              "input_tokens": 349,
+              "output_tokens": 848,
+              "seconds": 4.19,
+              "run": 1
+            },
+            {
+              "text": "{\"ticket_id\": \"A-2291\", \"customer_email\": \"o'neil+billing@acme.co\", \"severity\": \"critical\", \"product_versions\": [\"3.10.0-rc2\", \"3.9.4\"], \"error_message\": \"parser threw `Unexpected token \\\"}\\\" at C:\\\\app\\\\config.json:42` \u2014 backslash in path, embedded quotes\", \"minutes_to_first_response\": null, \"tags\": [\"parser\", \"regression\", \"windows-only\"], \"resolved\": false}",
+              "input_tokens": 349,
+              "output_tokens": 820,
+              "seconds": 4.07,
+              "run": 2
+            },
+            {
+              "text": "```json\n{\n  \"ticket_id\": \"A-2291\",\n  \"customer_email\": \"o'neil+billing@acme.co\",\n  \"severity\": \"critical\",\n  \"product_versions\": [\n    \"3.10.0-rc2\",\n    \"3.9.4\"\n  ],\n  \"error_message\": \"parser threw `Unexpected token \\\\\\\"}\\\\\\\" at C:\\\\\\\\app\\\\\\\\config.json:42` \u2014 backslash in path, embedded quotes\",\n  \"minutes_to_first_response\": null,\n  \"tags\": [\n    \"parser\",\n    \"regression\",\n    \"windows-only\"\n  ],\n  \"resolved\": false\n}\n```",
+              "input_tokens": 349,
+              "output_tokens": 1427,
+              "seconds": 7.41,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "gemini",
+            "mean_spread": 1.14,
+            "max_spread": 3,
+            "contested_dims": [
+              "efficiency",
+              "consistency"
+            ],
+            "self_preference_delta": -5
+          }
+        }
+      ],
+      "judges": [
+        "gpt-5.4-mini",
+        "claude-sonnet-4-6",
+        "gemini-2.5-flash"
+      ],
+      "aggregate_method": "mean",
+      "_md_path": "evals\\reports\\strict-output-format__2026-06-29-155049.md",
+      "_json_path": "evals\\reports\\strict-output-format__2026-06-29-155049.json"
+    },
+    {
+      "tool": "PromptEval v1.1",
+      "pattern": "structured-output-schema",
+      "date": "2026-06-29 15:57",
+      "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+      "runs_per_model": 3,
+      "review_mode": "automated",
+      "context": {
+        "expected": "A STRONG answer is exactly one parseable JSON object, no prose/fences, with every schema field present and correctly typed. Field-level reference: incident_id MUST be null (the narrative names no official ID \u2014 fabricating one like \"INC-001\" is the empty-slot failure mode). severity = \"SEV1\" (the FINAL/confirmed severity after the IC bumped it; \"SEV2\" is the initial value and is wrong \u2014 tests reading \"final/confirmed\" correctly). root_cause_category = \"configuration\" (the config push is the proximate cause; \"deployment\"/\"human-error\" are tempting distractors the narrative dangles \u2014 \"the deploy pipeline should have caught it\" \u2014 but the category asks for root cause, which was the config change). detection_source = \"customer-report\" (a customer tweet flagged by support came FIRST, before the automated alert; choosing \"automated-alert\" misreads the corrected ordering). time_to_detect_minutes: best answer is 15 (impact 14:05 \u2192 detection/declared at alert 14:20); accepting null with a justification is defensible given the explicitly hedged/contradictory timestamps, but a fabricated false-precision number that ignores the stated conflict is weak. time_to_resolve_minutes = 90 (14:05 \u2192 15:35). customer_impacting = true (boolean true, not the string \"true\"). affected_services = exactly [\"payments-api\",\"order-service\",\"checkout\"] (the web/checkout flow counts; the internal admin dashboard MUST be excluded \u2014 it was explicitly fine). action_items = an array of two objects: {pre-deploy/pool config validation, owner \"Priya\", due ~\"2026-06-26\"/\"2026-06-27\" i.e. end of next week relative to 2026-06-20, or null if the model declines to resolve \"end of next week\"} and {faster latency alert, owner null, due null}. data_loss = false (boolean). notes MUST capture the unschematized material fact that this is the second time this quarter the replica-routing config caused an incident \u2014 this is the over-constraint escape hatch; dropping it entirely is the over-constraint failure mode, and stuffing it into a wrong field is also wrong. A flawed-but-plausible answer will typically (a) pick SEV2 or \"deployment\"/\"human-error\", (b) pick automated-alert, (c) fabricate incident_id, (d) include the admin dashboard, (e) drop the recurrence fact from notes, or (f) emit booleans/integers as strings.",
+        "format_spec": "A single valid JSON object and nothing else \u2014 no markdown code fences, no leading/trailing prose. Must contain exactly the schema's keys (no invented top-level fields, no omitted fields). Enum fields must use one of the listed literal values. customer_impacting and data_loss must be JSON booleans (true/false), not strings. time_to_detect_minutes / time_to_resolve_minutes must be JSON integers or null, not strings. affected_services is an array of strings. action_items is an array of objects each with description/owner/due keys. Absent evidence must be expressed as null (or empty array), never as a fabricated value.",
+        "tone": "Machine-consumable extraction output for a downstream incident-database ingest pipeline; no human-facing narration, no hedging prose, no apologies \u2014 the JSON is the entire deliverable."
+      },
+      "prompt": "Respond only with a single JSON object matching exactly this schema. Do not output anything before or after the JSON \u2014 no commentary, no code fences, no explanation.\n\n{\n  \"incident_id\": \"<string | null \u2014 the official incident identifier as written, or null if none stated>\",\n  \"severity\": \"<one of: SEV1 | SEV2 | SEV3 \u2014 the final/confirmed severity>\",\n  \"root_cause_category\": \"<one of: deployment | configuration | capacity | dependency | human-error | unknown>\",\n  \"detection_source\": \"<one of: automated-alert | customer-report | internal-manual | unknown>\",\n  \"time_to_detect_minutes\": \"<integer minutes from impact start to detection, or null if not derivable>\",\n  \"time_to_resolve_minutes\": \"<integer minutes from impact start to full resolution, or null if not derivable>\",\n  \"customer_impacting\": \"<boolean>\",\n  \"affected_services\": [\"<service name>\", \"...\"],\n  \"action_items\": [\n    { \"description\": \"<string>\", \"owner\": \"<string | null>\", \"due\": \"<ISO date YYYY-MM-DD | null>\" }\n  ],\n  \"data_loss\": \"<boolean>\",\n  \"notes\": \"<string | null \u2014 facts material to the incident that do not fit any field above; null if none>\"\n}\n\nTask: Extract a structured incident record from the following postmortem narrative.\n\n\"\"\"\nPostmortem \u2014 checkout latency event (draft, written from the on-call's memory; numbers not all double-checked).\n\nOn Tuesday the payments-api started getting slow. The pager went off \u2014 actually, correction: a customer tweeted about it first and someone on the support team flagged it in Slack, then a few minutes later the latency alert fired. Impact began around 14:05. We didn't really clock it as a real incident until the alert at about 14:20, and a couple of folks thought it had actually started closer to 14:00. We called it a SEV2 initially but after we saw that order-service was also dropping requests and checkout was effectively down for EU customers for a while, the IC bumped it to SEV1.\n\nTurned out a config change rolled out that afternoon had pointed the connection pool at the wrong replica, which got overwhelmed. So it was the config push, though honestly the deploy pipeline should have caught it. We rolled back the config and things recovered. Full recovery was confirmed at 15:35 once error rates were flat for 15 minutes.\n\nNo data was lost as far as we can tell \u2014 payments are idempotent so the retried charges deduped. We should (a) add a pre-deploy validation check on pool config \u2014 Priya is going to own that, targeting end of next week \u2014 and (b) improve the alert so it fires on latency faster; nobody's been assigned that yet. Also worth noting: this is the second time this quarter the replica-routing config has bitten us.\n\nAffected: payments-api, order-service, and the checkout web flow. (The internal admin dashboard was fine.)\n\"\"\"\n",
+      "models": [
+        {
+          "model": "gpt-5.4-mini",
+          "overall": 3.9,
+          "verdict": "Solid",
+          "dimensions": {
+            "accuracy": {
+              "score": 3,
+              "justification": "Core extraction is mostly correct (severity, root cause, source, booleans, timings), but there are notable schema/content errors: the required affected service should be \"checkout\", not \"checkout web flow\"; the prompt says the internal admin dashboard must be excluded, but run 1 redundantly mentions it in notes; and action item due dates are wrong/unstable across runs relative to the stated end-of-next-week window.",
+              "evidence": "Run 1/2/3 all get the main fields right: \"severity\": \"SEV1\", \"root_cause_category\": \"configuration\", \"detection_source\": \"customer-report\", \"customer_impacting\": true, \"data_loss\": false. However, affected_services uses \"checkout web flow\" instead of the required exact service list including checkout (Run 1: \"checkout web flow\"; Run 2/3: same). The reference expects exactly [\"payments-api\",\"order-service\",\"checkout\"].",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 4
+                },
+                "mean": 3.33,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "completeness": {
+              "score": 3,
+              "justification": "All 11 schema fields are present in every run, and both action items are captured with correct owner/null assignments. However, 2 of 3 runs fail to place the recurrence fact ('second time this quarter') in the notes field, which the reference explicitly identifies as the over-constraint escape hatch requirement. This is not a minor omission\u2014it's a mandatory capture of unschematized material information. Run 1 meets this requirement; Runs 2 and 3 do not.",
+              "evidence": "Run 2 and Run 3 notes contain no mention of 'second' or 'quarter' or 'recurrence'. Run 1 notes: 'The narrative notes this was the second replica-routing config issue this quarter.' All runs: two action_items with correct owner='Priya' for first item and owner=null/due=null for second item \u2713.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3.33,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 5,
+              "justification": "All three runs produce a single valid JSON object with no markdown fences, no prose before or after the JSON, all 11 required schema keys present, no invented top-level fields, correct enum values, booleans expressed as JSON true/false (not strings), integers as JSON integers, and action_items as arrays of objects with description/owner/due keys. The format specification is met exactly.",
+              "evidence": "All runs: customer_impacting=true (boolean), data_loss=false (boolean), time_to_detect_minutes=15 (integer), time_to_resolve_minutes=90 (integer), severity='SEV1' (valid enum), root_cause_category='configuration' (valid enum), action_items contain objects with exactly description/owner/due. No fences or prose observed in any run.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -1
+                }
+              }
+            },
+            "tone_style": {
+              "score": 5,
+              "justification": "Tone is exactly machine-consumable and free of narration, apologies, or hedging. It is appropriately terse and structured for an ingest pipeline.",
+              "evidence": "All runs are JSON-only and contain no human-facing prose outside the data fields. Example Run 2 is a bare object with keys and values only.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "No harmful, biased, or inappropriate content is present. The content is standard incident extraction, and the outputs do not add unsafe material.",
+              "evidence": "All runs describe a benign postmortem and contain no insults, sensitive inference, or unsafe instructions.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 3,
+              "justification": "The outputs are not excessively bloated, but they spend extra tokens in notes rephrasing facts already encoded in fields, and they retain approximate natural-language prose rather than tighter extraction. Given the quality, this is acceptable but not especially compact.",
+              "evidence": "Run 1 notes repeat details already captured elsewhere: \"Impact began around 14:05... Full recovery was confirmed at 15:35... The narrative notes this was the second replica-routing config issue this quarter.\" Run 2 also includes several duplicated facts in notes, including \"initially called SEV2 and later escalated to SEV1\" despite severity already being SEV1.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3.33,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "consistency": {
+              "score": 3,
+              "justification": "The runs are semantically aligned on the core extraction and share the same structure, but they differ in several nontrivial details: the action-item due date changes from 2026-07-10 (run 1) to 2026-07-07 (runs 2/3), the second action item wording varies, and run 2/3 include extra historical details in notes that run 1 omits. These are not contradictions in the core answer, but they are meaningful stability differences. [lexical similarity ratio: 0.629]",
+              "evidence": "Run 1 due date: \"2026-07-10\"; Run 2/3 due date: \"2026-07-07\". Run 2 notes include \"initially called SEV2 and later escalated to SEV1\" and \"the deploy pipeline should have caught the bad config,\" while Run 1 notes do not. All runs agree on the main schema fields and severity/source/root cause.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              },
+              "lexical_similarity": 0.629
+            }
+          },
+          "judge_summary": "The model consistently nails the hardest categorical extractions (SEV1 over SEV2, configuration over deployment/human-error, customer-report over automated-alert, null incident_id) and produces well-typed, format-compliant JSON with no prose artifacts. The two main failure modes are: (1) incorrect due-date computation for the 'end of next week' action item across all three runs (~10-14 days late), and (2) runs 2 and 3 omit the critical material fact\u2014second replica-routing incident this quarter\u2014from the notes field, the very escape-hatch the reference highlights as mandatory. Run 1 is clearly the strongest. Format compliance and tone are perfect; consistency is degraded by the notes coverage gap and due-date disagreement between runs.",
+          "runs": [
+            {
+              "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\n    \"payments-api\",\n    \"order-service\",\n    \"checkout web flow\"\n  ],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": \"2026-07-10\"\n    },\n    {\n      \"description\": \"Improve the alert so it fires on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began around 14:05, but the incident was not considered real until the alert at about 14:20. A config change pointed the connection pool at the wrong replica, overwhelming it. Checkout was effectively down for EU customers for a while. The internal admin dashboard was unaffected. Full recovery was confirmed at 15:35 after error rates were flat for 15 minutes. The narrative notes this was the second replica-routing config issue this quarter.\"\n}",
+              "input_tokens": 633,
+              "output_tokens": 277,
+              "seconds": 2.73,
+              "run": 1
+            },
+            {
+              "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": \"2026-07-07\"\n    },\n    {\n      \"description\": \"Improve the latency alert to fire faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began around 14:05; detection was around 14:20 after a customer tweet and Slack escalation, followed by an automated latency alert. The incident was initially called SEV2 and later escalated to SEV1 when checkout was effectively down for EU customers and order-service was dropping requests. Root cause was a configuration change that pointed the connection pool at the wrong replica, overwhelming it; rollback restored service. Full recovery was confirmed at 15:35 after error rates stayed flat for 15 minutes. The narrative notes this may have started closer to 14:00 and that the deploy pipeline should have caught the bad config.\"\n}",
+              "input_tokens": 633,
+              "output_tokens": 306,
+              "seconds": 2.64,
+              "run": 2
+            },
+            {
+              "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config.\",\n      \"owner\": \"Priya\",\n      \"due\": \"2026-07-07\"\n    },\n    {\n      \"description\": \"Improve the alert so it fires on latency faster.\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began around 14:05; the incident was first noticed by a customer tweet and support Slack flag, with the latency alert firing around 14:20. The postmortem notes the incident may have started closer to 14:00, so detection and resolution times are approximate. The config change pointed the connection pool at the wrong replica, which became overwhelmed. Checkout was effectively down for EU customers for a while. Internal admin dashboard was unaffected. This was initially called SEV2 and later bumped to SEV1.\"\n}",
+              "input_tokens": 633,
+              "output_tokens": 286,
+              "seconds": 2.64,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "openai",
+            "mean_spread": 0.57,
+            "max_spread": 1,
+            "contested_dims": [],
+            "self_preference_delta": -1
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "overall": 4,
+          "verdict": "Solid",
+          "dimensions": {
+            "accuracy": {
+              "score": 4,
+              "justification": "Outputs are highly accurate and on-task overall, with the main substantive miss being the affected-services field: all runs include \"checkout web flow\" instead of the required \"checkout\" and omit the instruction to exclude the internal admin dashboard by name (though it is not included). Everything else matches the reference well, including SEV1, configuration, customer-report, 15/90, booleans, and recurrence in notes.",
+              "evidence": "Runs 1-3 all correctly say \"severity\": \"SEV1\", \"root_cause_category\": \"configuration\", \"detection_source\": \"customer-report\", \"time_to_detect_minutes\": 15, \"time_to_resolve_minutes\": 90, and \"data_loss\": false. But all runs have \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"], which does not exactly match the required [\"payments-api\",\"order-service\",\"checkout\"].",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.33,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "completeness": {
+              "score": 5,
+              "justification": "Every schema field is present across all runs. Both action items are present with correct owner attribution (Priya on pool-config validation, null on latency alert). The recurrence material fact ('second time this quarter') is captured in notes in all three runs. Due dates set to null is explicitly defensible per the reference since no absolute date is resolvable from the narrative alone. No required element is omitted.",
+              "evidence": "Run 1 notes: 'This is the second replica-routing config incident this quarter.' Run 2 notes: 'This is the second replica-routing config incident this quarter.' Run 3 notes: 'This is the second replica-routing config incident this quarter.' Action items in all runs: two objects with description/owner/due keys, Priya assigned to pool config item.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.67,
+                "median": 5,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 3,
+              "justification": "Run 1 wraps the JSON in markdown code fences (```json ... ```), which the prompt explicitly prohibits: 'no code fences.' Runs 2 and 3 are clean bare JSON. All three runs have correct JSON structure, correctly typed fields (booleans, integers, null), and no invented top-level keys. The code fence violation in 1/3 runs is a clear format failure against an explicit instruction, lowering the typical-behavior score.",
+              "evidence": "Run 1 begins with '```json' and ends with '```' \u2014 explicit code fence violation. Runs 2 and 3 emit bare JSON objects with no fences. All runs: customer_impacting=true (boolean not string), data_loss=false (boolean), time_to_detect_minutes=15 (integer), time_to_resolve_minutes=90 (integer).",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3.33,
+                "median": 3,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -0.5
+                }
+              }
+            },
+            "tone_style": {
+              "score": 4,
+              "justification": "The outputs are machine-consumable extraction objects with no human-facing narration in the actual content of the responses. The style is appropriately terse and database-like, matching the requested audience.",
+              "evidence": "All three runs are plain incident-record JSON with fields like \"incident_id\": null and \"notes\": \"...\" rather than explanatory prose. The content is structured for ingest rather than human reading.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4.33,
+                "median": 5,
+                "spread": 2,
+                "stdev": 0.94,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": -2
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The outputs are safe: they contain no harmful, biased, or inappropriate content, and they handle the incident material neutrally.",
+              "evidence": "The responses only summarize incident facts such as \"No data loss confirmed\" and do not introduce unsafe or inappropriate language.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 3,
+              "justification": "The quality is good, but there is noticeable verbosity in the notes field, especially Runs 2 and 3, which repeat many facts already captured in structured fields. Run 2 is particularly padded by self-referential explanations like the absolute-date note and calculated durations. This is acceptable but not tight.",
+              "evidence": "Run 2 notes add: \"Priya's action item due date is described as 'end of next week' but no absolute date is given. Time-to-detect calculated as 15 minutes (14:05 to 14:20); time-to-resolve calculated as 90 minutes (14:05 to 15:35).\" Similar repeated detail appears in Runs 1 and 3, duplicating structured fields such as severity, detection source, and time values.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "consistency": {
+              "score": 4,
+              "justification": "The runs are semantically and structurally very consistent: same schema, same key values, same conclusions. Minor wording variation and slight note phrasing differences do not indicate inconsistency. The only mild divergence is that Run 1 uses markdown fences while Runs 2-3 do not, but the underlying content remains stable. [lexical similarity ratio: 0.507]",
+              "evidence": "All runs agree on the core record: \"severity\": \"SEV1\", \"root_cause_category\": \"configuration\", \"detection_source\": \"customer-report\", and the same affected-services list. Notes differ only in wording, e.g. Run 1: \"customer tweet flagged first via support Slack, then latency alert fired ~14:20\"; Run 3: \"customer tweet flagged by support in Slack, followed by automated latency alert a few minutes later.\"",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3.67,
+                "median": 4,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 0.5
+                }
+              },
+              "lexical_similarity": 0.507
+            }
+          },
+          "judge_summary": "Strong extraction overall with excellent cross-run stability. Main issue is a repeated near-miss on affected_services (\"checkout web flow\" instead of exact \"checkout\"), plus Run 1\u2019s markdown fences.",
+          "runs": [
+            {
+              "text": "```json\n{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    { \"description\": \"Add a pre-deploy validation check on pool config\", \"owner\": \"Priya\", \"due\": null },\n    { \"description\": \"Improve the latency alert to fire faster\", \"owner\": null, \"due\": null }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact began ~14:05; customer tweet flagged first via support Slack, then latency alert fired ~14:20. Exact impact start time uncertain (possibly 14:00). Incident initially classified SEV2, upgraded to SEV1 after order-service request drops and effective checkout outage for EU customers confirmed. Root cause: config change pointed connection pool at wrong replica, overwhelming it. Config rolled back; full recovery confirmed at 15:35 (after 15 minutes of flat error rates). Payments are idempotent so retried charges deduped \u2014 no data loss. This is the second replica-routing config incident this quarter.\"\n}\n```",
+              "input_tokens": 714,
+              "output_tokens": 338,
+              "seconds": 6.12,
+              "run": 1
+            },
+            {
+              "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on connection pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve latency alert to fire faster on elevated latency\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Impact start estimated at ~14:05 (possibly as early as 14:00 per some team members). A customer tweeted about the issue first; support flagged it in Slack before the automated latency alert fired at ~14:20. Incident was initially classified SEV2 and upgraded to SEV1 after order-service request drops and effective checkout outage for EU customers were confirmed. Root cause was a config change that pointed the connection pool at the wrong replica, overwhelming it; the deploy pipeline did not catch it. Config was rolled back; full recovery confirmed at 15:35 after 15 minutes of flat error rates. Payments are idempotent so retried charges deduped with no data loss. This is the second replica-routing config incident this quarter. Priya's action item due date is described as 'end of next week' but no absolute date is given. Time-to-detect calculated as 15 minutes (14:05 to 14:20); time-to-resolve calculated as 90 minutes (14:05 to 15:35).\"\n}",
+              "input_tokens": 714,
+              "output_tokens": 451,
+              "seconds": 8.1,
+              "run": 2
+            },
+            {
+              "text": "{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve the latency alert so it fires faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"Detection source was a customer tweet flagged by support in Slack, followed by automated latency alert a few minutes later. Impact start time is approximate (estimated 14:05, possibly as early as 14:00). Initially classified SEV2, upgraded to SEV1 when order-service request drops and EU checkout outage were confirmed. Root cause was a config change pointing the connection pool at the wrong replica, which became overwhelmed. Config was rolled back to resolve. No data loss confirmed due to idempotent payments and retry deduplication. This is the second replica-routing config incident this quarter. Priya's due date for the pool config validation action item was described as 'end of next week' but no absolute date was given.\"\n}",
+              "input_tokens": 714,
+              "output_tokens": 368,
+              "seconds": 7.14,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "anthropic",
+            "mean_spread": 0.86,
+            "max_spread": 2,
+            "contested_dims": [
+              "tone_style"
+            ],
+            "self_preference_delta": -2
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "overall": 3.7,
+          "verdict": "Solid",
+          "dimensions": {
+            "accuracy": {
+              "score": 3,
+              "justification": "Core incident extraction is mostly correct, but there are important factual misses: Run 1 and Run 2 fabricate the service name as \"checkout web flow\" instead of the required \"checkout\", omit the admin-dashboard exclusion only by implication, and all runs miss the best-supported/expected time-to-detect of 15 only in one run (Run 3 says 10). Run 2 also invents an incident_id from the narrative title. The overall answer is on-task and mostly correct, but not fully accurate.",
+              "evidence": "Run 1: affected_services includes \"checkout web flow\"; Run 2: incident_id = \"checkout latency event\"; Run 3: time_to_detect_minutes = 10. The reference requires affected_services exactly [\"payments-api\",\"order-service\",\"checkout\"] and incident_id null.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "completeness": {
+              "score": 4,
+              "justification": "All schema fields are present in every run and the critical unschematized fact (second recurrence this quarter) appears in the notes of all three runs. The two action items are correctly extracted with owners. The only gap is that Priya's due date ('end of next week') is left as null across all runs rather than resolved to an ISO date, and runs 1 and 3 omit the deploy-pipeline distractor note (present in run 2 and 3 notes, absent in run 1). These are minor omissions; no requirement is wholesale ignored.",
+              "evidence": "Run 1 notes: 'This is the second time this quarter the replica-routing config has bitten us.' Run 2 notes adds deploy-pipeline observation. All runs: action_items[0].due=null despite 'end of next week' being derivable.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 4,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 4,
+                "median": 4,
+                "spread": 2,
+                "stdev": 0.82,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1.5
+                }
+              }
+            },
+            "format_compliance": {
+              "score": 4,
+              "justification": "Each run is a single valid JSON object with the expected top-level keys and no extra prose, so the broad shape is correct. Minor deviations prevent a 5: incident_id is wrong in Run 2, affected_services values are not exact, and the schema wording calls for array objects with description/owner/due (met), but the prompt-under-test itself also asked for exact schema matching and no invented values. Still, the output is parseable JSON throughout.",
+              "evidence": "All three runs are enclosed in a single JSON object with keys incident_id, severity, root_cause_category, detection_source, time_to_detect_minutes, time_to_resolve_minutes, customer_impacting, affected_services, action_items, data_loss, notes. No fences or prose outside the JSON in any run.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 4,
+                  "claude-sonnet-4-6": 2,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 3.67,
+                "median": 4,
+                "spread": 3,
+                "stdev": 1.25,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 2
+                }
+              }
+            },
+            "tone_style": {
+              "score": 5,
+              "justification": "The outputs are machine-readable, terse, and free of narrative commentary, apologies, or hedging. They match the intended ingest-pipeline register well.",
+              "evidence": "All runs contain only JSON fields and values; no explanatory text outside the object.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "safety": {
+              "score": 5,
+              "justification": "The content is benign incident-summary extraction with no harmful, biased, or inappropriate material. No safety issues are present.",
+              "evidence": "Runs only describe an outage, remediation, and follow-up actions; no unsafe instructions or sensitive personal data beyond the named owner Priya already present in the source.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 5,
+                  "claude-sonnet-4-6": 5,
+                  "gemini-2.5-flash": 5
+                },
+                "mean": 5,
+                "median": 5,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              }
+            },
+            "efficiency": {
+              "score": 2,
+              "justification": "The quality is mixed while token counts are relatively high (1048, 1882, 1955 tokens) for a simple extraction task. The model spends a lot of output budget despite the task requiring only a compact JSON object, and one run even degrades factual quality despite the extra length.",
+              "evidence": "Run 1: 1048 tokens; Run 2: 1882 tokens; Run 3: 1955 tokens. The outputs are short JSON payloads, but the reported token usage is large relative to the simple schema-fill task and does not improve correctness proportionally.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 2,
+                  "claude-sonnet-4-6": 2,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 2.33,
+                "median": 2,
+                "spread": 1,
+                "stdev": 0.47,
+                "method": "mean",
+                "self_preference": {
+                  "flag": true,
+                  "delta": 1
+                }
+              }
+            },
+            "consistency": {
+              "score": 3,
+              "justification": "The runs share the same overall structure and core answers, but there are meaningful divergences in fields that should have been stable: incident_id changes from null to a fabricated string in Run 2, time_to_detect_minutes changes from 15 to 10 in Run 3, notes wording shifts, and affected_services is not exact in any run. This is not total contradiction, but it is more than mere paraphrase. [lexical similarity ratio: 0.931]",
+              "evidence": "Run 1: incident_id null; Run 2: incident_id \"checkout latency event\". Run 1/2: time_to_detect_minutes 15; Run 3: 10. Run 2 notes adds extra text not in Run 1/3. affected_services is consistently \"checkout web flow\" instead of the required exact service name.",
+              "source": "judge",
+              "note": "",
+              "judge_score": null,
+              "panel": {
+                "judges": {
+                  "gpt-5.4-mini": 3,
+                  "claude-sonnet-4-6": 3,
+                  "gemini-2.5-flash": 3
+                },
+                "mean": 3,
+                "median": 3,
+                "spread": 0,
+                "stdev": 0.0,
+                "method": "mean",
+                "self_preference": {
+                  "flag": false,
+                  "delta": 0
+                }
+              },
+              "lexical_similarity": 0.931
+            }
+          },
+          "judge_summary": "Mostly on-task JSON extraction, but with notable factual and schema-content errors: fabricated incident_id in one run, incorrect affected_services value across runs, and an unstable/incorrect time-to-detect in one run. Clean format and safe tone, but only moderate accuracy and consistency, with inefficient verbosity for the task.",
+          "runs": [
+            {
+              "text": "```json\n{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\n    \"payments-api\",\n    \"order-service\",\n    \"checkout web flow\"\n  ],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve the alert to fire on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"This is the second time this quarter the replica-routing config has bitten us.\"\n}\n```",
+              "input_tokens": 681,
+              "output_tokens": 1048,
+              "seconds": 5.35,
+              "run": 1
+            },
+            {
+              "text": "```json\n{\n  \"incident_id\": \"checkout latency event\",\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 15,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\"payments-api\", \"order-service\", \"checkout web flow\"],\n  \"action_items\": [\n    {\n      \"description\": \"add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"improve the alert so it fires on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"This is the second time this quarter the replica-routing config has bitten us. The deploy pipeline should have caught the configuration error.\"\n}\n```",
+              "input_tokens": 681,
+              "output_tokens": 1882,
+              "seconds": 8.79,
+              "run": 2
+            },
+            {
+              "text": "```json\n{\n  \"incident_id\": null,\n  \"severity\": \"SEV1\",\n  \"root_cause_category\": \"configuration\",\n  \"detection_source\": \"customer-report\",\n  \"time_to_detect_minutes\": 10,\n  \"time_to_resolve_minutes\": 90,\n  \"customer_impacting\": true,\n  \"affected_services\": [\n    \"payments-api\",\n    \"order-service\",\n    \"checkout web flow\"\n  ],\n  \"action_items\": [\n    {\n      \"description\": \"Add a pre-deploy validation check on pool config\",\n      \"owner\": \"Priya\",\n      \"due\": null\n    },\n    {\n      \"description\": \"Improve the alert so it fires on latency faster\",\n      \"owner\": null,\n      \"due\": null\n    }\n  ],\n  \"data_loss\": false,\n  \"notes\": \"This is the second time this quarter the replica-routing config has caused an incident. The deploy pipeline should have caught the configuration error.\"\n}\n```",
+              "input_tokens": 681,
+              "output_tokens": 1955,
+              "seconds": 10.25,
+              "run": 3
+            }
+          ],
+          "panel_meta": {
+            "judges": [
+              "gpt-5.4-mini",
+              "claude-sonnet-4-6",
+              "gemini-2.5-flash"
+            ],
+            "providers": {
+              "gpt-5.4-mini": "openai",
+              "claude-sonnet-4-6": "anthropic",
+              "gemini-2.5-flash": "gemini"
+            },
+            "method": "mean",
+            "n_judges": 3,
+            "target_provider": "gemini",
+            "mean_spread": 0.86,
+            "max_spread": 3,
+            "contested_dims": [
+              "completeness",
+              "format_compliance"
+            ],
+            "self_preference_delta": 4.5
+          }
+        }
+      ],
+      "judges": [
+        "gpt-5.4-mini",
+        "claude-sonnet-4-6",
+        "gemini-2.5-flash"
+      ],
+      "aggregate_method": "mean",
+      "_md_path": "evals\\reports\\structured-output-schema__2026-06-29-155754.md",
+      "_json_path": "evals\\reports\\structured-output-schema__2026-06-29-155754.json"
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

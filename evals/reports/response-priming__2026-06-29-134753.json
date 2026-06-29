@@ -1,0 +1,681 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "response-priming",
+  "date": "2026-06-29 13:47",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer continues seamlessly from the prefill `[{\"name\": \"` and emits ONLY a valid JSON array of 4 objects, each with keys in the exact order name, email, phone, total_usd, fulfilled \u2014 no markdown fence, no preamble, no trailing text. Per-record correctness (this is where models drift): (1) name \"Jane DOE\" (case preserved, not re-cased), email \"jane@example.com\" (lowercased), phone \"5550102920\" (digits only), total_usd 1299.00 / 1299, fulfilled true. (2) name \"Marcus Webb-Ortiz\", email \"marcus.webb@corp.io\", phone null (NOT fabricated \u2014 over-commitment failure mode), total_usd must parse European format \"2.500,00\" as 2500.00 EUR then convert \u00d71.10 = 2750.00 (a weak model leaves it 2.5, or treats \".\" as decimal giving 2.75, or fails to convert), fulfilled false (\"awaiting payment\"). (3) name \"Priya Raman\", email null (not fabricated), phone \"15552218830\" (leading +1 stripped to digits), total_usd 480 CAD \u00d70.75 = 360.00, fulfilled true (\"delivered\"). (4) name \"Tom O'Neill\" (apostrophe preserved and correctly escaped/kept inside the JSON string), email null, phone null, total_usd 75 (assume USD, no symbol), fulfilled false (\"pending\"). Must NOT: wrap output in ```json fences, add explanation, reorder/rename keys, output objects as numbers, fabricate missing email/phone with empty strings or placeholders instead of null, or mis-handle the EUR thousands/decimal swap. The currency conversions (2750.00 and 360.00) and the null-vs-fabrication choices are the primary discriminators.",
+    "format_spec": "Raw response must be a single valid JSON array (parseable by JSON.parse) and contain nothing else: no markdown code fences, no leading/trailing prose, no comments. Exactly 4 objects; each object has exactly the 5 keys name, email, phone, total_usd, fulfilled in that order; email/phone are string-or-null, total_usd is a JSON number, fulfilled is a JSON boolean. The reply must read as a clean continuation of the prefilled `[{\"name\": \"` with no re-opening or duplication of the prefix.",
+    "tone": "No tone/voice \u2014 machine-to-machine extraction output. Zero conversational register; correctness and silence (no extra tokens) are the whole quality bar."
+  },
+  "prompt": "You are an extraction service inside a data pipeline. Downstream code does `JSON.parse()` on your entire raw response, so it must be valid JSON and nothing else \u2014 no prose, no markdown code fences, no trailing commentary.\n\nParse the four raw order lines below into a JSON array. Each element must be an object with EXACTLY these keys, in this order:\n- \"name\"        (string; the customer's full name, trimmed)\n- \"email\"       (string, lowercased; or null if absent)\n- \"phone\"       (string of digits only, no separators or country symbols; or null if absent)\n- \"total_usd\"   (number; the order total converted to US dollars as a plain decimal \u2014 strip currency symbols and thousands separators; if the line gives a non-USD amount, convert at EUR 1 = USD 1.10 and CAD 1 = USD 0.75 and round to 2 decimals)\n- \"fulfilled\"   (boolean; true only if the line clearly indicates the order shipped/delivered/completed, false otherwise)\n\nRaw order lines:\n1. \"Jane DOE <Jane@Example.COM> | tel: (555) 010-2920 | total: $1,299.00 | shipped 2026-05-02\"\n2. \"  Marcus Webb-Ortiz | marcus.webb@corp.io | EUR 2.500,00 | awaiting payment\"\n3. \"Priya Raman | +1 555.221.8830 | CAD 480 | delivered\"\n4. \"Tom O'Neill | order total 75 | status: pending\"\n\nAssistant (begin your reply with exactly this and continue from it): [{\"name\": \"\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "Every record is factually correct across all runs. The model correctly preserved 'Jane DOE' casing, lowercased the email to 'jane@example.com', stripped phone formatting to digits only, parsed the European-format 'EUR 2.500,00' as 2500 EUR and converted at 1.10 to get 2750, converted CAD 480 at 0.75 to get 360, used null for absent fields rather than fabricating, correctly set O'Neill's fulfilled to false, and correctly escaped the apostrophe inside the JSON string.",
+          "evidence": "Run 1 (representative of all): total_usd:2750 for Marcus (EUR 2500\u00d71.10), total_usd:360 for Priya (CAD 480\u00d70.75), phone:null for Marcus (no phone in source), email:null and phone:null for Tom, name:'Tom O\\'Neill' with apostrophe intact, fulfilled:true only for Jane (shipped) and Priya (delivered).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All four order lines are parsed, every object contains exactly the five required keys with correct values, and no requirement is omitted or shallow.",
+          "evidence": "All three runs produce 4 objects each with keys name, email, phone, total_usd, fulfilled \u2014 verified in Run 1, Run 2, Run 3 identically.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Output is a bare JSON array with no markdown fences, no preamble, no trailing text. Key order is exactly name\u2192email\u2192phone\u2192total_usd\u2192fulfilled. Types are correct: email/phone are string-or-null, total_usd is a number, fulfilled is boolean. Output reads as a clean continuation of the prefill '[{\"name\": \"'.",
+          "evidence": "Run 1 opens with '[{\"name\":\"Jane DOE\"' (seamless continuation), closes with '}]', no fence characters or prose anywhere. Same in Runs 2 and 3.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The output is appropriately machine-to-machine: terse, silent, and free of conversational framing. It matches the extraction-service register exactly.",
+          "evidence": "Runs contain only raw JSON such as `[{",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and appropriate. No harmful, biased, or inappropriate material appears.",
+          "evidence": "All runs are simple order-extraction JSON with names, emails, phone numbers, amounts, and booleans; no unsafe content is present.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "120 output tokens per run delivers a fully correct, complete, zero-waste JSON array. There is no padding, duplication, or redundant prose. Token count is near-minimal for the required output.",
+          "evidence": "120 tokens in each of Runs 1, 2, 3 for four complete, correct objects with no extraneous text.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "The three runs are semantically and structurally identical: same array shape, same key order, same values, same null handling, and same currency conversions. The only variation is trivial timing metadata, not output content. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1, Run 2, and Run 3 are identical byte-for-byte in content: `[{",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "The model achieves a perfect score across all dimensions. It correctly handles every discriminating case: European thousands/decimal swap for EUR 2.500,00 \u2192 2500 \u2192 $2750.00, CAD 480 \u2192 $360.00, null for missing fields without fabrication, case-preserved name strings, email lowercasing, digit-only phone stripping, apostrophe handling in JSON, and boolean fulfilled logic. Output is clean bare JSON with no markdown or prose, delivered in a minimal ~120 tokens, and is perfectly consistent across all three runs.",
+      "runs": [
+        {
+          "text": "[{\"name\":\"Jane DOE\",\"email\":\"jane@example.com\",\"phone\":\"5550102920\",\"total_usd\":1299,\"fulfilled\":true},{\"name\":\"Marcus Webb-Ortiz\",\"email\":\"marcus.webb@corp.io\",\"phone\":null,\"total_usd\":2750,\"fulfilled\":false},{\"name\":\"Priya Raman\",\"email\":null,\"phone\":\"15552218830\",\"total_usd\":360,\"fulfilled\":true},{\"name\":\"Tom O'Neill\",\"email\":null,\"phone\":null,\"total_usd\":75,\"fulfilled\":false}]",
+          "input_tokens": 359,
+          "output_tokens": 120,
+          "seconds": 2.5,
+          "run": 1
+        },
+        {
+          "text": "[{\"name\":\"Jane DOE\",\"email\":\"jane@example.com\",\"phone\":\"5550102920\",\"total_usd\":1299,\"fulfilled\":true},{\"name\":\"Marcus Webb-Ortiz\",\"email\":\"marcus.webb@corp.io\",\"phone\":null,\"total_usd\":2750,\"fulfilled\":false},{\"name\":\"Priya Raman\",\"email\":null,\"phone\":\"15552218830\",\"total_usd\":360,\"fulfilled\":true},{\"name\":\"Tom O'Neill\",\"email\":null,\"phone\":null,\"total_usd\":75,\"fulfilled\":false}]",
+          "input_tokens": 359,
+          "output_tokens": 120,
+          "seconds": 1.63,
+          "run": 2
+        },
+        {
+          "text": "[{\"name\":\"Jane DOE\",\"email\":\"jane@example.com\",\"phone\":\"5550102920\",\"total_usd\":1299,\"fulfilled\":true},{\"name\":\"Marcus Webb-Ortiz\",\"email\":\"marcus.webb@corp.io\",\"phone\":null,\"total_usd\":2750,\"fulfilled\":false},{\"name\":\"Priya Raman\",\"email\":null,\"phone\":\"15552218830\",\"total_usd\":360,\"fulfilled\":true},{\"name\":\"Tom O'Neill\",\"email\":null,\"phone\":null,\"total_usd\":75,\"fulfilled\":false}]",
+          "input_tokens": 359,
+          "output_tokens": 120,
+          "seconds": 1.37,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.57,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -4
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.7,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The model is largely correct and on-task: it outputs a valid JSON array of four objects with the right fields and nearly all values match the prompt. The main factual miss is name casing for Jane, which should preserve \"Jane DOE\" but was normalized to \"Jane Doe\" in all runs.",
+          "evidence": "Run 1\u20133: output has \"name\": \"Jane Doe\" instead of required case-preserved \"Jane DOE\". Other key values are correct: \"total_usd\": 2750.00 for Marcus, \"phone\": null for Marcus, and \"total_usd\": 360.00 for Priya.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All major requirements are addressed: four objects, exact key set, correct conversions, null handling, and no extra prose/fences. The only omitted requirement is the exact preservation of the first record\u2019s casing, which is part of the requested per-record correctness.",
+          "evidence": "Run 1\u20133 include all 4 records and all required keys in order: name, email, phone, total_usd, fulfilled. But Jane\u2019s name is not preserved exactly: required \"Jane DOE\" vs output \"Jane Doe\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Output is a raw valid JSON array with no markdown fences, no preamble, no trailing text. Keys appear in exact specified order (name, email, phone, total_usd, fulfilled). Begins as a clean continuation of the prefilled '[{\"name\": \"'. email/phone are string-or-null; total_usd is a JSON number; fulfilled is a JSON boolean.",
+          "evidence": "All three runs open directly with [{\"name\": \"Jane Doe\",... and close with ...\"fulfilled\": false}] with zero extra tokens outside the array.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The output is perfectly machine-to-machine: no conversational filler, no explanatory text, and no stylistic drift. This matches the zero-register extraction requirement.",
+          "evidence": "Run 1\u20133 consist solely of the JSON array with no prose or markdown.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "No harmful, unsafe, or inappropriate content is present. The response is a benign structured extraction.",
+          "evidence": "Run 1\u20133 contain only order data and numeric conversions; no sensitive or disallowed content beyond the task\u2019s normal extraction scope.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "170 tokens across all three runs to encode 4 objects \u00d7 5 fields each. No padding, no prose, no redundancy. Token count is essentially the minimum required to express the JSON correctly.",
+          "evidence": "All runs: 170 output tokens, 3.12\u20133.15s. The output is as compact as valid JSON allows for this payload.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All three runs are structurally and semantically identical, with only trivial wording-free variation (in fact none). There is no divergence in coverage, ordering, values, or quality across runs. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1, Run 2, and Run 3 are identical: same four objects, same values, same key order, same single error in Jane\u2019s casing.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "Claude-sonnet-4-6 performed exceptionally well in this complex data extraction and transformation task. It demonstrated strong capabilities in handling diverse data formats, performing accurate currency conversions, and strictly adhering to output format specifications, including the tricky requirement of seamless continuation from a prefill and precise key ordering. The model successfully navigated several common failure modes such as fabricating null values and misinterpreting European number formats. The only notable, albeit minor, error was failing to preserve the exact casing of 'Jane DOE'. This is an outstanding performance overall, especially regarding consistency and efficiency.",
+      "runs": [
+        {
+          "text": "[{\"name\": \"Jane Doe\", \"email\": \"jane@example.com\", \"phone\": \"5550102920\", \"total_usd\": 1299.00, \"fulfilled\": true}, {\"name\": \"Marcus Webb-Ortiz\", \"email\": \"marcus.webb@corp.io\", \"phone\": null, \"total_usd\": 2750.00, \"fulfilled\": false}, {\"name\": \"Priya Raman\", \"email\": null, \"phone\": \"15552218830\", \"total_usd\": 360.00, \"fulfilled\": true}, {\"name\": \"Tom O'Neill\", \"email\": null, \"phone\": null, \"total_usd\": 75.00, \"fulfilled\": false}]",
+          "input_tokens": 401,
+          "output_tokens": 170,
+          "seconds": 3.13,
+          "run": 1
+        },
+        {
+          "text": "[{\"name\": \"Jane Doe\", \"email\": \"jane@example.com\", \"phone\": \"5550102920\", \"total_usd\": 1299.00, \"fulfilled\": true}, {\"name\": \"Marcus Webb-Ortiz\", \"email\": \"marcus.webb@corp.io\", \"phone\": null, \"total_usd\": 2750.00, \"fulfilled\": false}, {\"name\": \"Priya Raman\", \"email\": null, \"phone\": \"15552218830\", \"total_usd\": 360.00, \"fulfilled\": true}, {\"name\": \"Tom O'Neill\", \"email\": null, \"phone\": null, \"total_usd\": 75.00, \"fulfilled\": false}]",
+          "input_tokens": 401,
+          "output_tokens": 170,
+          "seconds": 3.15,
+          "run": 2
+        },
+        {
+          "text": "[{\"name\": \"Jane Doe\", \"email\": \"jane@example.com\", \"phone\": \"5550102920\", \"total_usd\": 1299.00, \"fulfilled\": true}, {\"name\": \"Marcus Webb-Ortiz\", \"email\": \"marcus.webb@corp.io\", \"phone\": null, \"total_usd\": 2750.00, \"fulfilled\": false}, {\"name\": \"Priya Raman\", \"email\": null, \"phone\": \"15552218830\", \"total_usd\": 360.00, \"fulfilled\": true}, {\"name\": \"Tom O'Neill\", \"email\": null, \"phone\": null, \"total_usd\": 75.00, \"fulfilled\": false}]",
+          "input_tokens": 401,
+          "output_tokens": 170,
+          "seconds": 3.12,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.43,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": 2
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.6,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "The outputs are factually correct and on-task for the extraction prompt: names, normalized emails, digit-only phones, converted totals, and fulfillment flags are all correct across all runs.",
+          "evidence": "Run 1/2/3 all include the required conversions and parsing, e.g. \"Jane DOE\" with \"jane@example.com\", \"5550102920\", \"1299.00\", true; \"Marcus Webb-Ortiz\" with \"2750.00\" from EUR 2.500,00; \"Priya Raman\" with \"15552218830\" and \"360.00\"; \"Tom O'Neill\" with null email/phone and \"75.00\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All four records returned, all five required keys present in each object, all edge cases (null phone, null email, currency conversions, boolean derivation) fully addressed across all runs.",
+          "evidence": "Run 1-3 each contain exactly 4 objects with keys name/email/phone/total_usd/fulfilled; no record or field is missing or omitted.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Raw output is a valid JSON array with no markdown fences, no preamble, no trailing text, keys in the exact specified order, types correct (null for absent strings, number for total_usd, boolean for fulfilled), and the reply continues cleanly from the prefilled '[{\"name\": \"'.",
+          "evidence": "All runs open directly with Jane DOE data continuing the prefill, close with the array bracket, and contain nothing else \u2014 no ```json, no prose, no comments.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Perfectly matches machine-to-machine extraction tone: zero conversational register, no explanation, no extra tokens, purely structured JSON.",
+          "evidence": "All three runs consist only of the raw JSON array and nothing else, with no commentary or markdown.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The output is clean and benign, with no harmful, biased, or inappropriate content.",
+          "evidence": "Runs 1-3 contain only order-extraction JSON data.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The quality is high, but the outputs are very long for a simple extraction task, especially relative to the requested silence and tight JSON response. The token counts (2297, 1729, 3028) are excessive for the modest output produced, so this is noticeably inefficient.",
+          "evidence": "Run token counts are 2297, 1729, and 3028 output tokens for a four-object JSON array that could have been produced in far fewer tokens.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "The runs are semantically and structurally identical across all three samples; only token count and runtime vary. There is no meaningful divergence in content, key order, or quality. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1, Run 2, and Run 3 all output the same four records with the same values: Jane DOE, Marcus Webb-Ortiz, Priya Raman, and Tom O'Neill, with identical conversions and null handling.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "The model performs exceptionally well on accuracy, completeness, format compliance, tone/style, and safety, demonstrating a strong ability to handle complex data extraction and transformation with precise formatting. However, its efficiency is severely hampered by extremely high reported output token counts for a very small and consistent JSON response, making it potentially very expensive for production use. Output content consistency is perfect.",
+      "runs": [
+        {
+          "text": "[{\"name\": \"Jane DOE\", \"email\": \"jane@example.com\", \"phone\": \"5550102920\", \"total_usd\": 1299.00, \"fulfilled\": true}, {\"name\": \"Marcus Webb-Ortiz\", \"email\": \"marcus.webb@corp.io\", \"phone\": null, \"total_usd\": 2750.00, \"fulfilled\": false}, {\"name\": \"Priya Raman\", \"email\": null, \"phone\": \"15552218830\", \"total_usd\": 360.00, \"fulfilled\": true}, {\"name\": \"Tom O'Neill\", \"email\": null, \"phone\": null, \"total_usd\": 75.00, \"fulfilled\": false}]",
+          "input_tokens": 399,
+          "output_tokens": 2297,
+          "seconds": 10.47,
+          "run": 1
+        },
+        {
+          "text": "[{\"name\": \"Jane DOE\", \"email\": \"jane@example.com\", \"phone\": \"5550102920\", \"total_usd\": 1299.00, \"fulfilled\": true}, {\"name\": \"Marcus Webb-Ortiz\", \"email\": \"marcus.webb@corp.io\", \"phone\": null, \"total_usd\": 2750.00, \"fulfilled\": false}, {\"name\": \"Priya Raman\", \"email\": null, \"phone\": \"15552218830\", \"total_usd\": 360.00, \"fulfilled\": true}, {\"name\": \"Tom O'Neill\", \"email\": null, \"phone\": null, \"total_usd\": 75.00, \"fulfilled\": false}]",
+          "input_tokens": 399,
+          "output_tokens": 1729,
+          "seconds": 8.47,
+          "run": 2
+        },
+        {
+          "text": "[{\"name\": \"Jane DOE\", \"email\": \"jane@example.com\", \"phone\": \"5550102920\", \"total_usd\": 1299.00, \"fulfilled\": true}, {\"name\": \"Marcus Webb-Ortiz\", \"email\": \"marcus.webb@corp.io\", \"phone\": null, \"total_usd\": 2750.00, \"fulfilled\": false}, {\"name\": \"Priya Raman\", \"email\": null, \"phone\": \"15552218830\", \"total_usd\": 360.00, \"fulfilled\": true}, {\"name\": \"Tom O'Neill\", \"email\": null, \"phone\": null, \"total_usd\": 75.00, \"fulfilled\": false}]",
+          "input_tokens": 399,
+          "output_tokens": 3028,
+          "seconds": 14.81,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.57,
+        "max_spread": 2,
+        "contested_dims": [
+          "efficiency"
+        ],
+        "self_preference_delta": -0.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

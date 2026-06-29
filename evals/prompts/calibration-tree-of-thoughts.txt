@@ -1,0 +1,8 @@
+Solve this problem in three phases:
+1. Generate 3 distinct candidate approaches. Each should attack the problem from a different angle.
+2. For each approach, briefly trace its reasoning and identify its main weakness.
+3. Select the strongest approach (or combine elements) and produce the final answer.
+
+If the selected approach fails partway, backtrack and try another.
+
+Problem: Design a rate limiter for a multi-tenant API gateway. Tenants have wildly different and bursty traffic profiles (some send 10 req/s steady, others burst to 50k req/s for a few seconds then idle). You must (a) prevent any single tenant from starving the others' throughput, (b) still let a tenant burst into spare capacity when the system is underutilized, and (c) keep per-request overhead in the low microseconds at 100k+ aggregate req/s. Specify the algorithm(s), the data structures, where the limiter state lives in a horizontally-scaled gateway fleet, and the key failure modes.

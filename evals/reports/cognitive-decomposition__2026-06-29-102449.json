@@ -1,0 +1,681 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "cognitive-decomposition",
+  "date": "2026-06-29 10:24",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer decomposes into dependency-ordered, numerically-resolved sub-steps and the final answer must follow arithmetically from them. Required correct chain: (1) Peak QPS = 18,000 x 3.2 = 57,600 QPS (must size to PEAK, not the 18,000 average \u2014 using the average is the headline trap). (2) CPU capacity per server: 12 ms/query = 0.012 CPU-core-seconds per query; usable CPU = 16 x 0.75 = 12 cores = 12 core-seconds/sec; per-server CPU throughput = 12 / 0.012 = 1,000 QPS/server. (3) I/O capacity per server: 40,000 page-reads/s \u00f7 4 reads/query = 10,000 QPS/server. (4) Binding constraint = CPU (1,000 QPS) which is far lower than I/O (10,000 QPS); a correct answer must explicitly identify CPU as binding and NOT be fooled into picking I/O or mixing the two. (5) Servers to carry peak = ceil(57,600 / 1,000) = 58. (6) N+1 redundancy means peak must be served with one server failed, so required = 58 + 1 = 59 (equivalently ceil(57600/1000) serving-nodes plus one spare; an answer that computes ceil(57600/1000)=58 then adds 1 = 59 is correct; an answer that instead inflates to ceil(57600/ (1000)) with capacity reduced is acceptable only if it lands on 59). (7) Monthly cost = 59 x $1.45 x 730 = $62,451.50. A flawed-but-plausible answer that the judge should catch: sizing to the 18,000 average (gives ~19-20 servers), or declaring I/O the bottleneck (10,000 QPS/server \u2192 only ~6-7 servers), or forgetting N+1 (58 servers, $61,393.00), or a unit error on the 12 ms\u21920.012 conversion. Consistency between the stated step results and the final number is mandatory: an answer whose steps compute 1,000 QPS/server and 57,600 peak but whose final count is not 59, or whose cost does not equal count x 1.45 x 730, has a step-to-conclusion inconsistency that must be penalized. Final numbers a strong answer lands on: peak 57,600 QPS; CPU-bound at 1,000 QPS/server; 58 to serve peak; 59 with N+1; $62,451.50/month.",
+    "format_spec": "Sequential, labeled steps (numbered or clearly delimited), each showing its numeric intermediate result and citing whether its inputs are from the given facts or a prior step, BEFORE any final answer. The final answer must appear only after all steps and must state: (a) the binding constraint (CPU vs I/O), (b) the replica count before and after N+1, and (c) the total monthly cost. No jumping straight to the answer; no unstructured single-paragraph solve.",
+    "tone": "Precise, technical, quantitative \u2014 an engineer doing capacity planning for a peer review. Neutral and explanatory, not chatty."
+  },
+  "prompt": "Break this problem into smaller steps. Solve each step sequentially, showing the numeric result of each step before moving to the next, and only after all steps are solved give the final answer. Each step's inputs must come from the stated facts or from an earlier step's result (state which).\n\nProblem: We are sizing a fleet of identical Postgres read-replica servers for a product launch and need the minimum number of replicas and the resulting monthly compute cost. Use these facts:\n\n- Expected steady-state read traffic at launch: 18,000 read queries per second (QPS), averaged over the day.\n- Traffic is bursty: the daily PEAK is 3.2x the daily average, and the fleet must be sized to survive the peak without exceeding any per-server limit.\n- Each read query, on average, requires 4 logical I/O page reads and 12 ms of CPU service time on a single core.\n- Each server has 16 CPU cores. To leave headroom for replication and GC, you may load each core to at most 75% utilization (i.e. usable CPU = cores x 0.75).\n- Each server can sustain at most 40,000 logical page reads per second before its buffer-cache/storage path saturates (this is a hard per-server ceiling, independent of CPU).\n- You must keep N+1 redundancy: the fleet must still handle peak load with one server failed.\n- Each server costs $1.45 per hour and billing is hourly; assume 730 hours in a month.\n\nCompute the minimum number of replicas required and the total monthly cost of the fleet. Be explicit about which resource (CPU or I/O) is the binding constraint at peak, and how N+1 changes the count.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs are factually correct and on-task. They correctly compute peak load as 57,600 QPS, identify CPU as the binding constraint at 1,000 QPS/server, size to 58 servers for peak, add N+1 to 59, and calculate the monthly cost as $62,451.50. No arithmetic or conceptual errors are present.",
+          "evidence": "Run 1: \u201c18,000 \u00d7 3.2 = 57,600 QPS\u201d; \u201cCPU capacity per server = 1,000 QPS\u201d; \u201cThe tighter limit is CPU\u201d; \u201c58 + 1 = 59 servers\u201d; \u201c59 \u00d7 1,058.50 = $62,451.50\u201d. Run 2 and Run 3 show the same values.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The response set covers every required element: sequential decomposition, intermediate numeric steps, the binding constraint, the pre- and post-N+1 replica counts, and the monthly cost. The final answers explicitly include all requested outputs.",
+          "evidence": "Run 1 includes steps for peak QPS, CPU capacity, I/O capacity, binding constraint, servers for peak, N+1, and cost, then final answer states \u201cBinding constraint at peak: CPU,\u201d \u201cMinimum number of replicas required (with N+1 redundancy): 59,\u201d and \u201cTotal monthly compute cost: $62,451.50.\u201d Similar coverage appears in Runs 2 and 3.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The outputs follow the requested structure: labeled sequential steps with numeric results before the final answer, and no premature final answer. The final answer appears only after all steps and includes the required fields.",
+          "evidence": "Run 1 is organized as \u201c## Step 1\u201d through \u201c## Step 7\u201d followed by \u201c# Final answer.\u201d Run 2 and Run 3 use the same sequential labeled-step format and place the final answer at the end.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is precise, technical, and explanatory, matching the engineer-peer-review audience. It is neutral and not chatty.",
+          "evidence": "Run 1: \u201cBelow I\u2019ll solve it step by step, using only the stated facts or results from earlier steps.\u201d The stepwise explanations remain quantitative and technical throughout all three runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are clean, non-harmful, and free of biased or inappropriate content. They only contain benign capacity-planning calculations.",
+          "evidence": "All runs contain only numerical reasoning about QPS, CPU, I/O, redundancy, and cost; no unsafe or inappropriate material appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "The token use is appropriate for the required step-by-step decomposition and exact numeric justification. There is little wasted verbiage beyond necessary exposition, and the output quality is high.",
+          "evidence": "Each run uses about 740\u2013779 tokens to provide seven structured steps plus a final answer; the content is concise relative to the required reasoning and fully resolves the problem.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "The runs are semantically and structurally consistent across repetitions. They agree on all key steps, intermediate values, and final results; variation is only in wording and phrasing, not meaning or quality. [lexical similarity ratio: 0.43]",
+          "evidence": "Run 1, Run 2, and Run 3 all compute the same sequence: 57,600 peak QPS; 1,000 QPS/server CPU limit; 10,000 QPS/server I/O limit; CPU binding; 58 servers for peak; 59 with N+1; $62,451.50 monthly cost.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.43
+        }
+      },
+      "judge_summary": "All three runs execute the cognitive-decomposition pattern flawlessly: they avoid both headline traps (average-not-peak and I/O-not-CPU binding), produce arithmetically consistent intermediate results, and land on the exact reference answer (59 replicas, $62,451.50/month). Format compliance and consistency are perfect; the only deductions are a slightly informal opening phrase in all runs (tone: \u22121) and minor restatement padding in each step's result block (efficiency: \u22121). Overall this is an exemplary performance of structured quantitative decomposition.",
+      "runs": [
+        {
+          "text": "Below I\u2019ll solve it step by step, using only the stated facts or results from earlier steps.\n\n## Step 1: Compute peak read QPS\n**Input from problem:**  \n- Average read traffic = 18,000 QPS  \n- Peak = 3.2 \u00d7 average\n\n**Calculation:**  \n18,000 \u00d7 3.2 = **57,600 QPS**\n\n**Result:**  \n- **Peak demand = 57,600 read QPS**\n\n---\n\n## Step 2: Compute per-server CPU capacity\n**Input from problem:**  \n- 16 CPU cores/server  \n- Usable CPU per core = 75%  \n- Each read query needs 12 ms of CPU service time on a single core\n\nFirst compute usable core count:\n- 16 \u00d7 0.75 = **12 usable cores**\n\nNow compute queries/sec per core:\n- 1 second / 12 ms = 1 / 0.012 = **83.333... QPS per core**\n\nSo per server:\n- 12 \u00d7 83.333... = **1,000 QPS per server**\n\n**Result:**  \n- **CPU capacity per server = 1,000 QPS**\n\n---\n\n## Step 3: Compute per-server I/O capacity in QPS\n**Input from problem:**  \n- Each query requires 4 logical I/O page reads  \n- Each server can sustain at most 40,000 logical page reads/sec\n\nConvert page-read ceiling into query ceiling:\n- 40,000 / 4 = **10,000 QPS per server**\n\n**Result:**  \n- **I/O capacity per server = 10,000 QPS**\n\n---\n\n## Step 4: Determine the binding constraint at peak\n**Inputs from earlier steps:**  \n- Peak demand = 57,600 QPS  \n- CPU capacity/server = 1,000 QPS  \n- I/O capacity/server = 10,000 QPS\n\nThe tighter limit is CPU, because:\n- 1,000 QPS < 10,000 QPS\n\nSo **CPU is the binding constraint**.\n\n**Result:**  \n- **Binding constraint at peak: CPU**\n\n---\n\n## Step 5: Compute number of servers needed to handle peak load without failure\n**Input from earlier step:**  \n- Peak demand = 57,600 QPS  \n- Binding per-server capacity = 1,000 QPS\n\nServers required with no failure:\n- 57,600 / 1,000 = **57.6**, so round up to **58 servers**\n\n**Result:**  \n- **58 servers needed to handle peak load normally**\n\n---\n\n## Step 6: Apply N+1 redundancy\n**Input from problem and earlier result:**  \n- Must still handle peak load with one server failed  \n- Need 58 servers to handle peak normally\n\nFor N+1, total fleet must have one extra server beyond the minimum needed to survive peak:\n- 58 + 1 = **59 servers**\n\n**Result:**  \n- **Minimum fleet size with N+1 = 59 replicas**\n\n---\n\n## Step 7: Compute monthly cost\n**Input from problem:**  \n- Cost per server = $1.45/hour  \n- 730 hours/month  \n- Fleet size = 59 servers\n\nCost per server per month:\n- 1.45 \u00d7 730 = **$1,058.50**\n\nTotal fleet cost:\n- 59 \u00d7 1,058.50 = **$62,451.50**\n\n**Result:**  \n- **Monthly fleet cost = $62,451.50**\n\n---\n\n# Final answer\n- **Binding constraint at peak:** CPU  \n- **Minimum number of replicas required (with N+1 redundancy):** **59**\n- **Total monthly compute cost:** **$62,451.50**",
+          "input_tokens": 363,
+          "output_tokens": 779,
+          "seconds": 8.1,
+          "run": 1
+        },
+        {
+          "text": "Let\u2019s solve it step by step.\n\n## Step 1: Compute peak read QPS\n**Given:**  \n- Average steady-state read traffic = **18,000 QPS**  \n- Peak = **3.2\u00d7 average**\n\n**Calculation:**  \n18,000 \u00d7 3.2 = **57,600 QPS**\n\n**Result for Step 1:**  \n- **Peak demand = 57,600 read QPS**\n\n---\n\n## Step 2: Compute per-server CPU capacity at usable utilization\n**Given:**  \n- 16 CPU cores/server  \n- Max usable utilization per core = 75%  \n- Each read query uses **12 ms CPU time**\n\nFirst compute usable CPU cores:\n\n16 \u00d7 0.75 = **12 usable core-equivalents**\n\nNow convert CPU service time into max QPS per server:\n\n- 12 ms per query = 0.012 s/query  \n- One fully utilized core can do 1 / 0.012 = **83.33 QPS**\n- With 12 usable core-equivalents:\n\n83.33 \u00d7 12 = **1,000 QPS**\n\n**Result for Step 2:**  \n- **Per-server CPU limit = 1,000 QPS**\n\n---\n\n## Step 3: Compute per-server I/O capacity\n**Given:**  \n- Each query needs **4 logical I/O page reads**\n- Per-server ceiling = **40,000 logical page reads/sec**\n\nConvert I/O ceiling into QPS:\n\n40,000 / 4 = **10,000 QPS**\n\n**Result for Step 3:**  \n- **Per-server I/O limit = 10,000 QPS**\n\n---\n\n## Step 4: Identify the binding per-server constraint\nCompare the two per-server limits:\n\n- CPU limit = **1,000 QPS**\n- I/O limit = **10,000 QPS**\n\nThe smaller one binds, so:\n\n**Binding constraint = CPU**\n\n**Result for Step 4:**  \n- **CPU is the limiting resource**\n- **Per-server effective capacity = 1,000 QPS**\n\n---\n\n## Step 5: Compute servers needed to handle peak load without failure\n**Given from Step 1:** peak = **57,600 QPS**  \n**Given from Step 4:** per-server capacity = **1,000 QPS**\n\nNeeded servers at peak:\n\n57,600 / 1,000 = **57.6**\n\nRound up:\n\n**58 servers**\n\n**Result for Step 5:**  \n- **58 servers needed to handle peak load normally**\n\n---\n\n## Step 6: Apply N+1 redundancy\nWe need the fleet to still handle peak load with **one server failed**, so we must provision one extra server beyond the peak requirement.\n\n58 + 1 = **59 servers**\n\n**Result for Step 6:**  \n- **Minimum fleet size = 59 replicas**\n\n---\n\n## Step 7: Compute monthly cost\n**Given:**  \n- Cost per server = **$1.45/hour**\n- Monthly hours = **730**\n- Fleet size = **59**\n\nCost per server per month:\n\n1.45 \u00d7 730 = **$1,058.50**\n\nFleet monthly cost:\n\n1,058.50 \u00d7 59 = **$62,451.50**\n\n**Result for Step 7:**  \n- **Total monthly compute cost = $62,451.50**\n\n---\n\n# Final Answer\n- **Binding constraint at peak:** **CPU**\n- **Minimum number of replicas required with N+1:** **59**\n- **Total monthly compute cost:** **$62,451.50**",
+          "input_tokens": 363,
+          "output_tokens": 740,
+          "seconds": 4.92,
+          "run": 2
+        },
+        {
+          "text": "Let\u2019s solve this step by step.\n\n## Step 1: Compute peak read QPS\n**Given:**  \n- Average steady-state read traffic = 18,000 QPS  \n- Peak = 3.2 \u00d7 average\n\n**Calculation:**  \n18,000 \u00d7 3.2 = **57,600 QPS**\n\n**Result of Step 1:**  \n- **Peak traffic = 57,600 read QPS**\n\n---\n\n## Step 2: Compute per-server CPU capacity\n**Given:**  \n- 16 CPU cores/server  \n- Max usable utilization per core = 75%  \n- Each read query uses 12 ms CPU time on one core\n\nFirst compute usable core count:\n- 16 \u00d7 0.75 = **12 usable cores**\n\nEach core at 100% can provide:\n- 1 second / 12 ms = 1000 / 12 = **83.333... QPS per core**\n\nSo CPU capacity per server is:\n- 12 \u00d7 83.333... = **1000 QPS per server**\n\n**Result of Step 2:**  \n- **CPU capacity per server = 1,000 QPS**\n\n---\n\n## Step 3: Compute per-server I/O capacity\n**Given:**  \n- Each query requires 4 logical I/O page reads  \n- Server ceiling = 40,000 logical page reads/sec\n\nConvert that into query capacity:\n- 40,000 / 4 = **10,000 QPS per server**\n\n**Result of Step 3:**  \n- **I/O capacity per server = 10,000 QPS**\n\n---\n\n## Step 4: Determine the binding constraint at peak\nCompare the two per-server capacities:\n\n- CPU capacity = **1,000 QPS**\n- I/O capacity = **10,000 QPS**\n\nThe smaller one is the bottleneck, so **CPU is the binding constraint**.\n\n**Result of Step 4:**  \n- **Binding constraint: CPU**\n- **Per-server effective capacity = 1,000 QPS**\n\n---\n\n## Step 5: Compute servers needed to handle peak load without failure\n**Given from Step 1:**  \n- Peak load = 57,600 QPS\n\nUsing the binding capacity from Step 4:\n- 57,600 / 1,000 = **57.6**\n\nRound up to whole servers:\n- **58 servers**\n\nThis is the number needed to handle peak load with all servers healthy.\n\n**Result of Step 5:**  \n- **58 servers needed for peak capacity**\n\n---\n\n## Step 6: Apply N+1 redundancy\nWe must still handle peak load with **one server failed**.\n\nSo if the fleet has **N** servers total, then **N - 1** servers must still cover 57,600 QPS.\n\nWe already found that **58 servers** are needed to cover peak with no failures.  \nTherefore we need one extra server:\n\n- 58 + 1 = **59 servers**\n\n**Result of Step 6:**  \n- **Minimum fleet size with N+1 redundancy = 59 replicas**\n\n---\n\n## Step 7: Compute monthly cost\n**Given:**  \n- Cost per server = $1.45/hour  \n- Hours per month = 730\n\nMonthly cost per server:\n- 1.45 \u00d7 730 = **$1,058.50**\n\nFor 59 servers:\n- 59 \u00d7 1,058.50 = **$62,451.50**\n\n**Result of Step 7:**  \n- **Total monthly fleet cost = $62,451.50**\n\n---\n\n# Final Answer\n- **Minimum number of replicas required: 59**\n- **Binding constraint at peak: CPU**\n- **Total monthly compute cost: $62,451.50**",
+          "input_tokens": 363,
+          "output_tokens": 774,
+          "seconds": 5.33,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.71,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": 2.5
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.9,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs correctly solve the sizing problem, identify CPU as the binding constraint, compute 57,600 peak QPS, 58 servers before redundancy, 59 with N+1, and $62,451.50/month. No factual or arithmetic errors appear in the final conclusions.",
+          "evidence": "Run 1: \"Peak QPS = 18,000 \u00d7 3.2 = 57,600 QPS\"; \"Servers needed (CPU) = 691.2 \u00f7 12 = 57.6 \u2192 ceil = 58 servers\"; \"Total servers with N+1 = 58 + 1 = 59 servers\"; \"Monthly cost = 59 \u00d7 $1.45 \u00d7 730 ... = $62,451.50 per month\". Run 2: \"Usable QPS per server (CPU) = (16 \u00d7 0.75) / 0.012 = 12 / 0.012 = 1,000 QPS per server\"; \"CPU is the binding constraint\"; \"59 servers\"; \"$62,451.50\". Run 3: \"Servers needed (CPU) = 691.2 \u00f7 12 = 57.6 \u2192 round up = 58 servers\"; \"CPU is the binding constraint\"; \"Total servers = 58 + 1 = 59 servers\"; \"$62,451.50/month\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The response set covers every required element: sequential decomposition, peak calculation, CPU and I/O capacity, binding constraint, pre- and post-N+1 replica counts, and monthly cost. Each run includes a final answer after the steps, satisfying the full task.",
+          "evidence": "Run 1 includes steps 1-9 and a final table with \"Binding constraint | CPU\", \"Minimum servers (peak only) | 58\", \"Minimum servers (with N+1) | 59 servers\", and \"Total monthly compute cost | $62,451.50\". Runs 2 and 3 similarly provide stepwise calculations plus a final answer section with all required fields.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The outputs follow the requested sequential, labeled-step format with numeric intermediate results before the final answer. The final answer appears only after all steps and explicitly states the binding constraint, replica counts, and cost. The structure is consistent with the prompt\u2019s formatting requirements.",
+          "evidence": "Run 1: \"## Step 1\" through \"## Step 9\" before \"## Final Answer\". Run 2 and Run 3 likewise use numbered steps, then a distinct final answer block. Each run states \"CPU is the binding constraint\" and lists \"Minimum fleet size with N+1 redundancy\" / \"Servers needed for peak (before redundancy)\" plus \"Total monthly compute cost\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is precise, technical, and explanatory, matching an engineer doing capacity planning for peer review. It is neutral and not chatty, with clear quantitative reasoning throughout.",
+          "evidence": "Run 1 opens with \"I'll solve this step by step, being explicit about each calculation.\" and uses technical phrasing like \"binding constraint\" and \"usable CPU cores per server.\" Run 2 and Run 3 similarly maintain a concise engineering style with explicit numeric derivations and verification checks.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, non-sensitive, and free of harmful, biased, or inappropriate material. It is purely a capacity-planning calculation.",
+          "evidence": "All three runs discuss server sizing, CPU, I/O, and monthly cost only; no unsafe, offensive, or policy-sensitive content is present.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "The outputs are reasonably efficient for the required depth, but they are somewhat verbose and contain repeated verification and summary text beyond what was strictly necessary. The token counts are moderate-to-high for a straightforward calculation, though still justified by the stepwise decomposition requirement.",
+          "evidence": "Run 1 is 1110 tokens, Run 2 is 1124 tokens, and Run 3 is 1061 tokens. Each includes extra verification lines such as Run 1's \"Verification: With 1 server failed...\" and Run 2's cost check, which add length beyond the essential calculations.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across runs, the semantic content, structure, and quality are stable: all compute the same peak, same per-server CPU/I/O capacities, same binding constraint, same pre/post-N+1 counts, and same monthly cost. Wording varies, but the reasoning chain and outputs are consistent. [lexical similarity ratio: 0.21]",
+          "evidence": "Run 1: \"CPU is the binding constraint\"; 58 peak / 59 with N+1; \"$62,451.50\". Run 2: \"CPU is the binding constraint\"; 58 peak / 59 with N+1; \"$62,451.50\". Run 3: \"CPU is the binding constraint\"; 58 peak / 59 with N+1; \"$62,451.50\". No run contradicts another or changes the structural answer.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.21
+        }
+      },
+      "judge_summary": "All three runs are essentially perfect executions of the cognitive-decomposition pattern against a tricky multi-constraint capacity planning problem. Every reference answer number is hit exactly (57,600 peak QPS; 1,000 QPS/server CPU ceiling; 10,000 QPS/server I/O ceiling; CPU identified as binding; 58 servers pre-N+1; 59 post-N+1; $62,451.50/month). The format specification is satisfied in full \u2014 numbered, labeled, input-citing steps precede the final answer table. Tone is pitch-perfect for an engineering peer review. Consistency across the three runs is very high despite low lexical overlap, as all runs share the same structure, numbers, and conclusions. The only minor deduction is in efficiency, where a closing narrative paragraph in each run lightly re-summarizes the already-complete table above it, adding ~80-100 tokens of partial redundancy.",
+      "runs": [
+        {
+          "text": "I'll solve this step by step, being explicit about each calculation.\n\n---\n\n## Step 1: Calculate the Peak QPS\n\n**Fact used:** Steady-state average = 18,000 QPS; peak multiplier = 3.2\u00d7\n\n> Peak QPS = 18,000 \u00d7 3.2 = **57,600 QPS**\n\n---\n\n## Step 2: Calculate Peak CPU Demand (in cores required)\n\n**Facts used:** Each query needs 12 ms of CPU service time on one core; Peak QPS = 57,600 (Step 1)\n\nAt peak, the fleet must process 57,600 queries every second, each consuming 0.012 seconds of one core's time.\n\n> Total core-seconds needed per second = 57,600 \u00d7 0.012 = **691.2 cores**\n\nThis means the fleet needs 691.2 cores worth of CPU capacity running continuously at peak.\n\n---\n\n## Step 3: Calculate Usable CPU Cores Per Server\n\n**Facts used:** 16 cores per server; 75% max utilization\n\n> Usable cores per server = 16 \u00d7 0.75 = **12 cores**\n\n---\n\n## Step 4: Calculate Number of Servers Required by CPU Constraint\n\n**From Steps 2 and 3:**\n\n> Servers needed (CPU) = 691.2 \u00f7 12 = **57.6 \u2192 ceil = 58 servers**\n\n---\n\n## Step 5: Calculate Peak I/O Demand (logical page reads per second)\n\n**Facts used:** Each query requires 4 logical I/O page reads; Peak QPS = 57,600 (Step 1)\n\n> Total logical page reads/sec at peak = 57,600 \u00d7 4 = **230,400 page reads/sec**\n\n---\n\n## Step 6: Calculate Number of Servers Required by I/O Constraint\n\n**Facts used:** Hard I/O ceiling = 40,000 page reads/sec per server; From Step 5: 230,400 page reads/sec\n\n> Servers needed (I/O) = 230,400 \u00f7 40,000 = **5.76 \u2192 ceil = 6 servers**\n\n---\n\n## Step 7: Identify the Binding Constraint (Before Redundancy)\n\n**From Steps 4 and 6:**\n\n- CPU requires: **58 servers**\n- I/O requires: **6 servers**\n\n> **CPU is the binding constraint** (58 >> 6). The minimum fleet size before redundancy is **58 servers**.\n\n---\n\n## Step 8: Apply N+1 Redundancy\n\n**Facts used:** N+1 means the fleet must handle peak load even with 1 server failed; Binding minimum N = 58 (Step 7)\n\nWith N+1, we need the fleet of (N+1) servers such that even when 1 fails, the remaining N servers can still handle peak load. We already know N = 58 servers are required to handle peak. Therefore we must deploy one additional server.\n\n> Total servers with N+1 = 58 + 1 = **59 servers**\n\n*(Verification: With 1 server failed, 58 remain, which is exactly enough to handle peak CPU load at 58 \u00d7 12 = 696 usable cores \u2265 691.2 required. \u2713)*\n\n---\n\n## Step 9: Calculate Monthly Cost\n\n**Facts used:** Cost = $1.45/hour per server; 730 hours/month; 59 servers (Step 8)\n\n> Monthly cost = 59 \u00d7 $1.45 \u00d7 730\n>\n> First: 59 \u00d7 $1.45 = **$85.55 per hour**\n>\n> Then: $85.55 \u00d7 730 = **$62,451.50 per month**\n\n---\n\n## Final Answer\n\n| Item | Value |\n|---|---|\n| **Binding constraint** | **CPU** (requires 58 servers vs. 6 for I/O) |\n| **Minimum servers (peak only)** | 58 |\n| **Minimum servers (with N+1)** | **59 servers** |\n| **Total monthly compute cost** | **$62,451.50** |\n\n**Summary of reasoning:** The peak load of 57,600 QPS demands 691.2 cores of CPU capacity; with only 12 usable cores per server, 58 servers are needed for CPU alone\u2014dwarfing the 6 servers the I/O ceiling would require. CPU is the binding constraint. Adding one spare server for N+1 redundancy brings the fleet to **59 servers**, costing **$62,451.50/month**.",
+          "input_tokens": 402,
+          "output_tokens": 1110,
+          "seconds": 19.51,
+          "run": 1
+        },
+        {
+          "text": "I'll solve this step-by-step, showing each numeric result before proceeding.\n\n---\n\n## Step 1: Calculate Peak QPS\n\n**Input:** Steady-state average = 18,000 QPS; peak multiplier = 3.2\u00d7\n\nPeak QPS = 18,000 \u00d7 3.2 = **57,600 QPS**\n\n---\n\n## Step 2: Calculate Peak CPU Demand Per Server\n\n**Input:** Peak QPS = 57,600 (Step 1); CPU service time = 12 ms = 0.012 s per query; cores = 16; max core utilization = 75%\n\n- CPU capacity of one core at 75% = 0.75 core-seconds per second\n- Usable CPU throughput per server = 16 \u00d7 0.75 / 0.012 queries/sec\n\nUsable QPS per server (CPU) = (16 \u00d7 0.75) / 0.012 = 12 / 0.012 = **1,000 QPS per server**\n\n---\n\n## Step 3: Calculate Peak I/O Demand Per Server\n\n**Input:** Peak QPS = 57,600 (Step 1); logical I/O reads per query = 4; per-server I/O ceiling = 40,000 page reads/sec\n\n- I/O reads demanded at peak per fleet = 57,600 \u00d7 4 = 230,400 page reads/sec\n- Max page reads per server = 40,000\n\nUsable QPS per server (I/O) = 40,000 / 4 = **10,000 QPS per server**\n\n---\n\n## Step 4: Identify the Binding Constraint\n\n**Input:** Step 2 result = 1,000 QPS/server (CPU); Step 3 result = 10,000 QPS/server (I/O)\n\nCPU limit (1,000 QPS/server) << I/O limit (10,000 QPS/server)\n\n**\u2192 CPU is the binding constraint.** Each server handles at most **1,000 QPS** at peak.\n\n---\n\n## Step 5: Minimum Servers Needed to Handle Peak (No Redundancy)\n\n**Input:** Peak QPS = 57,600 (Step 1); per-server capacity = 1,000 QPS (Step 4)\n\nServers needed = 57,600 / 1,000 = **57.6 \u2192 round up to 58 servers**\n\n---\n\n## Step 6: Apply N+1 Redundancy\n\n**Input:** 58 servers needed to handle peak (Step 5)\n\nN+1 means the fleet must handle full peak load even with **one server failed**. So we need a fleet of size F such that (F \u2212 1) servers \u2265 58.\n\nF \u2212 1 = 58 \u2192 F = 58 + 1 = **59 servers**\n\n*Verification: With one server down, 58 remaining servers \u00d7 1,000 QPS = 58,000 QPS \u2265 57,600 QPS peak. \u2713*\n\n---\n\n## Step 7: Calculate Monthly Cost\n\n**Input:** 59 servers (Step 6); cost = $1.45/hour/server; hours/month = 730\n\nMonthly cost = 59 \u00d7 $1.45 \u00d7 730 = 59 \u00d7 $1,058.50 = **$62,451.50**\n\n(Check: 59 \u00d7 1,058.50 = 59 \u00d7 1,000 + 59 \u00d7 58.50 = 59,000 + 3,451.50 = $62,451.50 \u2713)\n\n---\n\n## Final Answer\n\n| Item | Value |\n|---|---|\n| **Binding constraint** | **CPU** (1,000 QPS/server vs. 10,000 QPS/server for I/O) |\n| **Servers needed for peak (no redundancy)** | 58 |\n| **Minimum fleet size with N+1 redundancy** | **59 servers** |\n| **Total monthly compute cost** | **$62,451.50** |\n\n**Key reasoning:** Each server's 16 cores at 75% utilization delivers only 12 core-seconds/sec of usable CPU, and at 12 ms per query that caps throughput at 1,000 QPS/server \u2014 ten times tighter than the I/O ceiling. After sizing 58 servers for the 57,600 QPS peak, N+1 adds one more server (so the 58-server working set remains intact when any single node fails), bringing the fleet to **59 servers** at a monthly cost of **$62,451.50**.",
+          "input_tokens": 402,
+          "output_tokens": 1124,
+          "seconds": 18.75,
+          "run": 2
+        },
+        {
+          "text": "I'll solve this step by step, showing each numeric result before proceeding.\n\n---\n\n## Step 1: Calculate Peak QPS\n\n**Fact used:** Steady-state average = 18,000 QPS; peak multiplier = 3.2\u00d7\n\nPeak QPS = 18,000 \u00d7 3.2 = **57,600 QPS**\n\n---\n\n## Step 2: Calculate Peak CPU Demand (cores required across fleet)\n\n**Facts used:** Each query needs 12 ms of CPU service time on one core.\n\nCPU time per query = 12 ms = 0.012 seconds\n\nAt 57,600 QPS, total CPU-seconds needed per second = 57,600 \u00d7 0.012 = **691.2 CPU cores** (continuously busy)\n\n---\n\n## Step 3: Calculate Usable CPU per Server\n\n**Facts used:** 16 cores per server; max utilization = 75%\n\nUsable cores per server = 16 \u00d7 0.75 = **12 usable cores**\n\n---\n\n## Step 4: Calculate Number of Servers Required by CPU Constraint\n\n**Inputs from Steps 2 and 3:**\n\nServers needed (CPU) = 691.2 \u00f7 12 = 57.6 \u2192 round up = **58 servers**\n\n---\n\n## Step 5: Calculate Peak I/O Demand (page reads per second across fleet)\n\n**Facts used:** Each query needs 4 logical I/O page reads; Peak QPS from Step 1 = 57,600\n\nTotal page reads/sec at peak = 57,600 \u00d7 4 = **230,400 page reads/sec**\n\n---\n\n## Step 6: Calculate Number of Servers Required by I/O Constraint\n\n**Facts used:** Each server can sustain 40,000 page reads/sec (hard ceiling)\n**Input from Step 5:** 230,400 page reads/sec\n\nServers needed (I/O) = 230,400 \u00f7 40,000 = 5.76 \u2192 round up = **6 servers**\n\n---\n\n## Step 7: Identify the Binding Constraint\n\n**Inputs from Steps 4 and 6:**\n\n- CPU requires: **58 servers**\n- I/O requires: **6 servers**\n\n58 >> 6, so **CPU is the binding constraint.** The minimum fleet size before redundancy = **58 servers**.\n\n---\n\n## Step 8: Apply N+1 Redundancy\n\n**Fact used:** The fleet must still handle peak load with one server failed, meaning we need N working servers at peak, plus 1 spare, so total = N + 1.\n\nWe need 58 servers *actively serving* peak load. With one server allowed to be down, we must have:\n\nTotal servers = 58 + 1 = **59 servers**\n\n*Verification: With 59 servers and one failed, 58 remain. 58 \u00d7 12 usable cores = 696 usable cores \u2265 691.2 required. \u2713*\n*I/O check: 58 \u00d7 40,000 = 2,320,000 page reads/sec \u2265 230,400 required. \u2713*\n\n---\n\n## Step 9: Calculate Monthly Cost\n\n**Facts used:** Each server costs $1.45/hour; 730 hours/month\n**Input from Step 8:** 59 servers\n\nHourly cost = 59 \u00d7 $1.45 = **$85.55/hour**\n\nMonthly cost = $85.55 \u00d7 730 = **$62,451.50/month**\n\n---\n\n## Final Answer\n\n| Item | Value |\n|---|---|\n| **Binding constraint** | **CPU** (requires 58 active servers vs. 6 for I/O) |\n| **Servers needed for peak (before redundancy)** | 58 |\n| **Minimum fleet size with N+1 redundancy** | **59 servers** |\n| **Total monthly compute cost** | **$62,451.50** |\n\n**Key reasoning:** Each query consumes 12 ms of a single core, which is expensive \u2014 at peak, the fleet needs 691.2 continuously busy cores. With only 12 usable cores per server, that demands 58 active servers. I/O is trivially satisfied (only 6 servers needed). Adding one redundant server for N+1 brings the fleet to **59 servers**, costing **$62,451.50/month**.",
+          "input_tokens": 402,
+          "output_tokens": 1061,
+          "seconds": 17.89,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.14,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -0.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.3,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "The runs correctly identify the peak QPS, CPU as the binding constraint, and the replica count before N+1. However, two runs miscalculate the monthly cost, and one run shows an internal arithmetic error in the CPU-demand derivation even though it later lands on the right throughput. The typical final answer is therefore only partially accurate.",
+          "evidence": "Run 1: \"Peak QPS = 18,000 QPS \u00d7 3.2\" and later \"The **CPU capacity** is the binding constraint\" and \"59 servers\" are correct, but Step 2 states \"691.2 CPU cores (or CPU seconds per second)\" from 57,600 \u00d7 0.012, which is dimensionally sloppy. Run 2: final cost is wrong: \"Result of Step 11: Total monthly compute cost = $62,400.50\". Run 3: final cost is wrong: \"$62,376.50\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every requirement is addressed in all three runs: peak QPS, per-server CPU throughput, per-server I/O throughput, explicit binding constraint identification, pre-N+1 server count, post-N+1 server count, and total monthly cost. The final answer in each run restates (a) binding constraint, (b) pre/post-N+1 counts, and (c) monthly cost.",
+          "evidence": "Run 1 Final Answer explicitly covers: 'CPU capacity is the binding constraint', '58 servers / 59 servers', '$62,451.50'. Run 2 and Run 3 final answers mirror this structure with the same three required elements.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "All three runs use clearly numbered, labeled steps; each step cites inputs as either stated facts or prior step results; intermediate numeric results are shown before proceeding; the final answer appears only after all steps and separately states binding constraint, before/after N+1 replica count, and monthly cost.",
+          "evidence": "Run 1: Steps 1\u201311 each open with '\u2022 Inputs:' citing source, show a calculation, and close with '\u2022 Result:'. Final Answer section follows all steps. Run 2 and Run 3 follow the identical structural pattern throughout.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is consistently precise, technical, quantitative, and explanatory, matching an engineer performing capacity planning. It is neutral and non-chatty throughout.",
+          "evidence": "Run 1 opens with \"Here's the problem broken into smaller steps\" and uses technical labels like \"binding constraint\" and \"CPU capacity\". Run 2 and Run 3 use similarly formal, engineering-oriented phrasing without conversational digressions.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are free of harmful, biased, or inappropriate content. They are ordinary quantitative analyses.",
+          "evidence": "All three runs contain only capacity-planning calculations and no unsafe or sensitive content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "Token counts of 3085\u20133417 are commensurate with the 10\u201311 required labeled steps and the format specification's explicit demands for citing inputs, showing calculations, and restating results. Some minor structural verbosity (e.g., Run 1 Step 10 is a near-redundant restatement of the binding constraint already captured in Step 7), but no significant padding.",
+          "evidence": "Run 1 Step 10 ('State the Binding Constraint for the Fleet') adds minimal new content beyond Step 7's result. Runs 2 and 3 (3325 and 3085 tokens) are marginally tighter; overall quality-per-token ratio is good but not exceptional.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "Structure, step count, intermediate results, binding constraint, and server counts (58/59) are stable across all three runs. However, the final cost differs in all three runs ($62,451.50 vs $62,400.50 vs $62,376.50), which is a direct inconsistency in a key deliverable. This represents quality instability beyond mere wording variation. [lexical similarity ratio: 0.313]",
+          "evidence": "Peak QPS = 57,600, CPU constraint, QPS/server = 1,000, N = 58, N+1 = 59 appear identically in all three runs. Final costs: Run 1 '$62,451.50'; Run 2 '$62,400.50'; Run 3 '$62,376.50' \u2014 three different values for the same multiplication.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.313
+        }
+      },
+      "judge_summary": "All three runs demonstrate correct reasoning: they decompose the problem into well-labeled sequential steps, avoid the average-QPS trap (sizing to 57,600 not 18,000), correctly identify CPU as the binding constraint at 1,000 QPS/server (vs I/O at 10,000), and land on 59 replicas with N+1. Format and tone are excellent across all runs. The critical flaw is arithmetic instability in the final multiplication: only Run 1 computes the correct monthly cost of $62,451.50; Runs 2 and 3 produce $62,400.50 and $62,376.50 respectively, errors that persist despite stating the correct formula. This degrades accuracy to a 3 and reveals meaningful run-to-run inconsistency on a core deliverable.",
+      "runs": [
+        {
+          "text": "Here's the problem broken into smaller steps, with each step's numeric result shown sequentially.\n\n---\n\n**Step 1: Calculate Peak Read Traffic (QPS)**\n\n*   **Inputs:**\n    *   Expected steady-state read traffic (daily average) = 18,000 QPS (stated fact)\n    *   Daily peak multiplier = 3.2x (stated fact)\n*   **Calculation:** Peak QPS = Average QPS \u00d7 Peak Multiplier\n    Peak QPS = 18,000 QPS \u00d7 3.2\n*   **Result:** 57,600 QPS\n\n---\n\n**Step 2: Calculate Total CPU Service Time required for Peak Traffic**\n\n*   **Inputs:**\n    *   Peak Read Traffic = 57,600 QPS (from Step 1)\n    *   Query CPU Cost = 12 ms per query per core (stated fact)\n*   **Calculation:** Total CPU time (seconds of core utilization) = Peak QPS \u00d7 Query CPU Cost (in seconds)\n    *   Convert 12 ms to seconds: 12 ms = 0.012 seconds\n    Total CPU time = 57,600 QPS \u00d7 0.012 seconds/query\n*   **Result:** 691.2 CPU cores (or CPU seconds per second)\n\n---\n\n**Step 3: Calculate Total Logical I/O Page Reads required for Peak Traffic**\n\n*   **Inputs:**\n    *   Peak Read Traffic = 57,600 QPS (from Step 1)\n    *   Query I/O Cost = 4 logical I/O page reads per query (stated fact)\n*   **Calculation:** Total I/O page reads per second = Peak QPS \u00d7 Query I/O Cost\n    Total I/O page reads = 57,600 QPS \u00d7 4 logical page reads/query\n*   **Result:** 230,400 logical I/O page reads per second\n\n---\n\n**Step 4: Calculate Usable CPU Capacity per Server**\n\n*   **Inputs:**\n    *   Each server has 16 CPU cores (stated fact)\n    *   Max core utilization = 75% (0.75) (stated fact)\n*   **Calculation:** Usable CPU cores = Total cores \u00d7 Max utilization\n    Usable CPU cores = 16 cores \u00d7 0.75\n*   **Result:** 12 usable CPU cores per server\n\n---\n\n**Step 5: Calculate Max QPS per Server based on CPU Capacity**\n\n*   **Inputs:**\n    *   Usable CPU Capacity per Server = 12 usable CPU cores (from Step 4)\n    *   Query CPU Cost = 12 ms per query per core (0.012 seconds) (stated fact)\n*   **Calculation:** Max QPS (CPU) per server = Usable CPU cores per server / Query CPU Cost (in seconds)\n    Max QPS (CPU) per server = 12 cores / 0.012 seconds/query\n*   **Result:** 1,000 QPS per server (CPU-bound)\n\n---\n\n**Step 6: Calculate Max QPS per Server based on I/O Capacity**\n\n*   **Inputs:**\n    *   Max Server I/O Capacity = 40,000 logical page reads per second (stated fact)\n    *   Query I/O Cost = 4 logical I/O page reads per query (stated fact)\n*   **Calculation:** Max QPS (I/O) per server = Max Server I/O Capacity / Query I/O Cost\n    Max QPS (I/O) per server = 40,000 logical page reads/second / 4 logical page reads/query\n*   **Result:** 10,000 QPS per server (I/O-bound)\n\n---\n\n**Step 7: Determine the Effective Max QPS per Server (Binding Constraint per server)**\n\n*   **Inputs:**\n    *   Max QPS per Server (CPU-bound) = 1,000 QPS (from Step 5)\n    *   Max QPS per Server (I/O-bound) = 10,000 QPS (from Step 6)\n*   **Calculation:** The effective maximum QPS a single server can handle is the *minimum* of its CPU-bound and I/O-bound capacities.\n    Effective Max QPS per server = min(1,000 QPS, 10,000 QPS)\n*   **Result:** 1,000 QPS per server. The **CPU capacity** is the binding constraint for each server.\n\n---\n\n**Step 8: Calculate the Minimum Number of Servers required to handle Peak Traffic *without* redundancy**\n\n*   **Inputs:**\n    *   Peak Read Traffic = 57,600 QPS (from Step 1)\n    *   Effective Max QPS per Server = 1,000 QPS (from Step 7)\n*   **Calculation:** Servers required (no redundancy) = Peak Read Traffic / Effective Max QPS per Server\n    Servers required = 57,600 QPS / 1,000 QPS/server\n    Since you can't have a fraction of a server, we round up.\n*   **Result:** 57.6 servers, rounded up to 58 servers.\n\n---\n\n**Step 9: Calculate the Minimum Number of Servers required *with* N+1 redundancy**\n\n*   **Inputs:**\n    *   Servers required without redundancy = 58 servers (from Step 8)\n*   **Calculation:** Servers with N+1 redundancy = Servers required without redundancy + 1\n    Servers with N+1 redundancy = 58 servers + 1 server\n*   **Result:** 59 servers\n\n---\n\n**Step 10: State the Binding Constraint for the Fleet**\n\n*   **Input:** Binding Constraint from Step 7.\n*   **Result:** The **CPU capacity** is the binding constraint for the fleet at peak load. The N+1 redundancy means there are 59 servers, capable of handling the 57,600 QPS peak traffic even if one server fails (leaving 58 active servers, which is enough).\n\n---\n\n**Step 11: Calculate the Total Monthly Compute Cost**\n\n*   **Inputs:**\n    *   Servers with N+1 redundancy = 59 servers (from Step 9)\n    *   Server cost per hour = $1.45 (stated fact)\n    *   Hours in a month = 730 hours (stated fact)\n*   **Calculation:** Total Monthly Cost = Number of Servers \u00d7 Cost per hour \u00d7 Hours in a month\n    Total Monthly Cost = 59 servers \u00d7 $1.45/hour/server \u00d7 730 hours/month\n    Total Monthly Cost = 59 \u00d7 $1058.5\n*   **Result:** $62,451.50\n\n---\n\n**Final Answer:**\n\n*   The minimum number of replicas required, including N+1 redundancy, is **59 servers**.\n*   The **CPU capacity** is the binding constraint at peak load for each server and thus for the fleet.\n*   The total monthly compute cost for the fleet is **$62,451.50**.",
+          "input_tokens": 387,
+          "output_tokens": 3417,
+          "seconds": 15.53,
+          "run": 1
+        },
+        {
+          "text": "Here is the problem broken down into smaller steps, with each step solved sequentially and its numeric result shown.\n\n**Step 1: Calculate peak read traffic (QPS).**\n*   Daily average QPS = 18,000 QPS (stated fact)\n*   Peak multiplier = 3.2x (stated fact)\n*   Peak QPS = 18,000 QPS * 3.2\n\n**Result of Step 1:** Peak QPS = 57,600 QPS\n\n**Step 2: Calculate total CPU service time required per second at peak.**\n*   Peak QPS = 57,600 QPS (from Step 1)\n*   CPU service time per query = 12 ms/query (stated fact)\n*   Convert ms to seconds: 12 ms = 0.012 seconds\n*   Total CPU service time needed (in core-seconds per second) = Peak QPS * CPU service time per query\n*   Total CPU service time needed = 57,600 QPS * 0.012 seconds/query\n\n**Result of Step 2:** Total CPU service time needed = 691.2 core-seconds/second\n\n**Step 3: Calculate total logical I/O page reads required per second at peak.**\n*   Peak QPS = 57,600 QPS (from Step 1)\n*   Logical I/O page reads per query = 4 reads/query (stated fact)\n*   Total logical I/O reads needed = Peak QPS * Logical I/O page reads per query\n*   Total logical I/O reads needed = 57,600 QPS * 4 reads/query\n\n**Result of Step 3:** Total logical I/O reads needed = 230,400 logical page reads/second\n\n**Step 4: Calculate the usable CPU capacity per server (in CPU cores).**\n*   Total CPU cores per server = 16 cores (stated fact)\n*   Max CPU utilization = 75% (stated fact)\n*   Usable CPU cores = Total CPU cores per server * Max CPU utilization\n*   Usable CPU cores = 16 cores * 0.75\n\n**Result of Step 4:** Usable CPU cores per server = 12 cores\n\n**Step 5: Calculate the maximum CPU QPS a single server can handle.**\n*   Usable CPU cores per server = 12 cores (from Step 4)\n*   CPU service time per query = 0.012 seconds/query (stated fact, converted in Step 2)\n*   Max CPU QPS per server = Usable CPU cores per server / CPU service time per query\n*   Max CPU QPS per server = 12 cores / 0.012 seconds/query\n\n**Result of Step 5:** Max CPU QPS per server = 1,000 QPS\n\n**Step 6: Calculate the maximum I/O QPS a single server can handle.**\n*   Max logical page reads per second per server = 40,000 reads/second (stated fact)\n*   Logical I/O page reads per query = 4 reads/query (stated fact)\n*   Max I/O QPS per server = Max logical page reads per second per server / Logical I/O page reads per query\n*   Max I/O QPS per server = 40,000 reads/second / 4 reads/query\n\n**Result of Step 6:** Max I/O QPS per server = 10,000 QPS\n\n**Step 7: Determine the effective maximum QPS per server (binding constraint for a single server).**\n*   Max CPU QPS per server = 1,000 QPS (from Step 5)\n*   Max I/O QPS per server = 10,000 QPS (from Step 6)\n*   Effective max QPS per server = MIN(Max CPU QPS per server, Max I/O QPS per server)\n*   Effective max QPS per server = MIN(1,000 QPS, 10,000 QPS)\n\n**Result of Step 7:** Effective maximum QPS per server = 1,000 QPS\n\n**Step 8: Calculate the minimum number of servers required to handle peak load without N+1 redundancy.**\n*   Peak QPS = 57,600 QPS (from Step 1)\n*   Effective max QPS per server = 1,000 QPS (from Step 7)\n*   Minimum servers = CEILING(Peak QPS / Effective max QPS per server)\n*   Minimum servers = CEILING(57,600 QPS / 1,000 QPS)\n*   Minimum servers = CEILING(57.6)\n\n**Result of Step 8:** Minimum servers required (N) = 58 servers\n\n**Step 9: Determine the binding constraint (CPU or I/O) for the fleet at peak.**\n*   Comparing Step 5 (Max CPU QPS per server = 1,000 QPS) and Step 6 (Max I/O QPS per server = 10,000 QPS), the CPU limit is significantly lower. This makes CPU the limiting factor.\n\n**Result of Step 9:** The binding constraint is CPU.\n\n**Step 10: Calculate the total number of replicas required with N+1 redundancy.**\n*   Minimum servers required (N) = 58 servers (from Step 8)\n*   N+1 redundancy means adding 1 extra server for failure tolerance.\n*   Total replicas = Minimum servers + 1\n*   Total replicas = 58 servers + 1\n\n**Result of Step 10:** Total number of replicas = 59 servers\n\n**Step 11: Calculate the total monthly compute cost.**\n*   Total replicas = 59 servers (from Step 10)\n*   Cost per server per hour = $1.45/hour (stated fact)\n*   Hours in a month = 730 hours/month (stated fact)\n*   Total monthly cost = Total replicas * Cost per server per hour * Hours in a month\n*   Total monthly cost = 59 servers * $1.45/hour * 730 hours/month\n\n**Result of Step 11:** Total monthly compute cost = $62,400.50\n\n---\n\n**Final Answer:**\n\nBased on the calculations:\n*   The **minimum number of replicas required** for the fleet, including N+1 redundancy, is **59 servers**.\n*   The **binding constraint** at peak load for a single server, and thus for sizing the fleet, is **CPU**.\n*   The **total monthly compute cost** for the fleet is **$62,400.50**.",
+          "input_tokens": 387,
+          "output_tokens": 3325,
+          "seconds": 14.03,
+          "run": 2
+        },
+        {
+          "text": "Here's the problem broken down into smaller steps, with each step's numeric result shown sequentially.\n\n---\n\n**Step 1: Calculate the peak read traffic (QPS).**\n*   Inputs:\n    *   Expected steady-state read traffic = 18,000 QPS (Fact 1)\n    *   Peak traffic multiplier = 3.2x (Fact 2)\n*   Calculation:\n    Peak QPS = 18,000 QPS * 3.2\n*   **Result: Peak QPS = 57,600 QPS**\n\n---\n\n**Step 2: Calculate the total CPU demand at peak traffic.**\n*   Inputs:\n    *   Peak QPS = 57,600 QPS (from Step 1)\n    *   CPU service time per query = 12 ms (Fact 3)\n*   Calculation:\n    Total CPU demand (ms/sec) = 57,600 QPS * 12 ms/query = 691,200 ms/sec\n    Convert to core-seconds/sec: Total CPU demand (core-seconds) = 691,200 ms/sec / 1000 ms/second\n*   **Result: Total CPU demand = 691.2 core-seconds/second**\n\n---\n\n**Step 3: Calculate the total I/O demand at peak traffic.**\n*   Inputs:\n    *   Peak QPS = 57,600 QPS (from Step 1)\n    *   Logical I/O page reads per query = 4 (Fact 3)\n*   Calculation:\n    Total I/O demand = 57,600 QPS * 4 page reads/query\n*   **Result: Total I/O demand = 230,400 logical page reads per second**\n\n---\n\n**Step 4: Calculate the usable CPU capacity per server.**\n*   Inputs:\n    *   Cores per server = 16 (Fact 4)\n    *   Max core utilization = 75% (0.75) (Fact 4)\n*   Calculation:\n    Usable CPU capacity per server = 16 cores * 0.75 utilization\n*   **Result: Usable CPU capacity per server = 12 core-seconds/second**\n\n---\n\n**Step 5: Calculate the I/O capacity per server.**\n*   Inputs:\n    *   Max logical page reads per second per server = 40,000 (Fact 4)\n*   Calculation:\n    I/O capacity per server = 40,000 logical page reads per second\n*   **Result: I/O capacity per server = 40,000 logical page reads per second**\n\n---\n\n**Step 6: Determine the number of servers required based on CPU capacity *without* N+1 redundancy.**\n*   Inputs:\n    *   Total CPU demand = 691.2 core-seconds/second (from Step 2)\n    *   Usable CPU capacity per server = 12 core-seconds/second (from Step 4)\n*   Calculation:\n    Servers needed for CPU = 691.2 / 12 = 57.6\n    Round up to the nearest whole server.\n*   **Result: Servers needed for CPU = 58 servers**\n\n---\n\n**Step 7: Determine the number of servers required based on I/O capacity *without* N+1 redundancy.**\n*   Inputs:\n    *   Total I/O demand = 230,400 logical page reads per second (from Step 3)\n    *   I/O capacity per server = 40,000 logical page reads per second (from Step 5)\n*   Calculation:\n    Servers needed for I/O = 230,400 / 40,000 = 5.76\n    Round up to the nearest whole server.\n*   **Result: Servers needed for I/O = 6 servers**\n\n---\n\n**Step 8: Determine the minimum number of servers required to handle peak load *without* N+1 redundancy.**\n*   Inputs:\n    *   Servers needed for CPU = 58 servers (from Step 6)\n    *   Servers needed for I/O = 6 servers (from Step 7)\n*   Calculation:\n    Servers needed (binding constraint) = MAX(58, 6)\n*   **Result: Servers needed for peak load (without N+1) = 58 servers**\n*   **Binding Constraint:** CPU is the binding constraint, as it requires significantly more servers than I/O.\n\n---\n\n**Step 9: Apply N+1 redundancy to find the final number of replicas.**\n*   Inputs:\n    *   Servers needed for peak load = 58 servers (from Step 8)\n    *   N+1 redundancy (Fact 5)\n*   Calculation:\n    Final number of replicas = 58 + 1\n*   **Result: Final number of replicas = 59 servers**\n*   **Explanation of N+1:** The fleet needs to sustain the peak load even if one server fails. This means we need 58 *operational* servers available to handle the load. To ensure 58 are available even with one failure, we must provision 58 + 1 = 59 total servers.\n\n---\n\n**Step 10: Calculate the total monthly compute cost.**\n*   Inputs:\n    *   Final number of replicas = 59 servers (from Step 9)\n    *   Cost per server per hour = $1.45 (Fact 6)\n    *   Hours per month = 730 (Fact 7)\n*   Calculation:\n    Total monthly cost = 59 servers * $1.45/hour/server * 730 hours/month\n*   **Result: Total monthly cost = $62,376.50**\n\n---\n\n**Final Answer:**\n\n*   The **minimum number of replicas required** for the fleet is **59 servers**.\n*   The **binding constraint** at peak load is **CPU capacity**.\n*   The total **monthly compute cost** of the fleet will be **$62,376.50**.",
+          "input_tokens": 387,
+          "output_tokens": 3085,
+          "seconds": 13.57,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.86,
+        "max_spread": 3,
+        "contested_dims": [
+          "efficiency"
+        ],
+        "self_preference_delta": 3.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

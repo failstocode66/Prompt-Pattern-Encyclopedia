@@ -1,0 +1,3 @@
+Output only the answer. No explanation, no preamble, no units, no punctuation, no surrounding prose. The entire output must be a single base-10 integer and nothing else.
+
+In a standard IPv4 network using classless inter-domain routing, how many usable host addresses can be assigned to devices in a /29 subnet?

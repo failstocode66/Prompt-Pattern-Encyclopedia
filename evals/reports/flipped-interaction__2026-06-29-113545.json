@@ -1,0 +1,681 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "flipped-interaction",
+  "date": "2026-06-29 11:35",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong turn-1 response asks EXACTLY ONE question and nothing else substantive \u2014 no fix, no SQL, no stacked follow-ups. The single question must be the highest-leverage diagnostic for a slow Postgres query: the canonical best opener is a request for the actual query text together with its EXPLAIN (ANALYZE, BUFFERS) plan (or, acceptably, \"what is the query and can you share its EXPLAIN ANALYZE output\") \u2014 because without the query + plan no meaningful diagnosis is possible, so it dominates table size, indexes, pg_stat data, row estimates, etc. Asking instead about schema/table size/index list/Postgres version FIRST is a weaker (off-target-ordering) choice that should cost Accuracy, since those are downstream of seeing the plan. The response must NOT: (a) ask multiple questions at once / present a checklist or numbered battery of questions (question-stacking failure mode); (b) declare \"I have enough to proceed\" or output an optimization plan now (premature-exit failure mode \u2014 it has zero information); (c) restate the whole template back or pad with a long preamble (efficiency). A brief one-line role acknowledgment before the single question is acceptable and arguably good for tone, but it must not become a lecture. The question should be specific and actionable (tells the user exactly what to paste, e.g. EXPLAIN (ANALYZE, BUFFERS) output), not vague (\"tell me about your query\"). Bonus quality signals: explaining in one short clause WHY this is the first question, and signalling that more questions will follow.",
+    "format_spec": "Conversational single-turn output containing exactly ONE question. No SQL, no optimization plan, no \"I have enough to proceed\" signal at this stage. Optional one-line role/intent acknowledgment is permitted; a numbered or bulleted list of multiple questions is a format violation. The question should be plain prose (optionally one short clarifying sub-clause), not a multi-item form.",
+    "tone": "Professional, consultative, concise \u2014 a senior consultant conducting a focused diagnostic intake; warm enough to keep the user engaged but not chatty or padded."
+  },
+  "prompt": "I want you to act as a senior PostgreSQL performance consultant. I have a production query that has gotten slow and I need your help fixing it \u2014 but do NOT propose a fix or write any SQL yet.\n\nInstead of answering immediately, ask me questions ONE AT A TIME until you have enough information to recommend a concrete optimization plan. Ask the single most important question first, then adapt each subsequent question based on my previous answer. Ask at most one question per turn. When (and only when) you have enough to act, say exactly \"I have enough to proceed\" on its own line and then produce the optimization plan.\n\nGoal: Diagnose and produce an optimization plan for one slow production PostgreSQL query.\n\nBegin.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.4,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "Typical behavior is on-task and mostly aligned with the benchmark: runs 1 and 3 ask the highest-leverage diagnostic question and specifically request the query plus EXPLAIN ANALYZE BUFFERS. However, run 2 is a weaker, downstream question about table names, which the reference explicitly says should cost accuracy because it asks schema/table info before the plan.",
+          "evidence": "Run 1: \"What is the exact SQL query, and can you share the `EXPLAIN (ANALYZE, BUFFERS)` output...\" Run 3: \"What is the exact SQL query ... and can you paste the current `EXPLAIN (ANALYZE, BUFFERS)` output...\" Run 2: \"...and can you include the table names it touches?\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "The response set covers the core requirement of asking one diagnostic question and, in 2 of 3 runs, asks for the ideal artifacts. It misses the bonus nuance of a brief role acknowledgment and why this is the first question, but those are optional. The main incompleteness is run 2 not requesting the plan at all and therefore not matching the strongest expected opener across all runs.",
+          "evidence": "Runs 1 and 3 request the query plus EXPLAIN ANALYZE BUFFERS; run 2 omits the plan and asks only for table names. None of the runs add a short why-this-first clause or signal that more questions will follow.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "All three runs produce exactly one prose question with no numbered/bulleted list, no SQL, no optimization plan, and no premature 'I have enough to proceed' signal. The format specification is met precisely in every run.",
+          "evidence": "Run 1 (36 tokens), Run 2 (23 tokens), Run 3 (37 tokens) \u2014 each is a single sentence question in conversational prose with no format violations.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is professional, concise, and consultative, matching a senior performance consultant intake. It is not chatty or padded, and the wording is clear and actionable.",
+          "evidence": "Run 1: \"What is the exact SQL query, and can you share the `EXPLAIN (ANALYZE, BUFFERS)` output...\" Run 3: \"What is the exact SQL query that is slow, and can you paste the current `EXPLAIN (ANALYZE, BUFFERS)` output...\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and work-related, with no harmful, biased, or inappropriate material. It only requests diagnostic information relevant to PostgreSQL performance.",
+          "evidence": "All runs ask for query/plan details only; no unsafe content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "Token counts are extremely low (23\u201337 tokens) for the task delivered. There is zero padding, no preamble, no redundant explanation. The quality-per-token ratio is high in Runs 1 and 3; Run 2 is even shorter but at the cost of accuracy, not efficiency.",
+          "evidence": "Run 1: 36 tokens; Run 2: 23 tokens; Run 3: 37 tokens \u2014 all single-sentence questions with no wasted verbiage.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "Runs 1 and 3 are semantically and structurally nearly identical, both requesting the query plus EXPLAIN (ANALYZE, BUFFERS). Run 2 is a meaningful semantic divergence: it replaces the plan request with a request for table names, producing a measurably weaker diagnostic question. This is not mere wording variation \u2014 it represents a different and inferior diagnostic strategy, affecting quality stability across runs. [lexical similarity ratio: 0.686]",
+          "evidence": "Run 1 and Run 3 both ask for EXPLAIN (ANALYZE, BUFFERS); Run 2 asks for 'table names it touches' \u2014 a structurally similar but diagnostically inferior substitution that the reference rubric explicitly penalizes.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          },
+          "lexical_similarity": 0.686
+        }
+      },
+      "judge_summary": "The model follows the flipped-interaction pattern correctly in structure across all runs \u2014 one question per turn, no premature SQL or optimization plan. Runs 1 and 3 select the canonical highest-leverage first question (query + EXPLAIN ANALYZE BUFFERS plan), earning full marks on the diagnostic strategy. Run 2 diverges by substituting a table-name request for the plan, which is a weaker opener that costs both accuracy and consistency. All runs are exceptionally efficient and format-compliant. The main gaps are: Run 2's suboptimal diagnostic choice, the absence of any brief role acknowledgment or signal that further questions will follow, and the resulting consistency penalty from Run 2's meaningful divergence from the other two runs.",
+      "runs": [
+        {
+          "text": "What is the exact SQL query, and can you share the `EXPLAIN (ANALYZE, BUFFERS)` output for its slow production execution?",
+          "input_tokens": 149,
+          "output_tokens": 36,
+          "seconds": 1.51,
+          "run": 1
+        },
+        {
+          "text": "What is the exact SQL query that is slow, and can you include the table names it touches?",
+          "input_tokens": 149,
+          "output_tokens": 23,
+          "seconds": 1.09,
+          "run": 2
+        },
+        {
+          "text": "What is the exact SQL query that is slow, and can you paste the current `EXPLAIN (ANALYZE, BUFFERS)` output for it?",
+          "input_tokens": 149,
+          "output_tokens": 37,
+          "seconds": 1.69,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.57,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": -0.5
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "The responses are on-topic and relevant to the task, but they ask for the query text only instead of the highest-leverage diagnostic pair (query + EXPLAIN ANALYZE/BUFFERS). That is a weaker first question than the reference recommends, though still useful.",
+          "evidence": "Run 1: \"What is the query that's running slowly? Please share the full SQL text.\" Run 3: \"Please share the full SQL (or as much of it as you're able to share).\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "The flipped-interaction pattern requires identifying the single highest-leverage diagnostic question. The prompt instructions and rubric both specify that the canonical opener bundles the query text AND its execution plan. All runs cover only one of the two required components (the SQL text), leaving the plan\u2014equally essential\u2014to a subsequent turn. One substantive requirement is missed.",
+          "evidence": "No run includes a request for EXPLAIN ANALYZE or any execution-plan artifact, despite the rubric explicitly stating this is the dominant diagnostic tool that 'no meaningful diagnosis is possible' without.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "Each run is a single conversational question and contains no extra substantive content, lists, SQL, or premature optimization plan. This matches the required single-question format.",
+          "evidence": "Run 1: one sentence ending in a question mark. Run 2: one sentence ending in a question mark. Run 3: one question only; no bullets, no second question, no plan.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is professional, concise, and consultative, which fits the intended audience well. It is slightly plain and lacks the ideal senior-consultant framing or brief role acknowledgment, but it is still appropriate.",
+          "evidence": "Run 1: \"Please share the full SQL text.\" Run 3: \"What does the slow query look like?\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are benign, non-sensitive, and contain no harmful, biased, or inappropriate content.",
+          "evidence": "All three runs only request query text and do not include unsafe instructions or content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "The outputs are very short and avoid padding, which is efficient. However, they spend their limited tokens on the wrong first diagnostic object (SQL only) instead of the more informative query+EXPLAIN request, so the efficiency is good but not optimal relative to the quality target.",
+          "evidence": "Run 1: 19 tokens; Run 2: 19 tokens; Run 3: 29 tokens. Despite brevity, no run asks for EXPLAIN ANALYZE / BUFFERS, reducing value per token.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "The three runs are semantically stable and structurally identical: each asks for the slow query\u2019s SQL text as the sole question. Wording varies slightly, but the core intent and single-question format remain constant. [lexical similarity ratio: 0.719]",
+          "evidence": "Run 1: \"What is the query that's running slowly?\" Run 2: \"What is the query that's running slow?\" Run 3: \"What does the slow query look like?\" All three then request the SQL text.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.719
+        }
+      },
+      "judge_summary": "The model performs well on adherence to most negative constraints, format, tone, and safety. It consistently delivers a concise, professional, single-turn response. Its primary weakness lies in 'Accuracy' and 'Completeness' as it consistently fails to ask the most important and leveraged first question, omitting the critical `EXPLAIN (ANALYZE, BUFFERS)` plan which is necessary for meaningful diagnosis. While efficient for the content it provides, its efficiency is slightly hindered by the quality gap. Consistency is strong for core intent and structure, with minor variations in phrasing.",
+      "runs": [
+        {
+          "text": "What is the query that's running slowly? Please share the full SQL text.",
+          "input_tokens": 156,
+          "output_tokens": 19,
+          "seconds": 1.72,
+          "run": 1
+        },
+        {
+          "text": "What is the query that's running slow? Please share the full SQL text.",
+          "input_tokens": 156,
+          "output_tokens": 19,
+          "seconds": 1.7,
+          "run": 2
+        },
+        {
+          "text": "What does the slow query look like? Please share the full SQL (or as much of it as you're able to share).",
+          "input_tokens": 156,
+          "output_tokens": 29,
+          "seconds": 3.18,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.71,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": 2
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4.6,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "The model asks the highest-leverage diagnostic first: for the actual query text plus EXPLAIN (ANALYZE, BUFFERS). This is exactly the canonical opener for a slow Postgres query and avoids off-target questions about schema or indexes before seeing the plan.",
+          "evidence": "Run 2: \"Could you please provide the full text of the slow query, along with the output of `EXPLAIN (ANALYZE, BUFFERS)` for that query?\" Run 3: \"provide the SQL query in question, along with its `EXPLAIN (ANALYZE, BUFFERS)` output\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "It fully satisfies the turn-1 requirement: exactly one question, specific and actionable, and no SQL or optimization plan. The question asks for the precise artifacts needed to start diagnosis.",
+          "evidence": "Run 1/2/3 each contain a single question only; no extra checklist, no fix, no plan, no follow-up questions. Run 2 and Run 3 explicitly request both the query and EXPLAIN output.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The outputs match the required conversational single-question format. Each run contains exactly one question and nothing else substantive, with no bullets, numbering, or stacked questions.",
+          "evidence": "Run 1: one sentence ending in a question mark. Run 2: one question sentence. Run 3: one question sentence plus a brief explanatory clause, still within the allowed single-question format.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is professional, concise, and consultative, appropriate for a senior PostgreSQL performance consultant. It is warm enough to engage without becoming chatty or padded.",
+          "evidence": "Run 1: \"Could you please provide...\" Run 3: \"This will give us the most crucial insight into what the database is actually doing.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and purely diagnostic. It contains no harmful, biased, or inappropriate material.",
+          "evidence": "All three runs request only query text and EXPLAIN output; no unsafe content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The responses are concise, but one run adds a small amount of explanatory padding. Still, the token counts are modest and the information density is high, so the output is efficient overall.",
+          "evidence": "Run 1 is 219 tokens for one short question; Run 2 is 336 tokens and Run 3 is 215 tokens. Run 3 adds: \"This will give us the most crucial insight into what the database is actually doing,\" which is acceptable but slightly verbose relative to the task.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 3,
+            "median": 4,
+            "spread": 3,
+            "stdev": 1.41,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -3
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically stable and structurally aligned: all ask for the query plus EXPLAIN (ANALYZE, BUFFERS). There is minor variation in wording and detail, but no contradiction or meaningful divergence. [lexical similarity ratio: 0.601]",
+          "evidence": "Run 1 requests only EXPLAIN output; Runs 2 and 3 request both the query text and EXPLAIN output. The core diagnostic intent is consistent across all runs, but Run 1 is slightly less complete than Runs 2/3.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          },
+          "lexical_similarity": 0.601
+        }
+      },
+      "judge_summary": "Strong, on-task single-question intake across runs. The main slight weakness is that Run 1 omits the explicit query text request, but overall the behavior matches the flipped-interaction pattern very well.",
+      "runs": [
+        {
+          "text": "Could you please provide the `EXPLAIN (ANALYZE, BUFFERS)` output for the slow query?",
+          "input_tokens": 146,
+          "output_tokens": 219,
+          "seconds": 1.95,
+          "run": 1
+        },
+        {
+          "text": "Could you please provide the full text of the slow query, along with the output of `EXPLAIN (ANALYZE, BUFFERS)` for that query?",
+          "input_tokens": 146,
+          "output_tokens": 336,
+          "seconds": 2.14,
+          "run": 2
+        },
+        {
+          "text": "Could you please provide the SQL query in question, along with its `EXPLAIN (ANALYZE, BUFFERS)` output? This will give us the most crucial insight into what the database is actually doing.",
+          "input_tokens": 146,
+          "output_tokens": 215,
+          "seconds": 1.71,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.86,
+        "max_spread": 3,
+        "contested_dims": [
+          "efficiency"
+        ],
+        "self_preference_delta": -6
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

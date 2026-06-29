@@ -1,0 +1,10 @@
+Before answering the specific question below, first identify the broader concept, principle, or general question that this is an instance of. State that broader principle clearly in 1-3 sentences. Then use it — explicitly — to derive your answer, showing the comparison the principle dictates.
+
+Specific question:
+
+Eighteen months ago our print shop bought a high-volume laser press for $240,000, financed over 5 years; we still owe $150,000 on it and have already sunk $90,000 in payments plus $60,000 in maintenance, toner, and downtime. A vendor is now offering a new press for $180,000 (cash) that runs the same jobs. Here are the relevant forward-looking numbers for the next 3 years (our planning horizon), assuming the same job volume either way:
+
+- KEEP the current press: expected maintenance + consumables + downtime cost of $58,000/year for 3 years. We still owe the $150,000 loan balance regardless of what we do (no prepayment penalty, and the lender will not let us walk away from it). Resale value of the current press today: $40,000.
+- REPLACE: pay $180,000 cash now for the new press; its expected maintenance + consumables cost is $22,000/year for 3 years; it has a salvage value of $50,000 at the end of year 3. If we replace, we sell the old press now for its $40,000 resale value.
+
+Ignore taxes and the time value of money (no discounting). Which option is cheaper over the 3-year horizon, and by how much? State your recommendation.

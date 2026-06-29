@@ -1,0 +1,687 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "audience-calibration",
+  "date": "2026-06-29 09:50",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A STRONG answer must calibrate to a reader who knows data structures and Big-O cold but knows nothing about RDBMS internals, and must do so without drifting. Specifically it must: (1) LEVERAGE her existing knowledge rather than re-teaching it \u2014 frame the index as a separate on-disk B-tree / sorted auxiliary structure keyed on customer_id that turns the full-table scan from O(n) over 40M rows into roughly O(log n) lookups plus pointer fetches; it should NOT explain what a B-tree or Big-O is (doing so is the audience-stereotype / over-explanation failure mode and should be penalized). (2) Connect to her concrete decision: a single-column index on customer_id for an equality/range filter is exactly the right tool, and 9s on a full scan of 40M rows is the symptom of no usable index. (3) Translate the unfamiliar RDBMS concepts she explicitly lacks, in her terms: that the index is a persisted copy of the keys (storage overhead, often 10s of MB to GBs), and crucially the WRITE COST \u2014 every INSERT/UPDATE/DELETE that touches customer_id must also maintain the index (write amplification), so writes get slower and the table needs more storage; mention that the planner won't always use the index and EXPLAIN is how you verify it does. A complete answer names the real tradeoff (read speedup vs. write/storage cost) rather than presenting the index as free. (4) Bridge the read-only-ORM gap: note she'd ask the platform team because index creation is a DDL/maintenance operation on a 40M-row table that can lock or take time to build. FLAWS to detect: under-simplification (dumping clustered-vs-nonclustered, fill factor, covering indexes, B+tree page internals she didn't ask for and that bury the decision); over-simplification (a restaurant/library-card analogy with no mention of write cost or Big-O, treating her like a novice); mismatched omissions (explaining what an index speeds up but omitting the write/maintenance cost \u2014 the single most decision-relevant fact); audience drift (opening at her level, then sliding into either a generic DBA tutorial or a beginner explainer by the end); and giving a flat \"yes add it\" with no tradeoff. The recommendation should be a qualified yes (almost certainly worth it for a read-heavy filtered dashboard query) with the write/storage caveat and a note to confirm via EXPLAIN.",
+    "format_spec": "Prose explanation readable in about 3 minutes (roughly 250-450 words). No rigid template is imposed by the prompt, but the response must remain pitched to the specified reader throughout (no section that re-teaches data structures or Big-O, no section that devolves into a full DBA reference), must explicitly cover both the read speedup AND the write/storage cost, and must end with an actionable recommendation tied to her customer_id decision.",
+    "tone": "Peer-to-peer technical, addressed to a senior data scientist: precise, assumes fluency in algorithms/Big-O/data structures, no condescension and no hand-wavy analogies, but plain-spoken about the RDBMS-specific concepts she has explicitly never encountered. Confident and decision-oriented, not a tutorial."
+  },
+  "prompt": "Write your response for the following audience:\n\nA senior data scientist with 8 years of experience. She is expert in Python, pandas, and NumPy, is completely comfortable with Big-O notation, sorting, hashing, and tree data structures (she has implemented B-trees as an exercise), and reads execution-time profiles daily. What she has NEVER done is administer or design a production relational database: she has only ever consumed read-only SQL through an ORM. She does not know what an index physically is in a database, has never run EXPLAIN, does not know the difference between a clustered and a non-clustered index, and has no intuition for write amplification, index maintenance, or storage overhead. She is not impressed by hand-wavy analogies and will distrust the explanation if it talks down to her or re-teaches her things she already knows (do not explain what a tree or Big-O is). She has exactly one decision to make: a dashboard query that filters a 40-million-row orders table by `customer_id` currently takes 9 seconds, and she wants to know whether asking the platform team to add an index on `customer_id` is the right call, and what the tradeoff is. She will read this in about 3 minutes.\n\nTask: Explain how a database index makes that query faster, and what it costs to have one, so she can make that decision.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.6,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are broadly correct and on-task: they explain that an index speeds up equality filtering by avoiding a full table scan, and they correctly note write/storage tradeoffs. However, they are a bit generic relative to the reference\u2019s required calibration: none explicitly mention the planner not always using the index or EXPLAIN as the verification step, which is a key decision point in the rubric. Run 1 also introduces a mild off-target tangent with \"covering index strategy\" that is not needed for this audience, though not factually wrong.",
+          "evidence": "Run 1: \"An index on `customer_id` gives the database a separate structure sorted by `customer_id` values\" and \"Every `INSERT`, `DELETE`, and `UPDATE` that changes `customer_id` must also update the index.\" Run 2: \"It stores: the indexed key (`customer_id`) and a pointer or reference to the actual row\" and \"The main tradeoff is that the database now has to keep two things in sync: the table and the index.\" Run 3: \"With an index on `customer_id`, the database can usually do something closer to... look up `customer_id` in the index\" and \"Every `INSERT`, `DELETE`, and `UPDATE` that changes `customer_id` must also update the index.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "The response set covers the main speedup and the main costs, but it misses several explicit requirements from the prompt/rubric: no run mentions EXPLAIN or planner non-guarantees; none mention that index creation is a DDL/maintenance operation that may lock or take time to build; and the recommendation is qualified yes, but not tied explicitly to verifying with EXPLAIN. The write/storage tradeoff is present, but the bridge from read-only ORM to asking the platform team is only implicit and not fully developed.",
+          "evidence": "Missing from all runs: any text like \"EXPLAIN\" or \"the planner won't always use the index.\" Run 2 ends with \"If you want, I can also give you a short checklist of what to ask the platform team before approving it,\" but does not state that creation is a DDL/maintenance operation that may lock or take time. Run 3 says \"Ask them to measure: current query plan\" but not the required explicit verification mechanism.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The responses maintain the prose format, cover all required sections (read speedup, write/storage cost, actionable recommendation), and are consistently pitched. However, all runs significantly exceed the requested length of 'roughly 250-450 words' (Run 1: 889 tokens, Run 2: 971 tokens, Run 3: 1025 tokens). This constitutes a deviation from the specified output format length constraint.",
+          "evidence": "Run 1: 889 output tokens; Run 2: 971 output tokens; Run 3: 1025 output tokens. Prompt requested 'roughly 250-450 words' (approximately 350-630 tokens).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally peer-to-peer, technically fluent, and non-condescending, which matches the senior data scientist audience. Still, the delivery is somewhat tutorial-like and verbose rather than decisively peer-to-peer; Run 2 in particular has explanatory subheads that read like a mini-lesson. No run talks down to the reader, but the style is not quite as crisp and decision-oriented as the ideal.",
+          "evidence": "Run 1: \"An index on `customer_id` gives the database a separate structure sorted by `customer_id` values\" followed by numbered steps and generic explanatory headings. Run 2: \"### What the index physically is\" and \"### The decision rule\" make it feel tutorial-like. Run 3 is closest to the target with \"Yes\u2014asking for an index on `orders.customer_id` is very likely the right call\" and \"Bottom line,\" but still leans explanatory.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are safe: no harmful, hateful, sexual, or otherwise inappropriate content; they provide normal technical guidance only.",
+          "evidence": "All runs discuss indexing, write amplification, and storage overhead in a benign database-advice context.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are materially overlong for the requested 250-450 word, 3-minute answer. They deliver useful content, but with clear padding: multiple section headers, repeated caveats, and extended elaboration across all three runs. The token counts shown (889/971/1025) are heavy relative to the quality demanded by the prompt, so this is inefficient rather than tight.",
+          "evidence": "Run 1 spends substantial space on separate sections for \"Why it gets faster,\" \"What it costs,\" \"When it\u2019s a good idea,\" and \"One nuance.\" Run 2 and Run 3 similarly add multiple headings and repeated tradeoff language. Token counts: 889, 971, and 1025 output tokens.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically stable and structurally similar: all recommend an index, explain faster lookup via a separate index structure, and emphasize slower writes plus extra storage. Differences are mostly wording and sectioning rather than contradictions. There are minor coverage differences\u2014Run 1 adds a covering-index aside, Run 2 mentions extra logging/transaction work and bulk loads, Run 3 mentions composite indexes\u2014but these do not meaningfully change the core answer. [lexical similarity ratio: 0.095]",
+          "evidence": "Run 1: \"Yes \u2014 ... an index on `customer_id` is very plausibly the right first ask.\" Run 2: \"Yes \u2014 ... asking for an index on `customer_id` is very plausibly the right call.\" Run 3: \"Yes\u2014asking for an index on `orders.customer_id` is very likely the right call.\" Each run also includes the same core tradeoff: reads faster, writes/storage cost more.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.095
+        }
+      },
+      "judge_summary": "Overall, the model responds with a solid, on-topic database explanation and preserves the intended audience level reasonably well. The main weaknesses are overlength/verbosity and missing rubric-critical items like EXPLAIN, planner non-guarantees, and DDL/locking/build-time caveats. Consistency is good across runs, but the answer set is not fully tuned to the requested decision-making calibration.",
+      "runs": [
+        {
+          "text": "Yes \u2014 for a query that filters a 40M-row `orders` table by `customer_id`, an index on `customer_id` is very plausibly the right first ask.\n\n## Why it gets faster\n\nWithout an index, the database has to find matching rows by scanning the table: inspect many or all rows, evaluate `customer_id = ...`, and return the matches. On 40M rows, that is usually dominated by reading a lot of data from storage, not by CPU.\n\nAn index on `customer_id` gives the database a separate structure sorted by `customer_id` values, with pointers to the matching rows. For an equality filter like:\n\n```sql\nWHERE customer_id = 12345\n```\n\nthe database can:\n\n1. search the index for `12345`\n2. jump directly to the matching row locations\n3. fetch only those rows\n\nThat changes the work from \u201ctouch most/all rows\u201d to \u201ctouch only the matching rows plus a small amount of index navigation.\u201d If `customer_id` is selective \u2014 e.g. each customer has tens/hundreds of orders, not millions \u2014 this is often a huge win and can easily cut 9 seconds to milliseconds or low hundreds of milliseconds, depending on hardware, cache, and how many rows are returned.\n\n## What it costs\n\nAn index is not free. Main costs:\n\n### 1) Slower writes\nEvery `INSERT`, `DELETE`, and `UPDATE` that changes `customer_id` must also update the index.\n\nConcretely:\n- inserting a row means inserting a corresponding entry into the index\n- deleting a row means removing the index entry\n- updating `customer_id` means moving the index entry\n\nThat adds extra work to writes, so the table becomes more expensive to maintain. If `orders` is write-heavy, this matters more.\n\n### 2) Extra storage\nThe index occupies disk/memory. Size depends on:\n- number of rows\n- size of the indexed column\n- size of row references stored in the index\n- engine/page overhead\n\nFor 40M rows, this is not tiny. On a single-column integer index, think \u201cpotentially hundreds of MB to several GB,\u201d depending on the DB and row-pointer size.\n\n### 3) More memory pressure / cache competition\nThe index competes with table data and other working sets for cache. If the index is large and poorly used, it can increase memory pressure. If it is well used for a hot query, it often pays for itself.\n\n### 4) Maintenance overhead\nOver time, indexes can become less efficient due to page splits, fragmentation/bloat, and general upkeep. Most managed platforms handle this, but it\u2019s still real operational overhead.\n\n## When it\u2019s a good idea\n\nAn index on `customer_id` is usually a good call if:\n\n- the query filters by `customer_id` often\n- `customer_id` is reasonably selective\n- writes to `orders` are not extremely high, or the dashboard latency matters more than write throughput\n- the query is a true point lookup or narrow filter, not \u201cmost rows anyway\u201d\n\nIf a single customer commonly owns a large fraction of the table, the index may help less or not at all.\n\n## The practical tradeoff\n\nYou are trading:\n- **much faster reads for this dashboard query**\nagainst\n- **more expensive writes and some storage overhead**\n\nFor a dashboard query taking 9 seconds, I would generally ask for the index unless:\n- the table is heavily written, or\n- the platform team already knows the query is not selective enough to benefit\n\n## One nuance\n\nIf the dashboard query also selects many columns or returns a lot of rows per customer, the index may still help with locating rows but not eliminate the cost of fetching the actual table rows. If the query only needs a few columns, some databases can use a \u201ccovering\u201d index strategy to avoid table lookups, which can be even faster. But the basic `customer_id` index is still the right starting point.\n\n## Bottom line\n\nAsk for the index on `customer_id` if this query is important and repeatable. For a 40M-row table and a 9-second equality filter, that is a very standard optimization. The cost is primarily slower writes and extra storage; the benefit is potentially orders-of-magnitude faster reads.",
+          "input_tokens": 289,
+          "output_tokens": 889,
+          "seconds": 7.7,
+          "run": 1
+        },
+        {
+          "text": "Yes \u2014 for a query that repeatedly filters a 40M-row `orders` table by `customer_id`, asking for an index on `customer_id` is very plausibly the right call.\n\n## Why it gets faster\n\nWithout an index, the database has to find matching rows by scanning the table (or a large chunk of it) and checking `customer_id` row by row. Even if the scan is efficient at the storage level, it is still work proportional to table size.\n\nAn index on `customer_id` gives the database a separate structure keyed by customer ID, so it can:\n\n1. jump directly to the key value,\n2. find the row locations that match,\n3. fetch only those rows.\n\nIf the filter is selective \u2014 e.g. one customer matches hundreds or thousands of rows out of 40M \u2014 this is a huge reduction in work. The database avoids examining the other 39,999,000 rows.\n\n### What the index physically is\nAt a practical level, an index is another on-disk data structure maintained alongside the table. It stores:\n\n- the indexed key (`customer_id`)\n- a pointer or reference to the actual row in the table, or the row itself in some designs\n\nFor equality filters like `WHERE customer_id = ?`, the index lets the database locate matching rows in something like logarithmic time to find the key plus a small amount of work to retrieve matches, instead of linear scan over the whole table.\n\n## When it helps a lot vs. a little\n\nIt helps most when:\n\n- the filter is selective\n- the query returns a small fraction of the table\n- the query is frequent\n- `customer_id` is used exactly in the predicate, not wrapped in a function or transformed\n\nIt helps less when:\n\n- most rows match anyway\n- the query is already forced to read lots of rows for other reasons\n- the table is tiny\n- the workload is dominated by writes and the query is rare\n\nIf this dashboard query is taking 9 seconds, that strongly suggests the current access path is expensive enough that an index could materially improve it, assuming the predicate is selective.\n\n## The cost of having the index\n\nThe main tradeoff is that the database now has to keep two things in sync: the table and the index.\n\n### 1. Slower writes\nEvery insert, update, or delete that affects `customer_id` must also update the index. That means:\n\n- extra CPU\n- extra I/O\n- extra logging / transaction work\n- more contention under write load\n\nIf `orders` is write-heavy, this matters. If the table is mostly append-only and read-heavy, the cost is usually acceptable.\n\n### 2. Extra storage\nThe index takes disk space. Roughly speaking, it stores the key plus row references plus internal structure overhead. For 40M rows, that can be substantial \u2014 often hundreds of MB to multiple GB depending on key size, row-pointer size, and database engine.\n\n### 3. Maintenance overhead over time\nAs rows are inserted and deleted, the index can become less compact and more fragmented. The system may need periodic maintenance operations (engine-dependent) to keep it performant. Even when managed automatically, this is real background work.\n\n### 4. More expensive bulk loads / ETL\nIf this table is populated or backfilled in batches, building or maintaining the index can slow the load.\n\n## The decision rule\n\nFor your case, I\u2019d think about it this way:\n\n- If the dashboard query is important and run often, and it filters on `customer_id` with decent selectivity, an index is the right call.\n- If the table has very high write volume and the query is rare, the index may not be worth it.\n- If the query returns a large share of the table anyway, the gain may be modest.\n\nGiven a 9-second filter on 40M rows, my default expectation is that a `customer_id` index is likely to pay for itself quickly if this is a common dashboard path.\n\n## One practical caveat\nIf the dashboard query also sorts, aggregates, or joins after filtering, the index on `customer_id` only solves the filtering part. It may still be worth it, but the end-to-end speedup depends on the rest of the plan.\n\n## Bottom line\nAsk for the index if:\n\n- the query is important,\n- it is run often,\n- `customer_id` is a selective filter,\n- and the table is not extremely write-heavy.\n\nThe tradeoff is straightforward: much faster reads for that access pattern, in exchange for slower writes, extra storage, and ongoing index maintenance.\n\nIf you want, I can also give you a short checklist of what to ask the platform team before approving it.",
+          "input_tokens": 289,
+          "output_tokens": 971,
+          "seconds": 8.37,
+          "run": 2
+        },
+        {
+          "text": "Yes\u2014asking for an index on `orders.customer_id` is very likely the right call if that dashboard query is important and `customer_id` is a selective filter.\n\n## Why it gets faster\n\nWithout an index, the database usually has to do a **full table scan**: inspect all 40 million rows, test `customer_id = ...` on each one, and then return the matches.\n\nWith an index on `customer_id`, the database can usually do something closer to:\n\n1. look up `customer_id` in the index,\n2. find the row locations that match,\n3. fetch only those rows from the table.\n\nSo instead of work proportional to **all rows**, it becomes work proportional to **matching rows + index navigation**.\n\nIf the filter returns a small fraction of the table, this is a huge win.  \nIf it returns a large fraction of the table, the benefit shrinks, and a full scan can sometimes still be competitive.\n\n## What an index physically is\n\nA relational index is an additional on-disk data structure, typically a **B-tree-like structure**, that stores:\n\n- the indexed key value, e.g. `customer_id`\n- a pointer to the row, or to the table\u2019s physical row location, depending on the DB\n\nConceptually, it is a sorted lookup structure over the column. The database can search it quickly to find matching values instead of scanning the table.\n\nFor a simple equality filter like:\n\n```sql\nWHERE customer_id = 123\n```\n\nan index on `customer_id` is exactly the kind of thing databases are good at using.\n\n## What it costs\n\n### 1) Extra storage\nThe index is not free. You are storing another structure containing the key plus row references. For a 40M-row table, that can easily be **large enough to matter**, sometimes hundreds of MBs to multiple GBs depending on key type, DB engine, and fill settings.\n\n### 2) Slower writes\nEvery `INSERT`, `DELETE`, and `UPDATE` that changes `customer_id` must also update the index.\n\nSo the table write path becomes:\n\n- update table data\n- update index structure\n- possibly rebalance/split pages in the index\n\nThat means:\n- more CPU\n- more I/O\n- more log volume\n- more contention under heavy write load\n\nIf this table is write-heavy, the index can materially slow ingest and updates.\n\n### 3) Maintenance overhead\nIndexes fragment over time and may need routine maintenance depending on the database:\n- page splits / fragmentation\n- vacuuming / reindexing / rebuilds in some systems\n- extra work during bulk loads\n\nThis is usually manageable, but it is real operational cost.\n\n### 4) Diminishing returns if the filter is not selective\nIf your query often returns a big chunk of the table, the index may not help much.  \nExample: if `customer_id` matches millions of rows, the DB still has to fetch lots of table rows, so the index may only reduce part of the cost.\n\n## When it\u2019s a good idea\n\nAn index on `customer_id` is usually a good call if:\n\n- the query is frequent or latency-sensitive\n- `customer_id` is used in equality filters\n- each customer has relatively few orders compared with 40M total rows\n- the table is read-heavy or at least not extremely write-heavy\n\n## When you should hesitate\n\nBe cautious if:\n\n- the table receives very high write volume\n- `customer_id` is not selective\n- the dashboard query already returns a large fraction of the table\n- storage footprint is tight\n- there are already other indexes and writes are expensive\n\n## Practical decision rule\n\nFor your case, the fact pattern strongly suggests the index is worth trying:\n\n- 40M-row table\n- filter by `customer_id`\n- 9-second dashboard query\n\nThat sounds like a classic \u201cscan too much data\u201d problem. If the query is important, an index is the first thing I\u2019d ask the platform team to evaluate.\n\n## What I\u2019d ask the platform team for\n\nAsk them to measure:\n\n- current query plan\n- number of rows returned per typical `customer_id`\n- write rate on `orders`\n- table size and current index set\n\nThen propose:\n\n```sql\nCREATE INDEX ON orders(customer_id);\n```\n\nIf the dashboard query also filters or sorts by other columns, a **composite index** may be better than a single-column one\u2014but `customer_id` alone is the obvious starting point.\n\n## Bottom line\n\n- **Likely benefit:** much faster lookup for equality filtering on `customer_id`\n- **Main cost:** slower writes, extra storage, and index maintenance\n- **Decision:** if the table is mostly read for dashboards and `customer_id` is reasonably selective, this is probably the right index to add\n\nIf you want, I can also give you a 1-minute checklist for deciding whether `customer_id` is selective enough to justify the index.",
+          "input_tokens": 289,
+          "output_tokens": 1025,
+          "seconds": 7.79,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "completeness",
+          "format_compliance",
+          "tone_style"
+        ],
+        "self_preference_delta": 1
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 3.6,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "All three runs correctly describe the index as a separate on-disk B-tree, correctly characterize the O(n) full scan vs. O(log n) traversal, accurately describe write amplification per INSERT/UPDATE/DELETE, and give plausible storage estimates. No egregious factual errors. Deduction: (1) EXPLAIN is absent in Runs 1 and 3\u2014a rubric-specified required fact. (2) Run 2 introduces the clustered vs. non-clustered distinction which the rubric explicitly flags as an unnecessary-complexity flaw (it buries the decision), even though it is not wrong. (3) Run 1's '~30 index nodes' and Run 2's '300,000 pages to 5' are rough but reasonable approximations, not errors.",
+          "evidence": "Run 1: 'An index on customer_id is a separate, persistent B-tree structure...the engine can now traverse O(log n) nodes'; no EXPLAIN mention. Run 2: '### Clustered vs. non-clustered (you need to know this once)'\u2014explicitly penalized pattern; does mention 'run EXPLAIN ANALYZE before and after.' Run 3: 'A B-tree index on customer_id is a separate on-disk structure...O(log n) page reads'; no EXPLAIN mention.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "All runs cover requirements 1\u20133 (B-tree/O(log n) framing leveraging her knowledge, connection to the concrete customer_id decision, write amplification, and storage cost) and deliver a qualified yes. However, EXPLAIN as the verification mechanism is present in only Run 2 out of three\u2014a rubric-specified required element missed in the majority of runs. The DDL/index-creation lock and build-time concern (reason she must involve the platform team) is explicitly detailed only in Run 2; Runs 1 and 3 gesture at it but don't name index build time or locking directly. Run 2 over-compensates with the unsolicited clustered/non-clustered subsection.",
+          "evidence": "Requirement 'EXPLAIN is how you verify it does' \u2014 present in Run 2 ('run EXPLAIN ANALYZE before and after'), absent in Run 1 and Run 3. DDL/lock concern: Run 2 'Building the index on a live 40M-row table takes time...CREATE INDEX CONCURRENTLY'; Run 1 only implies it via 'Ask the platform team'; Run 3 only covers runtime page-split locks, not creation-time locks.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The outputs are prose and roughly within the requested length, but they do not consistently match the requested format constraints. The prompt asked for about 250-450 words and a 3-minute readable explanation; run 2 is significantly longer and more tutorial-like, while runs 1 and 3 are closer but still verbose. The requested JSON-only output is from the evaluation instruction, not the model task, so the model itself is not being graded on JSON shape here.",
+          "evidence": "Run 2 is 966 output tokens and includes multiple sections/tables, e.g., '### Clustered vs. non-clustered (you need to know this once)' and a comparison table. Run 1 and Run 3 also use section headings and bulleting rather than a single concise prose explanation.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "All three runs maintain a peer-to-peer technical register: none re-explain what a B-tree or Big-O is, none use restaurant/library-card analogies, all are decision-oriented. The audience calibration is largely correct. Deduction: Run 2 slips into a tutorial register with the heading 'Clustered vs. non-clustered (you need to know this once)'\u2014the parenthetical is slightly condescending and the section is tutorial material. Run 1's final 'Your Decision' section with two numbered questions feels mildly prescriptive rather than peer-level. Run 3 is the most consistent in tone throughout.",
+          "evidence": "Run 2: '### Clustered vs. non-clustered (you need to know this once)' \u2014 tutorial register; 'Non-clustered index: an independent structure that points back into the main table' reads as definition-style teaching. Run 1: 'Ask the platform team two questions: 1. What's the write pattern...2. Is customer_id already a foreign key?' \u2014 useful content but slightly listicle. Run 3 maintains peer tone throughout: 'those heap lookups are random I/O, not sequential'\u2014assumes she knows this.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and professional. There is no harmful, biased, or inappropriate material, and the advice is limited to database design/operations.",
+          "evidence": "All three runs discuss indexing, write amplification, and EXPLAIN in a neutral technical context. No unsafe content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The output quality is decent, but there is noticeable token waste relative to the task. Run 2 is especially bloated with clustered/non-clustered exposition, operational caveats, and a comparison table. Runs 1 and 3 are somewhat tighter but still use extra sectioning and redundant explanation beyond what the prompt asked for.",
+          "evidence": "Run 2 at 966 tokens includes '### Clustered vs. non-clustered', a cost section, a table, and extra operational notes. The prompt asked for about 250-450 words focused on the decision, not a mini DBA reference.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs share the same core answer and overall recommendation, but they differ materially in structure, coverage, and depth. Run 2 expands into clustered/non-clustered internals and operational maintenance; run 1 is shorter and more concise; run 3 is similar but ends more categorically. This is semantic/structural variation rather than contradiction, but it is more than simple wording drift. [lexical similarity ratio: 0.127]",
+          "evidence": "Run 1: brief two-part structure ('What It Costs' / 'Your Decision'). Run 2: adds a dedicated 'Clustered vs. non-clustered' section, a cost breakdown, and a table. Run 3: similar to run 1 but includes 'Lock contention' and a more forceful conclusion: 'The index is the right call.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.127
+        }
+      },
+      "judge_summary": "All three runs correctly calibrate to the audience\u2014no re-teaching of B-trees or Big-O, peer-level tone, accurate description of the index as a separate on-disk B-tree enabling O(log n) lookup, and honest coverage of write amplification and storage cost. The qualified yes recommendation is consistently present. The primary cross-run weakness is the EXPLAIN verification step, missing in Runs 1 and 3. Run 2 compensates with more complete coverage (EXPLAIN, DDL creation options) but introduces the explicitly penalized clustered/non-clustered tutorial digression and significantly overshoots the word-count target at 966 tokens. Runs 1 and 3 are better calibrated in length and tone but incomplete on EXPLAIN. Consistency is at a 3 because these coverage gaps are meaningful, not cosmetic. Overall the pattern delivers a solid, useful explanation but falls short of a complete answer in most runs.",
+      "runs": [
+        {
+          "text": "## What an Index Actually Is\n\nThe database stores the `orders` table as pages on disk, laid out roughly in insertion order. To find all rows where `customer_id = 4291`, the engine has no choice but to read every page sequentially and check every row \u2014 a full table scan. At 40 million rows, that's your 9 seconds.\n\nAn index on `customer_id` is a separate, persistent B-tree structure maintained by the database engine alongside the table. The keys are `customer_id` values; the leaf nodes store either the matching row data directly or pointers (physical row addresses / primary key values) back to the heap. Either way, the engine can now traverse O(log n) nodes to find the first matching key, then do a short sequential read across the contiguous leaf nodes for that customer \u2014 instead of scanning the entire table. For a customer with, say, 200 orders in 40 million rows, you've gone from touching ~40M row slots to touching ~30 index nodes plus a small heap lookup. That's why the query drops from seconds to milliseconds.\n\nOne nuance: if a single customer has a very large fraction of all rows (say 20%), the planner may decide the full scan is cheaper than millions of random heap lookups and ignore your index. For a dashboard filtering by individual customers, selectivity is almost certainly high enough that the index wins decisively.\n\n---\n\n## What It Costs\n\n**Write amplification.** Every `INSERT`, `UPDATE` to `customer_id`, or `DELETE` now has to maintain both the table and the B-tree. The index pages must be updated, potentially causing page splits and cascading writes. If `orders` is a high-throughput append table (thousands of inserts/second), this overhead is real and measurable. If it's moderate-throughput, you likely won't notice.\n\n**Storage.** The index is a separate structure on disk \u2014 for a 40-million-row table with an 8-byte integer key and row pointers, expect roughly 1\u20132 GB of additional storage. Probably not your bottleneck, but worth flagging to the platform team.\n\n**Index maintenance during bulk loads.** If anyone runs large batch inserts or backfills, those operations will slow down proportionally. This can usually be handled by dropping and rebuilding the index around a bulk load if needed.\n\n---\n\n## Your Decision\n\nAsk the platform team two questions:\n\n1. **What's the write pattern on this table?** If it's append-heavy at high throughput, quantify the write overhead before committing. If it's a moderate OLTP workload or mostly read-heavy, the cost is negligible.\n2. **Is `customer_id` already a foreign key?** Many database configurations index foreign keys automatically; you may be asking for something that already exists but isn't being used due to table statistics being stale \u2014 in which case the fix is `ANALYZE`/`VACUUM`, not a new index.\n\nIf neither of those raises a red flag, **adding the index is the right call.** The query is a textbook case where an index delivers maximum benefit: high selectivity on a large table, point-filter predicate, repeated dashboard access pattern. The cost is modest and well-understood.",
+          "input_tokens": 315,
+          "output_tokens": 722,
+          "seconds": 20.04,
+          "run": 1
+        },
+        {
+          "text": "## What the index actually is on disk\n\nThe database stores the `orders` table as pages of rows in no particular order relative to `customer_id`. To find all rows for customer 42, the engine reads every page\u2014all 40 million rows\u2014sequentially. That's your 9 seconds: a full table scan whose cost is O(n) in pages.\n\nAdding an index on `customer_id` builds and maintains a **separate B-tree structure on disk** whose leaves hold `(customer_id, pointer-to-row-location)` pairs, sorted by `customer_id`. When your query runs, the engine walks that B-tree\u2014O(log n) comparisons\u2014lands on the matching leaf range, and fetches only the pages containing those rows. For a customer with, say, 200 orders out of 40 million, you go from touching ~300,000 pages to touching maybe 5.\n\n### Clustered vs. non-clustered (you need to know this once)\n\nMost tables have a **clustered index** already\u2014typically on the primary key\u2014which controls the physical order of rows on disk. There is exactly one per table. What you're asking for is a **non-clustered index**: an independent structure that points back into the main table. The pointer lookup is called a **row fetch** (or bookmark lookup in SQL Server, heap fetch in Postgres). If your query returns many rows and they're scattered across many pages, those individual fetches can become expensive\u2014this is called **index selectivity degrading into a worse scan**. For a `customer_id` filter on a dashboard this is almost certainly not your problem; each customer's rows are likely few enough that the index wins decisively.\n\n---\n\n## What it costs\n\n**Storage:** The B-tree is physically stored on disk. A non-clustered index on a single integer column over 40M rows is roughly 500MB\u20131.5GB depending on row pointers and fill factor. Not free, but rarely a blocking concern.\n\n**Write amplification:** Every `INSERT`, `UPDATE` to `customer_id`, or `DELETE` now has to maintain the index tree in addition to writing the row. The engine must find the right leaf node, update it, and potentially rebalance. On an orders table that gets heavy write throughput (thousands of inserts/second), this adds measurable latency and I/O to writes. On a table where orders are inserted and then mostly read, the cost is small. **Ask the platform team what the write pattern looks like.**\n\n**Index maintenance overhead:** Over time, as rows are inserted and deleted, the B-tree pages fragment. Most databases have background jobs (autovacuum in Postgres, index rebuild jobs in SQL Server) that periodically rewrite index pages. This consumes I/O and can compete with query traffic. Operationally, someone has to monitor index bloat.\n\n**Lock contention during index creation:** Building the index on a live 40M-row table takes time. Most modern databases support `CREATE INDEX CONCURRENTLY` (Postgres) or `ONLINE = ON` (SQL Server) to avoid a full table lock, but it will consume significant I/O for minutes to hours. The platform team needs to schedule this.\n\n---\n\n## Your actual decision\n\n| | Without index | With index |\n|---|---|---|\n| Dashboard query | ~9s, full scan | ~tens of ms |\n| Write cost per row | baseline | small but real overhead |\n| Storage | baseline | +~1GB |\n| Operational burden | none | monitoring + maintenance |\n\n**The call is almost certainly yes.** A `customer_id` filter on a 40M-row table is exactly the textbook case where a non-clustered index earns its keep. The selectivity is high (one customer << 40M rows), the query pattern is read-heavy, and the storage cost is modest.\n\nThe one thing worth confirming before you make the request: **is this table write-heavy at the exact moment the dashboard is used?** If orders are being bulk-loaded in real time and the dashboard runs concurrently, write amplification matters more. Otherwise, ask the platform team to create it with the concurrent/online option during a low-traffic window and run `EXPLAIN ANALYZE` before and after\u2014the platform team will know what that means even if you haven't run it yourself.",
+          "input_tokens": 315,
+          "output_tokens": 966,
+          "seconds": 25.54,
+          "run": 2
+        },
+        {
+          "text": "## What the Index Actually Is\n\nThe orders table is stored on disk as a heap: an unordered collection of fixed-size pages, each holding some number of rows. A full-table scan on 40 million rows means the database reads every page sequentially to find the ones where `customer_id` matches. That's the 9 seconds.\n\nA B-tree index on `customer_id` is a separate on-disk structure that the database maintains alongside the heap. The leaf nodes contain `(customer_id, physical row pointer)` pairs, sorted by `customer_id`. To answer your query, the database traverses the tree\u2014O(log n) page reads to reach the leaf\u2014then follows the row pointers directly into the heap pages that contain matching rows. For a query returning, say, 200 rows out of 40 million, you go from reading ~millions of pages to reading ~dozens.\n\n**One subtlety worth knowing:** those heap lookups are random I/O, not sequential. If your customer has 50,000 orders spread across the heap, the index can actually be *slower* than a sequential scan for high-cardinality result sets, and the query planner may ignore the index in that case. For a typical customer-lookup workload (a dashboard filtering to one customer's recent orders), the index wins decisively.\n\n---\n\n## What It Costs\n\n**Storage:** The B-tree is roughly 10\u201330% the size of the table data for an integer column. On a 40M-row table that's probably 1\u20134 GB depending on row width. Usually not a concern.\n\n**Write amplification:** This is the real cost. Every `INSERT`, `UPDATE` to `customer_id`, or `DELETE` must now also update the index structure. The database has to find the correct leaf page, modify it, and propagate splits upward if that page is full. What was one write is now two or more. On an OLTP table with heavy insert throughput, this adds latency and I/O to every write. On a table that's mostly append-only orders data with occasional reads, this overhead is typically small.\n\n**Index maintenance during bulk loads:** If you ever do bulk inserts (ETL, backups restore, migrations), the index gets rebuilt or incrementally updated per row. Some platforms let you drop indexes, bulk-load, and rebuild\u2014worth knowing if that's part of your pipeline.\n\n**Lock contention:** Index page splits require short locks. Under very high concurrent write load this can become a bottleneck. At moderate write rates, it's negligible.\n\n---\n\n## Your Specific Decision\n\n| Factor | Your situation |\n|---|---|\n| Query pattern | Filter by single `customer_id` \u2192 low row count returned \u2192 index wins |\n| Table size | 40M rows \u2192 full scan cost is real and growing |\n| Column cardinality | `customer_id` is high-cardinality \u2192 index is selective, planner will use it |\n| Write pattern | Orders tables are typically insert-heavy, not update-heavy \u2192 write amplification cost is low |\n\n**Ask the platform team one question before you commit:** *What's the write throughput on this table?* If it's hundreds of inserts per second under SLA, benchmark the write overhead in staging. If it's moderate, the index is almost certainly the right call\u20149 seconds to sub-100ms for a dashboard is a several-orders-of-magnitude win that a few percent write overhead will not cancel out.\n\nThe index is the right call. The write cost is real but almost certainly acceptable here.",
+          "input_tokens": 315,
+          "output_tokens": 793,
+          "seconds": 20.65,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.71,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy"
+        ],
+        "self_preference_delta": 0.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.7,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are largely correct and on-task: they explain a secondary index as a separate ordered structure that reduces a full scan, and they correctly emphasize the read-vs-write tradeoff. However, there are a few factual/precision issues that keep this from a 5. Run 1 overstates clustered-index relevance for this scenario and implies a clustered index is \u201ctypically the primary key,\u201d which is DB-specific and unnecessary. Run 2 says the index finds entries in O(log N) time where N is the number of distinct customer_id values, then treats that as the key complexity, which is imprecise for index traversal. Run 1 also claims the index could be \u201ctens to hundreds of gigabytes,\u201d which is likely an overstatement for many customer_id indexes, and Run 3 mentions node splits/rebalancing without tying that to a specific system. Still, the core recommendation and mechanism are correct.",
+          "evidence": "Run 1: \u201cA database index on `customer_id` is, at its core, a B-tree (or B+ tree) data structure\u2026\u201d and \u201cThis is what an index on `customer_id` would almost certainly be: a non-clustered index.\u201d Run 2: \u201cA database index on `customer_id` works by creating a separate, ordered data structure that maps `customer_id` values to the physical locations\u2026\u201d Run 3: \u201cThe database physically constructs a separate B-tree data structure where `customer_id` is the key and the value is a pointer\u2026\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "Most required elements are present across the runs: read speedup, write/storage cost, and a qualified yes with EXPLAIN. But the set is not fully complete against the rubric because it drifts into extra DBA material while missing or weakening a couple decision-relevant points. The biggest miss is that the prompt asked to bridge the read-only ORM gap and note that she'd ask the platform team because index creation is a DDL/maintenance operation on a 40M-row table that can lock or take time to build; only Run 3 hints at verification, and none clearly states the build/locking/maintenance-operation concern. Also, the recommendation is a bit too absolute in places (\u201cYes, absolutely ask\u2026\u201d / \u201calmost certainly the correct call\u201d) rather than the qualified yes tied to read-heavy usage and EXPLAIN that the reference requires.",
+          "evidence": "Run 2: \u201cYou could even suggest running `EXPLAIN` (or its equivalent\u2026)\u201d but no mention of DDL/lock/build time. Run 1: \u201cYes, almost certainly.\u201d Run 3: \u201cAfter the index is added, you can use a tool like `EXPLAIN ANALYZE`\u2026\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The response set broadly matches the requested prose format and approximate length, and it avoids rigid templating. However, the prompt under test explicitly requires ONLY JSON output, and the model outputs prose instead; since this is an evaluation of the responses, not the prompt, that is a format failure relative to the test instruction embedded in the prompt. Within the content itself, the structure is readable and about the right size, but not exact to the specified output contract.",
+          "evidence": "Prompt under test ends with: \u201cReturn ONLY a JSON object with this exact shape (no prose outside the JSON)\u2026\u201d Yet Runs 1-3 are prose essays with headings and bullets, e.g., Run 1: \u201c### How an Index Speeds Up Your Query\u201d and Run 2: \u201c---\u201d separators.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally appropriate for a senior data scientist: peer-like, technically fluent, and not condescending. The runs leverage familiar concepts like B-trees and Big-O without re-teaching them. The main issue is stylistic drift into generic DBA explainer mode, especially with long sub-bullets and side topics like clustered vs non-clustered, memory consumption, and fragmentation, which makes it feel more tutorial-like than the crisp decision memo requested.",
+          "evidence": "Run 1 opens well: \u201cGiven your experience with data structures, let's frame database indexing in terms of what you already know.\u201d But then it goes into \u201cClustered vs. Non-Clustered\u201d and \u201cMemory Consumption.\u201d Run 2 similarly adds a \u201cClustered vs. Non-Clustered (Brief Context)\u201d section.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and free of harmful, biased, or inappropriate material. It contains no risky instructions, no personal data handling issues, and no unsafe advice beyond ordinary database performance guidance.",
+          "evidence": "All three runs remain on technical database indexing guidance; no disallowed content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are substantially overlong for the 250-450 word target and repeat similar ideas across runs with low incremental value. Run 1 and Run 2 are both ~3085 tokens, and Run 3 is even longer at 3761 tokens, which is heavy bloat relative to the requested concise, decision-oriented explanation. The quality is decent, but far too many tokens were spent on extra DBA detail and repeated restatements instead of a tight 3-minute answer.",
+          "evidence": "Run 1: \u201c3084 output tokens\u201d; Run 2: \u201c3086 output tokens\u201d; Run 3: \u201c3761 output tokens.\u201d Content examples of bloat include Run 1\u2019s separate sections for \u201cMemory Consumption\u201d and \u201cQuery Planner Overhead,\u201d and Run 2\u2019s standalone \u201cClustered vs. Non-Clustered (Brief Context).\u201d",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.67,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically stable: all three explain the same core mechanism, the same tradeoff, and reach the same recommendation. Structural variation exists, but it is not contradiction. The main differences are coverage and emphasis rather than answer quality divergence. Run 2 adds clustered/non-clustered context; Run 1 adds memory and planner overhead; Run 3 is more concise and aligns best with the prompt. Because the core answer is consistent and the variation is mostly additive, this is above average consistency, but not perfect because the structure and level of detail are noticeably uneven across runs. [lexical similarity ratio: 0.073]",
+          "evidence": "All runs conclude the same way: Run 1 \u201cYes, almost certainly.\u201d Run 2 \u201cYes, absolutely ask the platform team\u2026\u201d Run 3 \u201calmost certainly the correct call.\u201d Each also mentions EXPLAIN or EXPLAIN ANALYZE, but the surrounding sections differ substantially.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.073
+        }
+      },
+      "judge_summary": "The model effectively calibrates to the target audience, leveraging their existing knowledge and explaining RDBMS concepts clearly. The accuracy and completeness of the technical content are high, and the tone is appropriate. However, the responses suffer from severe inefficiency due to massive token bloat, significantly exceeding the requested reading time. Minor accuracy issues stem from including unrequested technical details (clustered vs. non-clustered indexes) in two out of three runs. Consistency in core content and structure is good, with only minor variations in detailed coverage. The format compliance is heavily penalized due to the overwhelming length.",
+      "runs": [
+        {
+          "text": "Given your experience with data structures, let's frame database indexing in terms of what you already know.\n\n### How an Index Speeds Up Your Query\n\nYour 9-second query on a 40-million-row `orders` table, filtering by `customer_id`, currently performs what's called a **full table scan**. This means the database system has to read through every single row of the `orders` table from disk, sequentially, to find all rows matching your `customer_id`. In Big-O terms, this is an `O(N)` operation in terms of disk I/O, where N is the number of rows. For 40 million rows, that's a lot of I/O.\n\nA database index on `customer_id` is, at its core, a **B-tree (or B+ tree) data structure** that stores `customer_id` values and pointers to their corresponding rows in the `orders` table.\n\n1.  **Reduced I/O for Lookup:** When you query with an index, the database doesn't scan the entire `orders` table. Instead, it traverses the `customer_id` B-tree. Since you've implemented B-trees, you know this is an `O(log N)` operation to find the desired `customer_id` (or range of `customer_id`s) within the index.\n2.  **Direct Row Access:** The leaf nodes of this B-tree contain the actual `customer_id` values and either:\n    *   **Pointers (non-clustered index):** They store pointers (e.g., physical disk addresses or primary key values) to the specific data rows in the `orders` table. The database then uses these pointers to directly fetch only the relevant rows from the main table. This is what an index on `customer_id` would almost certainly be: a non-clustered index.\n    *   **The Data Itself (clustered index):** If the index were a *clustered* index (typically the primary key), the leaf nodes of the B-tree would contain the actual data rows themselves, sorted by the indexed column. This saves an extra lookup step. For your `customer_id` case, this is unlikely, so expect the \"pointers then fetch\" model.\n\nThe critical gain is the massive reduction in **disk I/O**. Instead of reading 40 million rows, the database reads a few blocks to traverse the B-tree (`O(log N)`) and then only the blocks containing the actual data for the matching `customer_id`s (`O(K)`, where K is the number of matching rows). This transforms your 9-second query into a milliseconds-to-seconds operation.\n\n### What It Costs to Have One\n\nWhile indexes drastically improve read performance, they come with a set of costs:\n\n1.  **Storage Overhead:** The index itself is a separate data structure and takes up disk space. For a `customer_id` index on 40 million rows, this could be tens to hundreds of gigabytes, depending on the data type and the overall database configuration.\n2.  **Write Amplification / Index Maintenance:** This is the most significant trade-off. Every time a row is:\n    *   `INSERT`ed into the `orders` table,\n    *   `UPDATE`d in a column covered by an index (like `customer_id` itself, or if an `UPDATE` changes a column that causes a row's physical location to shift and the index uses physical pointers), or\n    *   `DELETE`d from the `orders` table,\n    ...the database not only has to modify the actual `orders` table data but *also* update the `customer_id` B-tree index. This means more disk writes for every data modification operation, consuming more CPU and I/O. This \"write amplification\" slows down `INSERT`, `UPDATE`, and `DELETE` queries on the `orders` table.\n3.  **Memory Consumption:** Heavily used indexes are often cached in memory by the database system to speed up access. While beneficial, this consumes RAM that could be used for other purposes.\n4.  **Query Planner Overhead:** For very complex queries, the database's query optimizer has more options to consider (which index to use, if any), which can slightly increase planning time, though usually negligible compared to execution time savings.\n\n### Your Decision\n\n**Is adding an index on `customer_id` the right call?**\n**Yes, almost certainly.** For a dashboard query that filters a 40-million-row table by `customer_id`, an index will dramatically reduce the 9-second execution time to milliseconds or low seconds. The benefit in read performance is typically enormous.\n\n**What's the tradeoff?**\nYou will incur increased storage usage and, more importantly, **slower `INSERT`, `UPDATE`, and `DELETE` operations** on the `orders` table due to the overhead of maintaining the `customer_id` index. Given this is a dashboard query, the `orders` table is likely a transactional table or a large fact table. The critical question is the frequency and latency sensitivity of writes to this table. If `INSERT`s are batched or happen infrequently, or if their latency isn't as critical as read latency, then the trade-off is highly favorable.\n\n**Recommendation:** Ask the platform team to add the index, but also inquire about the current write patterns (frequency, volume) on the `orders` table to properly assess the magnitude of the write overhead. They can likely quantify the expected increase in write latency.",
+          "input_tokens": 295,
+          "output_tokens": 3084,
+          "seconds": 15.64,
+          "run": 1
+        },
+        {
+          "text": "Hi there,\n\nThe 9-second query on your 40-million-row `orders` table, filtering by `customer_id`, suggests a full table scan is currently occurring. Adding an index on `customer_id` is almost certainly the right call, and here's why, along with the trade-offs.\n\n---\n\n### How an Index Makes Your Query Faster\n\nCurrently, without an index, your database has to sequentially read through all 40 million rows of the `orders` table, checking each row's `customer_id` column to see if it matches your filter. This is an O(N) operation in terms of rows processed and a significant amount of disk I/O.\n\nA database index on `customer_id` works by creating a *separate, ordered data structure* that maps `customer_id` values to the physical locations of the corresponding rows in your `orders` table.\n\n1.  **Leveraging B-trees:** As you know from implementing B-trees, they are highly efficient for ordered data storage and retrieval. Most relational database indexes, including the kind that would be created for `customer_id`, are implemented as B-trees (or B+-trees).\n2.  **Efficient Lookup:** Instead of scanning the entire `orders` table, the database first consults the `customer_id` index. Because the index is a B-tree sorted by `customer_id`, finding all entries for a specific `customer_id` takes O(log N) time, where N is the number of distinct `customer_id`s in the index. This is extremely fast.\n3.  **Direct Access:** Each entry in the index for a `customer_id` contains a pointer (or set of pointers) to the exact physical disk block(s) where the corresponding `orders` table row(s) are stored.\n4.  **Reduced I/O:** The database then uses these pointers to directly fetch only the relevant rows from the `orders` table. This dramatically reduces the amount of disk I/O from reading 40 million rows to only reading the index entries (O(log N)) plus the actual data rows (O(K), where K is the number of orders for that customer).\n\n**Impact:** Your 9-second query, which is primarily I/O-bound due to the full table scan, would likely drop to milliseconds once an index is in place.\n\n---\n\n### What an Index Costs\n\nWhile the read performance benefit is substantial, indexes do come with costs:\n\n1.  **Storage Overhead:** An index is physical data on disk. It duplicates the `customer_id` column (and usually includes a primary key or row pointer for each entry) in its sorted B-tree structure. For 40 million rows, this index will consume significant additional disk space, proportional to the size of the `customer_id` column and the number of rows.\n2.  **Write Amplification & Index Maintenance:**\n    *   **INSERTs:** When a new order is inserted into the `orders` table, the database not only has to write the new row to the main table but also insert a corresponding entry into the `customer_id` B-tree index. This is an additional write operation.\n    *   **UPDATEs:** If a `customer_id` for an existing order is ever updated (unlikely for an `orders` table, but theoretically possible), the database must update the main table row *and* delete the old entry from the index and insert a new one in the correct sorted position.\n    *   **DELETEs:** When an order is deleted, its entry must also be removed from the `customer_id` index.\n    *   **Performance Impact:** These extra write operations mean that `INSERT`, `UPDATE`, and `DELETE` queries on the `orders` table will take longer and consume more CPU and I/O resources. This is often referred to as \"write amplification\"\u2014each logical write operation results in multiple physical write operations across the table and its indexes.\n    *   **Maintenance:** Over time, `INSERT`s and `DELETE`s can cause the B-tree index to become fragmented, slightly reducing its efficiency. Database systems periodically perform background maintenance (like rebuilding or reorganizing indexes) to address this, which also consumes resources.\n\n**Clustered vs. Non-Clustered (Brief Context):** The `customer_id` index would typically be a **non-clustered index**. This means the `orders` table data itself is not physically sorted by `customer_id`; the index is a separate structure pointing to rows in their original physical order. If `customer_id` were the *clustered index* (which is usually the Primary Key, and only one per table), the `orders` table data *would* be physically stored sorted by `customer_id`, reducing the need for pointers, but this is less common for secondary filter columns.\n\n---\n\n### The Decision for Your `customer_id` Query\n\nGiven your scenario:\n\n*   **Massive Read Performance Gain:** Filtering 40 million rows in 9 seconds is clearly a major bottleneck. An index will transform this into a near-instantaneous query, significantly improving the dashboard experience.\n*   **Write Characteristics of `orders`:** `orders` tables are typically append-heavy (many `INSERT`s, few `UPDATE`s to old orders, few `DELETE`s). The cost of inserting an additional entry into the B-tree index for each new order is generally a small overhead compared to the immediate, massive benefit for read queries. Unless your `orders` table experiences an extremely high volume of `INSERT`/`UPDATE`/`DELETE` operations (e.g., millions per minute), the write performance impact will be acceptable.\n\n**Recommendation:**\n**Yes, absolutely ask the platform team to add an index on `customer_id`.** The benefits of drastically faster dashboard queries almost always outweigh the relatively minor storage overhead and write performance impact for a filtering column like `customer_id` on a large, mostly read-accessed table.\n\nYou could even suggest running `EXPLAIN` (or its equivalent for your database, e.g., `EXPLAIN ANALYZE`) on the query *before* and *after* the index is added, to precisely quantify the change in execution plan and resource usage, which you're well-equipped to interpret.",
+          "input_tokens": 295,
+          "output_tokens": 3086,
+          "seconds": 15.93,
+          "run": 2
+        },
+        {
+          "text": "Okay, let's address your 9-second dashboard query on the 40-million-row `orders` table filtered by `customer_id`.\n\n---\n\n### How an index on `customer_id` makes your query faster:\n\nCurrently, without an index, your SQL query effectively triggers a **full table scan** across all 40 million rows. The database must read every row from disk, sequentially, to find those matching your `customer_id`. This is an O(N) operation in terms of disk I/O, which directly explains the 9-second execution time.\n\nWhen you add an index on `customer_id`, the database physically constructs a separate **B-tree data structure** where `customer_id` is the key and the value is a pointer (or physical reference) to the actual row(s) in the `orders` table on disk. Since you've implemented B-trees, you understand their efficiency: locating a key involves traversing the tree, an O(log N) operation.\n\nWith the index, the database can:\n1.  Perform a fast B-tree lookup to find the specific `customer_id` entries.\n2.  Follow the pointers from the index directly to the disk pages containing the matching `orders` rows.\n\nThis drastically reduces the necessary disk I/O from potentially reading the entire 40M-row table to reading only a few index pages and then the specific data pages for the matching orders. This transition from O(N) to O(log N) for a table of this size (e.g., for N=40M, log\u2082(N) is roughly 25) is why you'd see a dramatic improvement in query speed.\n\n### What it costs to have an index (tradeoffs):\n\nIntroducing an index isn't free; it comes with two primary costs:\n\n1.  **Storage Overhead:** The index itself is a separate physical B-tree structure that consumes disk space. Its size will be proportional to the number of rows (40 million) and the size of the `customer_id` key, plus internal B-tree node overhead (pointers, metadata). For a `customer_id` (likely an integer or UUID), this is generally a manageable, but distinct, storage footprint.\n\n2.  **Write Amplification and Index Maintenance:** This is the more significant operational cost. Any data modification (an `INSERT`, an `UPDATE` where `customer_id` changes, or a `DELETE`) on the `orders` table now requires the database to do *more work*:\n    *   It must modify the base `orders` table data.\n    *   It *also* must update the corresponding `customer_id` index. For instance, an `INSERT` means adding a new entry to the B-tree, potentially involving node splits and rebalancing. An `UPDATE` of `customer_id` essentially means deleting the old entry and inserting a new one in the index.\n    *   This translates to **additional disk I/O** (write amplification) and **CPU overhead** during write operations. If your `orders` table is write-heavy (e.g., millions of inserts per minute), this overhead can become noticeable, increasing the latency of write operations and consuming more server resources.\n\n### Decision for your `customer_id` dashboard query:\n\nGiven that your dashboard query takes 9 seconds on 40 million rows and filters by `customer_id`, asking the platform team to add an index on `customer_id` is **almost certainly the correct call.**\n\n*   **Massive Read Performance Gain:** The gain from an O(N) full table scan to an O(log N) index lookup for a table of this size will be transformative, likely reducing your query time from seconds to milliseconds. This is a very high-leverage optimization for dashboard performance, especially if the dashboard is frequently accessed.\n*   **Manageable Write Overhead:** Your `orders` table is typically append-heavy (new orders are inserted) and `customer_id` values are rarely, if ever, updated or deleted. This means the primary write overhead will be the cost of adding new entries to the `customer_id` index during order inserts. For a single index on a commonly queried, stable column, this added overhead is usually minor compared to the substantial read benefit, especially for a column that likely offers high selectivity (many distinct `customer_id`s).\n\nThe tradeoff is the added storage and the marginal increase in write latency/resource usage for `INSERT`s. However, the performance improvement for your crucial dashboard query will almost certainly outweigh these costs. After the index is added, you can use a tool like `EXPLAIN ANALYZE` (or your database's equivalent) to verify the query now uses an \"index scan\" rather than a \"sequential scan,\" confirming the performance improvement is due to the index.",
+          "input_tokens": 295,
+          "output_tokens": 3761,
+          "seconds": 19.21,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "format_compliance"
+        ],
+        "self_preference_delta": 0
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

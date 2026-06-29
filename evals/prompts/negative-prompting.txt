@@ -1,0 +1,9 @@
+Write a product launch announcement for a new feature in our developer-facing analytics platform: an automatic query-caching layer that transparently caches the results of repeated read queries and cuts median dashboard load time from 4.2 seconds to 0.6 seconds for our existing customers. The audience is the engineering and data leads who already use the product. Write exactly three paragraphs: paragraph 1 states what shipped and the measured result, paragraph 2 explains how it works and what an existing user has to do to turn it on, paragraph 3 states a known limitation and what is coming next.
+
+Do NOT:
+- Use any of these words or their close variants: revolutionary, game-changing, seamless, effortless, powerful, robust, cutting-edge, innovative, unleash, empower, supercharge, blazing, lightning-fast
+- Open the announcement with the product or company name, or with a greeting
+- Use hedging language ("may", "might", "could potentially", "we believe", "we think", "should help")
+- Use marketing intensifiers ("incredibly", "extremely", "dramatically", "massively", "10x", "next-level")
+- Make a claim about speed or savings without attaching the specific measured number
+- Exceed 220 words total

@@ -8,3 +8,4 @@ anthropic==0.105.2
 openai==2.38.0
 google-genai==2.7.0
 python-dotenv==1.2.2
+PyYAML==6.0.3        # memory_eval.py reads YAML case files (Phase C)

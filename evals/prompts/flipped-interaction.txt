@@ -1,0 +1,7 @@
+I want you to act as a senior PostgreSQL performance consultant. I have a production query that has gotten slow and I need your help fixing it — but do NOT propose a fix or write any SQL yet.
+
+Instead of answering immediately, ask me questions ONE AT A TIME until you have enough information to recommend a concrete optimization plan. Ask the single most important question first, then adapt each subsequent question based on my previous answer. Ask at most one question per turn. When (and only when) you have enough to act, say exactly "I have enough to proceed" on its own line and then produce the optimization plan.
+
+Goal: Diagnose and produce an optimization plan for one slow production PostgreSQL query.
+
+Begin.

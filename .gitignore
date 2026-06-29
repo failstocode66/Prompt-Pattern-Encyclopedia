@@ -2,3 +2,9 @@ __pycache__/
 *.pyc
 .env
 
+# Personal memory-effectiveness eval — data stays LOCAL/PRIVATE (the cases + reports
+# reference Tyler's internal claude-brain lessons). The memory_eval.py harness itself is
+# generic tooling and stays tracked; only the personal data is ignored.
+evals/memory/
+evals/reports/memory-eff-*
+

@@ -1,0 +1,10 @@
+Produce your response through these stages. At each stage, only modify the dimension named for that stage — do not silently improve other dimensions in the wrong pass.
+
+Stage 1 — Draft: Write the initial response.
+Stage 2 — Correctness pass: Revise to fix factual or logical errors only. Do not change style, structure, or wording except where needed to fix an error. Begin this stage with a one-line "Corrections:" note listing each factual/logical error you found and fixed (or "Corrections: none" if you genuinely found none).
+Stage 3 — Clarity pass: Revise for clarity, structure, and flow only. Do not change any technical claim or introduce new facts.
+Stage 4 — Concision pass: Tighten the Stage 3 text by approximately 30% (word count) without dropping any substantive technical point. End this stage with a "Word count: N" line.
+
+Label each stage's output clearly (Stage 1 / Stage 2 / Stage 3 / Stage 4). The final deliverable is the Stage 4 output.
+
+Task: Write a ~550-word internal explainer for our backend engineers titled "Idempotency keys in the Payments API." It must cover: (a) what an idempotency key is and the concrete failure it prevents (a client retrying a charge after a network timeout and double-charging the customer); (b) where the key comes from and the rule that the client — not the server — must generate it and reuse the same key across retries of the same logical request; (c) how the server stores the key and the response, and what it returns when it sees a duplicate key; (d) the correct behavior when a retry arrives with the same key but a *different* request body (it must be rejected, not silently served the old response); (e) a recommended key lifetime / retention window and why keys should not be reused for genuinely new requests; (f) one concrete pitfall (e.g. caching the response before the downstream charge actually succeeds). Write for engineers who know HTTP but have not implemented idempotency before.

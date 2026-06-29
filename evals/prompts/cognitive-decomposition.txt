@@ -1,0 +1,13 @@
+Break this problem into smaller steps. Solve each step sequentially, showing the numeric result of each step before moving to the next, and only after all steps are solved give the final answer. Each step's inputs must come from the stated facts or from an earlier step's result (state which).
+
+Problem: We are sizing a fleet of identical Postgres read-replica servers for a product launch and need the minimum number of replicas and the resulting monthly compute cost. Use these facts:
+
+- Expected steady-state read traffic at launch: 18,000 read queries per second (QPS), averaged over the day.
+- Traffic is bursty: the daily PEAK is 3.2x the daily average, and the fleet must be sized to survive the peak without exceeding any per-server limit.
+- Each read query, on average, requires 4 logical I/O page reads and 12 ms of CPU service time on a single core.
+- Each server has 16 CPU cores. To leave headroom for replication and GC, you may load each core to at most 75% utilization (i.e. usable CPU = cores x 0.75).
+- Each server can sustain at most 40,000 logical page reads per second before its buffer-cache/storage path saturates (this is a hard per-server ceiling, independent of CPU).
+- You must keep N+1 redundancy: the fleet must still handle peak load with one server failed.
+- Each server costs $1.45 per hour and billing is hourly; assume 730 hours in a month.
+
+Compute the minimum number of replicas required and the total monthly cost of the fleet. Be explicit about which resource (CPU or I/O) is the binding constraint at peak, and how N+1 changes the count.

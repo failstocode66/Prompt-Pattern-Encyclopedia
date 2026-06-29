@@ -1,0 +1,11 @@
+Answer the question below for a startup founder who is deciding whether an upcoming financing round will push the company across a US securities-reporting threshold. The answer will be taken to their securities counsel as a starting checklist, so every assertion needs to be independently checkable.
+
+Rules for the answer:
+- Every factual claim must be followed immediately by an inline citation in brackets, in one of exactly two forms:
+  - [source: <a specific, identifiable reference — a named statute and section, a specific SEC rule number, a specific form name, a named regulation, or a verifiable document/URL>]
+  - [model knowledge only — no source]
+- Use [model knowledge only — no source] for claims that are general, well-established knowledge you are confident in but cannot tie to a specific named source. Do NOT attach a vague or invented citation to make a claim look grounded.
+- If a specific number, dollar threshold, date, or deadline is involved and you are not confident it is current and exact, either omit it or mark it explicitly as "(speculative — verify)" rather than stating it as fact with a citation.
+- Do not add a citation to trivial connective or restating sentences that contain no factual claim.
+
+Question: In the United States, what events or thresholds cause a privately held company to become a "reporting company" subject to ongoing SEC reporting obligations under the Securities Exchange Act of 1934, and once it is a reporting company, what are the core periodic and current reporting filings it must make? Cover both the registration/threshold triggers and the resulting ongoing obligations.

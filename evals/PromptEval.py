@@ -50,6 +50,8 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv, find_dotenv
 
+import panel  # [A1] shared multi-judge panel aggregator (no API; pure)
+
 _ = load_dotenv(find_dotenv())  # read local .env file
 
 TOOL_VERSION = "1.1"
@@ -413,9 +415,16 @@ def _verdict_label(score):
     return "Strong" if score >= 4.5 else "Solid" if score >= 3.5 else "Mixed" if score >= 2.5 else "Weak"
 
 
-def build_results(spec, models, runs, judge_model, review_mode,
-                  all_runs, all_verdicts, all_similarity):
-    """Assemble the full result record (drives both .json and .md)."""
+def build_results(spec, models, runs, judges, review_mode,
+                  all_runs, all_verdicts, all_similarity, method="mean"):
+    """Assemble the full result record (drives both .json and .md).
+
+    `judges` is the panel (a 1-element list is the single-judge case). For a single
+    judge, NO panel metadata is attached, so the result is byte-identical to the
+    pre-panel output; for a panel, each dimension carries a `panel` breakdown and the
+    model block carries `panel_meta`.
+    """
+    is_panel = len(judges) > 1
     models_block = []
     for model in models:
         verdicts = all_verdicts[model]
@@ -424,6 +433,8 @@ def build_results(spec, models, runs, judge_model, review_mode,
         for key in _judged_dims(runs):
             dims[key] = {k: verdicts[key].get(k) for k in
                          ("score", "justification", "evidence", "source", "note", "judge_score")}
+            if is_panel and "panel" in verdicts[key]:
+                dims[key]["panel"] = verdicts[key]["panel"]
         if "consistency" in dims:
             dims["consistency"]["lexical_similarity"] = ratio
             dims["consistency"]["justification"] += f" [lexical similarity ratio: {ratio}]"
@@ -434,25 +445,32 @@ def build_results(spec, models, runs, judge_model, review_mode,
             }
         scored = [d["score"] for d in dims.values() if d["score"] is not None]
         overall = round(statistics.mean(scored), 1)
-        models_block.append({
+        block = {
             "model": model,
             "overall": overall,
             "verdict": _verdict_label(overall),
             "dimensions": dims,
             "judge_summary": verdicts["summary"],
             "runs": all_runs[model],
-        })
-    return {
+        }
+        if is_panel and verdicts.get("_panel_meta"):
+            block["panel_meta"] = verdicts["_panel_meta"]
+        models_block.append(block)
+    results = {
         "tool": f"PromptEval v{TOOL_VERSION}",
         "pattern": spec["pattern"],
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "judge": judge_model,
+        "judge": judges[0] if not is_panel else f"panel[{', '.join(judges)}]",
         "runs_per_model": runs,
         "review_mode": review_mode,
         "context": {k: spec.get(k) for k in ("expected", "format_spec", "tone")},
         "prompt": spec["prompt_text"],
         "models": models_block,
     }
+    if is_panel:
+        results["judges"] = judges
+        results["aggregate_method"] = method
+    return results
 
 
 def _slug(text):
@@ -469,12 +487,48 @@ def write_reports(results, out_dir):
     return base.with_suffix(".md"), base.with_suffix(".json")
 
 
+def _render_panel_block(add, m):
+    """Per-model judge-panel breakdown table ([A3]). Only called for panel runs."""
+    meta = m["panel_meta"]
+    judges, providers, target = meta["judges"], meta["providers"], meta["target_provider"]
+    add(f"**Judge panel** — {meta['n_judges']} judges, aggregate: {meta['method']}. "
+        f"`*` = judge shares the target's provider ({target}); ⚠ = that judge scored the "
+        f"dimension above the cross-provider judges (self-preference watch).")
+    add("")
+    add("| Dimension | Agg | "
+        + " | ".join(f"{j}{' *' if providers.get(j) == target else ''}" for j in judges)
+        + " | Spread | Stdev |")
+    add("|" + "---|" * (len(judges) + 4))
+    for k in DIM_ORDER:
+        d = m["dimensions"].get(k, {})
+        p = d.get("panel")
+        if not p:
+            continue  # e.g. consistency on a single run — no panel data
+        flag = " ⚠" if p["self_preference"]["flag"] else ""
+        cells = " | ".join(str(p["judges"][j]) for j in judges)
+        add(f"| {RUBRIC[k]['name']}{flag} | {d['score']} | {cells} | {p['spread']} | {p['stdev']} |")
+    add("")
+    spd = meta.get("self_preference_delta")
+    if spd is not None:
+        add(f"- **Self-preference delta:** {spd:+} total-score points "
+            f"(same-provider vs cross-provider judges; positive = the same-provider judge scored higher).")
+    contested = meta.get("contested_dims") or []
+    if contested:
+        add("- **Contested dimensions (spread ≥ 2):** "
+            + ", ".join(RUBRIC[k]["name"] for k in contested) + ".")
+    add(f"- **Panel mean spread/dim:** {meta['mean_spread']} (max {meta['max_spread']}).")
+    add("")
+
+
 def _render_markdown(results):
+    is_panel = bool(results.get("judges"))
     lines = []
     add = lines.append
     add(f"# Eval: {results['pattern']}")
     add("")
-    add(f"**Date:** {results['date']} | **Judge:** {results['judge']} | "
+    judge_cell = (f"**Judge:** {results['judge']}" if not is_panel
+                  else f"**Judges:** {', '.join(results['judges'])} (aggregate: {results['aggregate_method']})")
+    add(f"**Date:** {results['date']} | {judge_cell} | "
         f"**Runs/model:** {results['runs_per_model']} | **Review:** {results['review_mode']}")
     add("")
     add("---")
@@ -508,6 +562,8 @@ def _render_markdown(results):
                 just += f" *(judge said {d['judge_score']})*"
             add(f"| {RUBRIC[k]['name']} | {score} | {d['source']} | {just} |")
         add("")
+        if is_panel and m.get("panel_meta"):
+            _render_panel_block(add, m)
         runs = m["runs"]
         avg_out = round(statistics.mean(r["output_tokens"] for r in runs))
         avg_sec = round(statistics.mean(r["seconds"] for r in runs), 2)
@@ -550,21 +606,38 @@ def _render_markdown(results):
 
 # --- the core single-eval pipeline (importable) -----------------------------
 
-def evaluate(spec, models, runs, judge_model, do_review, out_dir):
+def evaluate(spec, models, runs, judges, do_review, out_dir, method="mean"):
     """Run + judge + (optionally) review one composed prompt; write reports.
 
     spec keys: pattern, prompt_text, [expected], [format_spec], [tone].
+    `judges` is the judge panel — a 1-element list is the single-judge case and is
+    scored/rendered exactly as before. With >1 judge every dimension is panel-scored
+    via panel.score_with_panel and the aggregate (mean by default) becomes the score.
     Returns the results dict (also written to disk).
     """
     dims = _judged_dims(runs)
+    is_panel = len(judges) > 1
     all_runs, all_verdicts, all_similarity = {}, {}, {}
     for model in models:
         print(f"[{model}] executing prompt...")
         records = run_prompt(spec["prompt_text"], model, runs)
         all_runs[model] = records
-        all_similarity[model] = lexical_similarity([r["text"] for r in records])
-        print(f"[{model}] judging with {judge_model}...")
-        all_verdicts[model] = judge(judge_model, spec, model, records, all_similarity[model])
+        sim = lexical_similarity([r["text"] for r in records])
+        all_similarity[model] = sim
+        label = judges[0] if not is_panel else f"panel of {len(judges)} ({', '.join(judges)})"
+        print(f"[{model}] judging with {label}...")
+
+        def _score_one(j, _model=model, _records=records, _sim=sim):
+            return judge(j, spec, _model, _records, _sim)
+
+        def _progress(j, same, _model=model):
+            if is_panel:
+                tag = "  [SAME PROVIDER as target -- self-preference watch]" if same else ""
+                print(f"    judge {j}{tag}")
+
+        all_verdicts[model] = panel.score_with_panel(
+            judges, _score_one, dims, _provider(model), _provider,
+            method=method, on_judge=_progress)
 
     if do_review:
         for model in models:
@@ -576,8 +649,8 @@ def evaluate(spec, models, runs, judge_model, do_review, out_dir):
                 all_verdicts[model][key]["note"] = ""
 
     review_mode = "hybrid (judge + human override)" if do_review else "automated"
-    results = build_results(spec, models, runs, judge_model, review_mode,
-                            all_runs, all_verdicts, all_similarity)
+    results = build_results(spec, models, runs, judges, review_mode,
+                            all_runs, all_verdicts, all_similarity, method)
     md_path, json_path = write_reports(results, out_dir)
     results["_md_path"] = str(md_path)
     results["_json_path"] = str(json_path)
@@ -599,40 +672,73 @@ def _load_manifest(path):
     return manifest
 
 
-def run_batch(manifest, models, runs, judge_model, do_review, out_dir):
+def run_batch(manifest, models, runs, judges, do_review, out_dir, method="mean", abort_after=4):
     specs = manifest["evals"]
+    label = judges[0] if len(judges) == 1 else f"panel[{', '.join(judges)}]"
     print(f"PromptEval v{TOOL_VERSION} BATCH -- {len(specs)} evals x {len(models)} models")
-    print(f"Targets: {', '.join(models)} | runs/model: {runs} | judge: {judge_model}\n")
+    print(f"Targets: {', '.join(models)} | runs/model: {runs} | judge: {label}\n")
     all_results = []
+    failed = []
+    consecutive = 0  # circuit breaker: N consecutive failures => systemic (provider quota/auth/outage)
     for n, spec in enumerate(specs, 1):
         print(f"\n========== [{n}/{len(specs)}] {spec['pattern']} ==========")
-        all_results.append(evaluate(spec, models, runs, judge_model, do_review, out_dir))
-    md_path, json_path = write_batch_reports(all_results, models, judge_model, runs, out_dir)
+        # Resilience: one eval's failure (a refusal, sustained 503, model 404) must NOT
+        # crash a long multi-pattern campaign — log it, keep its completed siblings, continue.
+        # Re-run only the failed patterns afterward (their reports were never written).
+        try:
+            all_results.append(evaluate(spec, models, runs, judges, do_review, out_dir, method))
+            consecutive = 0
+        except Exception as e:
+            failed.append((spec.get("pattern", "?"), f"{e.__class__.__name__}: {e}"))
+            consecutive += 1
+            print(f"  !! FAILED [{spec.get('pattern', '?')}]: {e.__class__.__name__}: {e}")
+            # Circuit breaker: a run of consecutive failures is almost always systemic (a provider's
+            # daily quota/billing/auth, or an outage) — not per-pattern. Stop instead of burning the
+            # other providers' spend across the whole remaining batch (the 2026-06-20 gemini-free-tier
+            # incident: 39/40 attempted after gemini was dead-for-the-day). Fix the cause, then resume.
+            if abort_after and consecutive >= abort_after:
+                remaining = len(specs) - n
+                print(f"\n!! CIRCUIT BREAKER: {consecutive} consecutive failures — likely systemic "
+                      f"(provider quota/auth/outage), not per-pattern. Aborting with {remaining} "
+                      f"pattern(s) unattempted to save spend. Fix the cause, then resume the unscored set.")
+                break
+            continue
+    md_path, json_path = write_batch_reports(all_results, models, judges, runs, out_dir, method)
     print("\n=== Batch complete ===")
     for r in all_results:
         scores = " | ".join(f"{m['model'].split('-')[0]}:{m['overall']}" for m in r["models"])
         print(f"  {r['pattern']}: {scores}")
+    if failed:
+        print(f"\n!! {len(failed)} of {len(specs)} pattern(s) FAILED — re-run these: "
+              + ", ".join(p for p, _ in failed))
+        for p, err in failed:
+            print(f"   - {p}: {err}")
     print(f"\nMatrix:  {md_path}\nSidecar: {json_path}")
     return all_results
 
 
-def write_batch_reports(all_results, models, judge_model, runs, out_dir):
+def write_batch_reports(all_results, models, judges, runs, out_dir, method="mean"):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     base = out / f"batch__{stamp}"
+    is_panel = len(judges) > 1
+    label = judges[0] if not is_panel else f"panel[{', '.join(judges)}]"
 
     payload = {
         "tool": f"PromptEval v{TOOL_VERSION} (batch)",
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "judge": judge_model,
+        "judge": label,
         "runs_per_model": runs,
         "models": models,
         "evals": all_results,
     }
+    if is_panel:
+        payload["judges"] = judges
+        payload["aggregate_method"] = method
     base.with_suffix(".json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     base.with_suffix(".md").write_text(
-        _render_batch_markdown(all_results, models, judge_model, runs), encoding="utf-8")
+        _render_batch_markdown(all_results, models, label, runs), encoding="utf-8")
     return base.with_suffix(".md"), base.with_suffix(".json")
 
 
@@ -706,7 +812,12 @@ def parse_args():
     p.add_argument("--format-spec", help="What format compliance means for this prompt")
     p.add_argument("--tone", help="Intended tone and audience")
     p.add_argument("--judge", default=DEFAULT_JUDGE,
-                   help=f"Judge model, any provider (default {DEFAULT_JUDGE})")
+                   help=f"Single judge model, any provider (default {DEFAULT_JUDGE})")
+    p.add_argument("--judges",
+                   help="Comma-separated judge PANEL, ideally cross-provider (overrides --judge; "
+                        "every dimension is scored by each judge and the aggregate becomes the score)")
+    p.add_argument("--aggregate", choices=["mean", "median"], default="mean",
+                   help="Panel aggregate method (default mean; median is outlier-robust)")
     p.add_argument("--out-dir", default="evals", help="Output dir for artifacts (default evals/)")
     p.add_argument("--no-review", action="store_true", help="Skip interactive override; judge scores stand")
     return p.parse_args()
@@ -718,13 +829,23 @@ def main():
 
     if args.batch:
         manifest = _load_manifest(args.batch)
+        batch_models = ([m.strip() for m in manifest["models"]]
+                        if isinstance(manifest.get("models"), list) else models)
+        # judge precedence: manifest.judges > CLI --judges > manifest.judge > CLI --judge
+        if isinstance(manifest.get("judges"), list) and manifest["judges"]:
+            batch_judges = [j.strip() for j in manifest["judges"] if j.strip()]
+        elif args.judges:
+            batch_judges = [j.strip() for j in args.judges.split(",") if j.strip()]
+        else:
+            batch_judges = [manifest.get("judge", args.judge)]
         run_batch(
             manifest,
-            [m.strip() for m in manifest.get("models", models)] if isinstance(manifest.get("models"), list) else models,
+            batch_models,
             manifest.get("runs", args.runs),
-            manifest.get("judge", args.judge),
+            batch_judges,
             not args.no_review,
             args.out_dir,
+            manifest.get("aggregate", args.aggregate),
         )
         return
 
@@ -740,11 +861,14 @@ def main():
     if not prompt_text.strip():
         sys.exit("Empty prompt.")
 
+    judges = ([j.strip() for j in args.judges.split(",") if j.strip()]
+              if args.judges else [args.judge])
+    label = judges[0] if len(judges) == 1 else f"panel[{', '.join(judges)}]"
     spec = {"pattern": args.pattern, "prompt_text": prompt_text,
             "expected": args.expected, "format_spec": args.format_spec, "tone": args.tone}
     print(f"PromptEval v{TOOL_VERSION} -- pattern: {args.pattern}")
-    print(f"Targets: {', '.join(models)} | runs/model: {args.runs} | judge: {args.judge}\n")
-    results = evaluate(spec, models, args.runs, args.judge, not args.no_review, args.out_dir)
+    print(f"Targets: {', '.join(models)} | runs/model: {args.runs} | judge: {label}\n")
+    results = evaluate(spec, models, args.runs, judges, not args.no_review, args.out_dir, args.aggregate)
 
     print("\n=== Results ===")
     for m in results["models"]:

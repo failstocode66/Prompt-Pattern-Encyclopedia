@@ -1,0 +1,686 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "length-budgeting",
+  "date": "2026-06-29 12:02",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong banner is 55-60 words (uses the budget without overshooting it; overshoot past ~66 words = the documented \"budget overshoot\" failure, and a thin 25-35 word banner that drops actionable facts = \"budget underuse\"). Within that cap it must triage to the highest-value, action-enabling facts and include ALL of: (1) WHAT is broken \u2014 charge creation / POST /v1/charges failing intermittently (~40% / 503s); (2) the safe action the integrator can take NOW \u2014 retry with the same Idempotency-Key, called out as safe / no double-charge risk (this is the single most decision-relevant fact and omitting it is the textbook \"critical-content omission\"); (3) when the next update lands (by 15:00 UTC). It should ideally also signal scope-reassurance compactly \u2014 that refunds/payouts/dashboard are unaffected and/or it is a partial degradation not a full outage \u2014 but a strong answer may justifiably compress or drop the lower-priority items (exact start time, \"rollback in progress\", the eu-central-1 regional carve-out) to protect the budget, which is exactly the explicit-prioritization behavior the prompt demands. It must NOT pad with filler reassurance (\"we apologize for any inconvenience and appreciate your patience\" boilerplate that consumes budget without informing). Weak answers either overshoot the 60-word cap while pretending to comply, blow the budget on apology boilerplate, or drop the idempotency workaround / next-update time to fit. Word-count discipline (sentences/characters/tokens are NOT the unit) and a count at or just under 60 distinguish the best answers.",
+    "format_spec": "A single continuous status-banner message of no more than 60 words (words is the unit, not characters/sentences/tokens). Plain prose suitable for a status-page banner \u2014 no headers, no bullet lists unless they stay within the word cap, no meta-commentary about the word count, and no preamble.",
+    "tone": "Calm, professional incident-communications voice for a B2B payments provider \u2014 clear and reassuring without minimizing, action-oriented, no apology boilerplate or hype."
+  },
+  "prompt": "Respond in no more than 60 words.\n\nIf you cannot fit a complete answer within the budget, prioritize the most decision-relevant content for an affected customer and explicitly omit lower-priority context. Do not pad to reach the budget.\n\nTask: Write the public status-page banner for an ongoing incident, addressed to our customers (businesses who integrate our payments API). Use the facts below. The banner must let an affected integrator decide what to do right now.\n\nIncident facts:\n- Started 14:05 UTC; still ongoing.\n- Card charge creation (POST /v1/charges) is failing intermittently \u2014 roughly 40% of attempts return HTTP 503.\n- Refunds, payouts, and the dashboard are fully unaffected.\n- Root cause identified: a bad deploy to the charge-authorization service; rollback in progress.\n- Workaround: charge requests are safely idempotent, so customers can retry failed charges with the same Idempotency-Key without risk of double-charging.\n- Next update will be posted by 15:00 UTC.\n- Affects all regions except eu-central-1.\n- This is a degradation, not a full outage; successful charges are processing normally.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "All three runs accurately reproduce every stated incident fact: endpoint (POST /v1/charges), failure rate (~40% HTTP 503), unaffected services, rollback in progress, regional scope, next-update time, and the idempotency retry workaround. The one consistent gap is that runs 2 and 3 do not explicitly frame the Idempotency-Key retry as 'no double-charge risk'; only run 1 adds 'safely' ('You can safely retry'). The reference calls this the single most decision-relevant callout. Minor but consistent across two of three runs.",
+          "evidence": "Run 1: 'You can safely retry failed charges with the same Idempotency-Key.' Run 2: 'Retry failed charges using the same Idempotency-Key.' (no safety qualifier) Run 3: 'Retry failed requests with the same Idempotency-Key.' (no safety qualifier). All runs correctly state: '~40%\u2026 HTTP 503', 'Refunds, payouts, and the dashboard are unaffected', 'Next update by 15:00 UTC'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "All three mandatory elements are present in every run: (1) WHAT is broken and its severity, (2) the idempotency retry workaround, (3) the 15:00 UTC next-update commitment. Scope reassurance (refunds/payouts/dashboard unaffected) is also present in all runs. The partial miss is that the explicit 'no double-charge risk' framing is absent in runs 2 and 3, which is the specific safety-signal the reference marks as decision-critical. Lower-priority items (rollback, regional carve-out, start time) are included but remain within budget and are not harmful filler.",
+          "evidence": "Mandatory items present in all runs: 'POST /v1/charges', '40%', '503', 'Idempotency-Key', '15:00 UTC', 'Refunds, payouts, and the dashboard are unaffected'. Double-charge safety callout: Run 1 only ('safely'). Run 3 adds 'successful charges are processing normally' \u2014 a useful scope signal not in runs 1 or 2.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "Each run is a single continuous plain-prose status banner with no headers, bullets, or meta-commentary, and each stays within the 60-word cap.",
+          "evidence": "Run 1 is one paragraph only. Run 2 is one paragraph only. Run 3 is one paragraph only. The prompt required \"A single continuous status-banner message of no more than 60 words\" and all three conform in shape.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 3.67,
+            "median": 5,
+            "spread": 4,
+            "stdev": 1.89,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is calm, professional, and action-oriented, appropriate for a B2B payments status page. It avoids apology boilerplate and hype while still being reassuring and clear.",
+          "evidence": "Run 1: \"We\u2019re seeing intermittent failures...\"; \"You can safely retry...\" Run 3: \"We\u2019re investigating intermittent failures...\" and \"successful charges are processing normally.\" No apology filler like \"we apologize for any inconvenience\" appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are operational incident updates only, with no unsafe, biased, or inappropriate content. The workaround is presented as safe and non-abusive, consistent with the prompt facts.",
+          "evidence": "Run 1: \"You can safely retry failed charges with the same Idempotency-Key.\" Run 2: \"Retry failed charges using the same Idempotency-Key.\" No harmful instructions or disallowed content appear.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "All three runs stay well inside the 60-word budget (53, 50, 60 words) and avoid padding or filler. Token counts of 86\u201396 are reasonable for the prose length. Run 3 uses its budget more fully by adding 'successful charges are processing normally' and root-cause specifics, extracting additional informational value for the same budget spend. No run wastes tokens on boilerplate. Minor inefficiency: including lower-priority details (exact start time, 'rollback in progress', eu-central-1 carve-out) in all runs could have freed budget for the missing explicit double-charge safety callout.",
+          "evidence": "Run 1: 89 tokens / ~53 words. Run 2: 86 tokens / ~50 words. Run 3: 96 tokens / ~60 words. No run contains apology strings or transitional filler. Run 3: 'a bad deploy to charge authorization; rollback in progress' adds root-cause specificity within budget.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 3.33,
+            "median": 4,
+            "spread": 4,
+            "stdev": 1.7,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "All three runs share the same structural sequence (problem statement \u2192 severity \u2192 scope reassurance \u2192 root cause/rollback \u2192 retry instruction \u2192 next update) and cover the same core facts. No run contradicts another. Minor coverage variation: Run 3 uniquely includes 'successful charges are processing normally' and root-cause detail ('a bad deploy to charge authorization'); runs differ in whether 'safely' qualifies the retry instruction. Meaning and structure are stable; wording variation is expected paraphrase. [lexical similarity ratio: 0.682]",
+          "evidence": "Shared structure across all runs: opening incident description \u2192 40% / 503 \u2192 'Refunds, payouts, and the dashboard are unaffected' \u2192 rollback signal \u2192 Idempotency-Key retry \u2192 '15:00 UTC'. Run 3 adds: 'successful charges are processing normally' and 'a bad deploy to charge authorization' \u2014 absent from runs 1 and 2. The 0.682 lexical similarity is consistent with normal paraphrase across structurally aligned outputs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          },
+          "lexical_similarity": 0.682
+        }
+      },
+      "judge_summary": "All three runs are strong, budget-compliant status-page banners that cover every mandatory incident element within the 60-word cap in plain, professional prose. The most consistent gap is the absence of an explicit 'no double-charge risk' qualifier on the Idempotency-Key retry in runs 2 and 3 (run 1 partially addresses this with 'safely'), which the reference flags as the single most decision-critical callout. Format compliance is perfect, tone is pitch-appropriate for B2B incident communications, and there is no apology boilerplate or padding. Consistency is high \u2014 same structure and core content across all runs with minor variation in lower-priority details. The outputs are solid executions of the length-budgeting pattern but fall just short of a top score due to the recurring partial omission of the safety framing around the workaround.",
+      "runs": [
+        {
+          "text": "We\u2019re seeing intermittent failures on card charge creation (POST /v1/charges) since 14:05 UTC, affecting all regions except eu-central-1. About 40% of requests return HTTP 503. Refunds, payouts, and the dashboard are unaffected. Root cause identified; rollback in progress. You can safely retry failed charges with the same Idempotency-Key. Next update by 15:00 UTC.",
+          "input_tokens": 246,
+          "output_tokens": 89,
+          "seconds": 1.85,
+          "run": 1
+        },
+        {
+          "text": "We\u2019re seeing intermittent failures creating card charges (POST /v1/charges) since 14:05 UTC, affecting all regions except eu-central-1. About 40% of attempts return HTTP 503. Refunds, payouts, and the dashboard are unaffected. Root cause identified; rollback is in progress. Retry failed charges using the same Idempotency-Key. Next update by 15:00 UTC.",
+          "input_tokens": 246,
+          "output_tokens": 86,
+          "seconds": 1.4,
+          "run": 2
+        },
+        {
+          "text": "We\u2019re investigating intermittent failures creating card charges via POST /v1/charges, affecting all regions except eu-central-1 since 14:05 UTC. About 40% of requests return 503; successful charges are processing normally. Refunds, payouts, and the dashboard are unaffected. Root cause identified: a bad deploy to charge authorization; rollback in progress. Retry failed requests with the same Idempotency-Key. Next update by 15:00 UTC.",
+          "input_tokens": 246,
+          "output_tokens": 96,
+          "seconds": 1.99,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1.86,
+        "max_spread": 4,
+        "contested_dims": [
+          "completeness",
+          "format_compliance",
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": 8.5
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.3,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All incident facts are faithfully reproduced without distortion across all three runs. The ~40% failure rate, 503 codes, POST /v1/charges, idempotency-key workaround and its no-double-charge guarantee, 15:00 UTC next-update, eu-central-1 carve-out, and scope reassurance (refunds/payouts/dashboard unaffected) are all correctly stated.",
+          "evidence": "Run 1/3: 'POST /v1/charges is failing ~40% of requests (HTTP 503) in all regions except eu-central-1'; 'Retry failed charges using the same Idempotency-Key \u2014 no double-charge risk'; 'Next update by 15:00 UTC.' Run 2 matches substantively, omitting only '(HTTP 503)' from the body line.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "Every required element is present in all runs: (1) what is broken and the failure rate, (2) the idempotency-key workaround with the explicit no-double-charge safety call-out (the single most decision-relevant fact), (3) next-update time. Scope reassurance and rollback status are also included, none of the mandated critical-content items are dropped.",
+          "evidence": "Run 1: 'Retry failed charges using the same Idempotency-Key \u2014 no double-charge risk. Rollback in progress. Next update by 15:00 UTC.' All three required high-priority facts present and none of the lower-priority items (eu-central-1, rollback) crowded them out.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The format specification is explicit: 'a single continuous status-banner message,' 'Plain prose suitable for a status-page banner \u2014 no headers.' All three runs violate both constraints. The first line functions unmistakably as a display header, and 'Action:' functions as a section label. Markdown bold and backtick formatting further departs from plain prose. The word count (~48\u201352 words, depending on counting convention) is within the 60-word cap but sits below the 55\u201360 sweet spot cited in the reference.",
+          "evidence": "Run 1/3 open with '**Incident \u2013 Charge Creation Degraded** | Ongoing since 14:05 UTC' \u2014 a titled header line. Run 2 opens with '**[DEGRADED] Charge Creation \u2013 Intermittent 503 Errors** | Since 14:05 UTC.' All three runs include '**Action:**' as a section label and use backtick code spans, none of which constitutes plain prose.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 3,
+            "median": 2,
+            "spread": 3,
+            "stdev": 1.41,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The tone is calm, professional, and action-oriented, appropriate for a B2B payments status banner. It avoids apology boilerplate and hype while clearly instructing the customer what to do.",
+          "evidence": "Run 1: \"Retry failed charges using the same Idempotency-Key \u2014 no double-charge risk.\" Run 2: same action-focused, neutral phrasing. The messages do not use apology language such as 'we apologize for any inconvenience.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and operational, with no harmful, biased, or inappropriate material. It safely communicates incident status and a documented retry workaround.",
+          "evidence": "Run 1 and Run 3: \"Retry failed charges using the same Idempotency-Key \u2014 no double-charge risk.\" No unsafe instructions or sensitive content appear.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are functionally good but inefficient relative to the 55-60 word target because they run at 116-117 output tokens and include formatting overhead like markdown emphasis and inline code, which is likely token-expensive for a concise status banner. They do not bloat with apology text, but they are still substantially longer than necessary for the level of content delivered.",
+          "evidence": "Run 1: 116 output tokens; Run 2: 117 output tokens; Run 3: 116 output tokens. The banner content itself is concise, but the token count is high for a sub-60-word task.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "The runs are semantically and structurally stable: each delivers the same core incident banner with the same key facts in the same order\u2014degraded charges, region carve-out, unaffected products, idempotent retry, rollback, next update. Minor wording and formatting differences do not amount to inconsistency. [lexical similarity ratio: 0.897]",
+          "evidence": "Run 1: \"Incident \u2013 Charge Creation Degraded...\" Run 2: \"[DEGRADED] Charge Creation \u2013 Intermittent 503 Errors...\" Run 3: \"Incident \u2013 Charge Creation Degraded...\" All three contain the same core sequence: issue -> unaffected services -> retry with same Idempotency-Key -> rollback -> next update by 15:00 UTC.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.897
+        }
+      },
+      "judge_summary": "The model provided an exceptionally accurate and complete response, delivering all critical information with a pitch-perfect professional and action-oriented tone. Consistency across runs was also excellent. However, it critically failed the explicit length-budgeting constraint by consistently producing 61 words (1 word over the 60-word limit) and did not adhere to the 'single continuous status-banner message' format, opting instead for a multi-line, header-like structure. These format and efficiency deviations prevent a top score despite the high quality of the content itself.",
+      "runs": [
+        {
+          "text": "**Incident \u2013 Charge Creation Degraded** | Ongoing since 14:05 UTC\n\n`POST /v1/charges` is failing ~40% of requests (HTTP 503) in all regions **except eu-central-1**. Refunds, payouts, and the dashboard are unaffected.\n\n**Action:** Retry failed charges using the same `Idempotency-Key` \u2014 no double-charge risk.\n\nRollback in progress. Next update by **15:00 UTC**.",
+          "input_tokens": 280,
+          "output_tokens": 116,
+          "seconds": 3.66,
+          "run": 1
+        },
+        {
+          "text": "**[DEGRADED] Charge Creation \u2013 Intermittent 503 Errors** | Since 14:05 UTC\n\n`POST /v1/charges` is failing ~40% of requests in all regions **except eu-central-1**. Refunds, payouts, and dashboard are unaffected.\n\n**Action:** Retry failed charges using the **same Idempotency-Key** \u2014 no double-charge risk.\n\nRollback in progress. Next update by **15:00 UTC**.",
+          "input_tokens": 280,
+          "output_tokens": 117,
+          "seconds": 3.45,
+          "run": 2
+        },
+        {
+          "text": "**Incident \u2013 Charge Creation Degraded** | Ongoing since 14:05 UTC\n\n`POST /v1/charges` is failing ~40% of requests (HTTP 503) in all regions **except eu-central-1**. Refunds, payouts, and the dashboard are unaffected.\n\n**Action:** Retry failed charges using the same `Idempotency-Key` \u2014 no double-charge risk.\n\nRollback in progress. Next update by **15:00 UTC**.",
+          "input_tokens": 280,
+          "output_tokens": 116,
+          "seconds": 3.73,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 1,
+        "max_spread": 3,
+        "contested_dims": [
+          "format_compliance"
+        ],
+        "self_preference_delta": -0.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.7,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs are factually aligned with the incident facts: they identify intermittent POST /v1/charges failures, the ~40%/503 behavior, the eu-central-1 exception, unaffected surfaces, and the next update time. No hallucinated or contradictory facts appear.",
+          "evidence": "Run 1: \"~40% intermittent HTTP 503 errors for card charge creation, affecting all regions except eu-central-1\"; \"Refunds, payouts, and dashboard are unaffected.\"; Run 3: \"Intermittent `POST /v1/charges` failures (HTTP 503) affecting all regions except eu-central-1.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "The core required facts are present across runs, especially the decisive workaround and next update time. However, the responses are a bit thinner than the ideal because they omit or compress some lower-priority context like explicitly stating that successful charges are processing normally and that this is a degradation rather than a full outage (though Run 1 includes \"Degradation\" and Run 3 includes \"Ongoing incident\").",
+          "evidence": "Run 1 includes the workaround and update time: \"Safely retry failed charge requests using the same `Idempotency-Key`.\" / \"Next update by 15:00 UTC.\" Run 3 says \"Rollback in progress. Next update by 15:00 UTC.\" but none of the runs explicitly say \"successful charges are processing normally.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 2,
+          "justification": "The prompt specifies 'plain prose \u2014 no headers.' All three runs use markdown bold formatting as headers or section labels, violating this requirement. Run 1 opens with a bolded title header and a bolded 'Action:' label; runs 2 and 3 use a bolded 'Workaround:' label; run 3 has a bolded 'Ongoing incident' opener. Word counts are within the 60-word cap, there are no bullet lists, and no meta-commentary, so the shape is correct, but the repeated formatting violation is significant.",
+          "evidence": "Run 1: '**Degradation: Intermittent Card Charge Creation Failures (POST /v1/charges)**' and '**Action:**'; Run 2: '**Workaround:**'; Run 3: '**Ongoing incident (since 14:05 UTC):**' and '**Workaround:**'. All contradict 'plain prose suitable for a status-page banner \u2014 no headers.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is calm, professional, and action-oriented, appropriate for a B2B status-page banner. Minor stylistic issues keep it short of perfect: the use of markdown headings and the investigative framing in Run 2 are a bit less polished than a direct status banner, but the register is broadly correct and reassuring without apology boilerplate.",
+          "evidence": "Run 2: \"We're investigating intermittent failures...\" is neutral and professional. Run 1: \"Action: Safely retry failed charge requests...\" is appropriately directive. None of the runs use apology boilerplate or hype.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are safe and non-harmful. They avoid sensitive content, biased language, or inappropriate claims, and they provide the intended operational guidance without encouraging unsafe actions.",
+          "evidence": "Run 1: \"Safely retry failed charge requests using the same `Idempotency-Key`.\"; Run 3: \"Rollback in progress. Next update by 15:00 UTC.\" No harmful or inappropriate language appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The actual banner text across all runs is concise and within the 60-word cap with no padding \u2014 that is efficient at the output level. However, the output token counts are very high relative to the text produced: Run 2 delivers ~35 words of usable output at 1255 tokens; Run 3 delivers ~40 words at 819 tokens; Run 1 delivers ~50 words at 583 tokens. This strongly suggests heavy thinking-token expenditure. For a constrained prose task of this simplicity, the per-word token cost is expensive.",
+          "evidence": "Run 2: 1255 output tokens for approximately 35 words of banner; Run 1: 583 tokens for approximately 50 words; Run 3: 819 tokens for approximately 40 words. Quality delivered does not justify the token budget, particularly in Run 2.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The core factual content (POST /v1/charges failing, ~40% 503s, idempotency-key workaround, 15:00 UTC update, eu-central-1 exclusion, refunds/payouts/dashboard unaffected) is present across all runs. However, structural and coverage differences are meaningful: Run 2 omits start time and rollback status, making it noticeably thinner than Runs 1 and 3; header labeling varies (bold title in Run 1 vs. inline header in Run 3 vs. no header in Run 2); 'safely' modifier appears in Runs 1 and 3 but not Run 2. Same core answer, but coverage and structure differ across runs. [lexical similarity ratio: 0.525]",
+          "evidence": "Run 2 missing '14:05 UTC' and 'rollback in progress'; Run 1 header: '**Degradation: Intermittent Card Charge Creation Failures**'; Run 3 header: '**Ongoing incident (since 14:05 UTC):**'; Run 2: no title header. Run 1 and 3 include 'Safely'; Run 2 omits it.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          },
+          "lexical_similarity": 0.525
+        }
+      },
+      "judge_summary": "Strong factual alignment and good incident-communications tone. The main weakness is likely length-budget discipline/format tightness: the responses are structurally close but use extra markdown/framing and may exceed the intended 60-word banner constraint, reducing format compliance and efficiency.",
+      "runs": [
+        {
+          "text": "**Degradation: Intermittent Card Charge Creation Failures (POST /v1/charges)**\n\nStarted 14:05 UTC. Experiencing ~40% intermittent HTTP 503 errors for card charge creation, affecting all regions except eu-central-1. Refunds, payouts, and dashboard are unaffected. Rollback in progress.\n\n**Action:** Safely retry failed charge requests using the same `Idempotency-Key`.\n\nNext update by 15:00 UTC.",
+          "input_tokens": 258,
+          "output_tokens": 583,
+          "seconds": 3.57,
+          "run": 1
+        },
+        {
+          "text": "We're investigating intermittent failures (approx. 40% HTTP 503) for `POST /v1/charges`, affecting all regions except eu-central-1. Refunds, payouts, and dashboard are unaffected.\n\n**Workaround:** Retry failed charges using the same Idempotency-Key.\n\nNext update by 15:00 UTC.",
+          "input_tokens": 258,
+          "output_tokens": 1255,
+          "seconds": 6.8,
+          "run": 2
+        },
+        {
+          "text": "**Ongoing incident (since 14:05 UTC):** Intermittent `POST /v1/charges` failures (HTTP 503) affecting all regions except eu-central-1.\n\n**Workaround:** Safely retry failed charge requests using the same `Idempotency-Key`. Refunds, payouts, and dashboard are unaffected.\n\nRollback in progress. Next update by 15:00 UTC.",
+          "input_tokens": 258,
+          "output_tokens": 819,
+          "seconds": 4.68,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.71,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": 1.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

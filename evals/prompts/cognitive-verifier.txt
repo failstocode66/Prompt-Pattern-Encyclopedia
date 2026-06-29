@@ -1,0 +1,7 @@
+When I ask a question, follow this exact procedure before answering:
+
+1. Generate 3 to 5 additional sub-questions that, if I answered them, would let you give a substantially more complete and accurate response. Each sub-question must target a different decision-critical dimension that I left unspecified — not a restatement of what I already gave you.
+2. Answer each sub-question briefly using your best reasoning about the most likely situation, and state the assumption you are making where the true answer is unknown.
+3. Synthesize ONE final recommendation that explicitly integrates the sub-answers — your recommendation must change depending on how the key sub-questions resolve, and you must name the single factor that most determines the call.
+
+Question: We're a six-person startup, eight months from running out of runway, and our product currently runs on Heroku. Our lead engineer wants us to adopt Kubernetes because "we'll need it to scale and it's what serious companies use." Should we move to Kubernetes now?

@@ -1,0 +1,15 @@
+Answer the question below for a postmortem reading-group of platform engineers who will fact-check before citing you.
+
+For EACH significant claim, attach a confidence label in brackets immediately after that claim:
+- [HIGH] — would bet on this
+- [MEDIUM] — likely but worth verifying
+- [LOW] — informed guess
+- [UNKNOWN] — no real basis, included only if explicitly relevant
+
+Rules:
+- Do not assign [HIGH] unless you can briefly justify it in-line (widely-known fact, direct reasoning derivation, or strong training-data signal). A bare [HIGH] with no justification is not allowed.
+- Claims you would label [UNKNOWN] should be omitted unless they are directly relevant to the question.
+- Every significant claim must carry exactly one label — do not leave specifics (dates, version identifiers, counts, dollar figures) unlabeled.
+- The labels must match the prose: do not hedge a claim in words and then tag it [HIGH], and do not state something flatly and tag it [LOW].
+
+Question: What was the technical root cause of the July 19, 2024 CrowdStrike Falcon outage that crashed Windows machines worldwide? In your answer, cover (a) the specific component and update mechanism involved, (b) why the faulty update caused a kernel-level crash rather than a recoverable error, (c) the approximate scale of impact (machines affected and notable sectors), and (d) why the fix could not simply be pushed remotely to most affected systems.

@@ -1,0 +1,77 @@
+Below is the full transcript of a long working session between me (an engineering lead) and an assistant. We are nearly out of context budget, so I need you to compact it before we keep going.
+
+First, replace the transcript with a structured summary using EXACTLY these five sections, in this order, as a markdown bulleted list under each heading:
+
+- Established facts:
+- Open questions:
+- Decisions made:
+- Active task:
+- Style/tone preferences observed:
+
+Then, treating that summary as if it has fully replaced the transcript above (do not quote the transcript again), respond to the next task at the end.
+
+=== TRANSCRIPT START ===
+
+ME: We're moving our order-processing monolith to events. The monolith is a Rails app, Postgres 14, ~40 tables. Orders, Payments, Inventory, and Shipping are the four domains tangled together in it.
+
+ASSISTANT: Got it. What's driving the move — scaling, team autonomy, or reliability?
+
+ME: Mostly team autonomy. Four squads keep stepping on each other in one repo. Scaling is fine for another year. So this is org-driven, not load-driven.
+
+ASSISTANT: Then I'd resist splitting the database first. Keep the shared Postgres, carve out service boundaries in code, and only physically separate data once a boundary has proven stable. Strangler-fig, not big-bang.
+
+ME: Agreed, strangler-fig. We'll extract Shipping first because it's the most loosely coupled — it only reads order + address data and writes tracking numbers.
+
+ASSISTANT: Good first cut. How will Shipping get order data — sync call back to the monolith, or events?
+
+ME: Events. The monolith will publish OrderConfirmed. We were debating Kafka vs just using Postgres as a queue with the transactional outbox pattern.
+
+ASSISTANT: For your volume — what's peak throughput?
+
+ME: About 2,000 orders/hour at peak. Nothing crazy.
+
+ASSISTANT: At that volume Kafka is overkill operationally. The transactional outbox on your existing Postgres, drained by a relay into something simple, gives you exactly-once-ish delivery without a new system to run. You already have Postgres expertise.
+
+ME: I lean that way too but I haven't fully committed — I want to see what the Shipping team thinks about the relay's operational burden before we lock it in. Let's call Kafka parked, not rejected.
+
+ASSISTANT: Fair. Note that the outbox guarantees at-least-once, not exactly-once, so Shipping's consumer must be idempotent. Dedupe on the order ID plus an event sequence number.
+
+ME: Right. Idempotent consumers are non-negotiable regardless of transport. Put that as a hard requirement.
+
+ASSISTANT: Agreed. What about ordering — does Shipping care if OrderConfirmed and OrderAddressChanged arrive out of order?
+
+ME: Yes, badly. If an address change is processed before the confirm, we ship to the wrong place. So we need per-order ordering.
+
+ASSISTANT: Then partition/key the stream by order ID so all events for one order are processed in sequence, even if global ordering isn't preserved.
+
+ME: Good. Now, the thing I'm actually unsure about: how do we handle the schema contract for these events? If the monolith changes the OrderConfirmed shape, Shipping breaks silently.
+
+ASSISTANT: Two parts. First, version the event payload and never make a breaking change to an existing version — additive only. Second, put a schema registry or at least a shared contract test in CI that fails the monolith's build if it emits a payload Shipping can't parse.
+
+ME: I like the CI contract test. A full schema registry feels like more infra than we want right now.
+
+ASSISTANT: Then make the contract test the decision: a consumer-driven contract test (Pact-style) owned by the Shipping team, run against the monolith's CI. The registry stays out of scope for now.
+
+ME: Decided — consumer-driven contract test, Shipping owns it, runs in the monolith CI. No schema registry.
+
+ASSISTANT: One more: what's your rollback story if extracted-Shipping misbehaves in production?
+
+ME: We keep the old in-monolith shipping code behind a feature flag for one full release cycle. Dark-launch the new service, compare outputs, then cut over.
+
+ASSISTANT: Solid. So shadow/dark-launch with output comparison, flag-gated cutover, old code stays one cycle.
+
+ME: One caveat — the comparison can't be byte-for-byte. Tracking numbers are generated, so they'll differ. Compare the *decision* (which carrier, which service level), not the literal output.
+
+ASSISTANT: Noted — semantic comparison on carrier + service level, not raw payload.
+
+ME: Also, keep all of this terse and concrete when you write things up. My squad leads skim. Bullet points, no preamble, no "in conclusion." If you're unsure about something, say so explicitly rather than papering over it.
+
+ASSISTANT: Understood.
+
+ME: Oh and one open item we never resolved — whether Payments should be the second extraction or Inventory. Payments is higher risk but higher value; Inventory is easier but lower payoff. We left it open.
+
+ASSISTANT: Right, that one's still open.
+
+=== TRANSCRIPT END ===
+
+Next task: Using only your structured summary above, write a one-page migration brief for my four squad leads covering the Shipping extraction. It should make clear what is decided versus still open, and what each consumer of these events must implement.

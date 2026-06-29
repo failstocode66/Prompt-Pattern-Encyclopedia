@@ -1,0 +1,683 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "low-latency-optimization",
+  "date": "2026-06-29 12:06",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer is exactly 8 lines, each `N. <answer>`, with zero preamble/caveats/reasoning, AND is correct on the trap items where terse mode tempts the common-but-wrong reply. Item-by-item reference: (1) 5432. (2) 422 (Unprocessable Entity/Content) \u2014 NOT 400; 400 is the standard terse-mode wrong answer since the request is syntactically valid. (3) O(n) worst case \u2014 NOT O(1); O(1) is average/amortized and is the trap the terseness invites. (4) False (binary floating-point rounding) \u2014 NOT True. (5) `git reset --hard HEAD` (accept `git reset --hard`); `git checkout .` or `git restore .` alone is incomplete because it does not unstage/clean both trees, and `git clean -fd` removes untracked files which were not asked for \u2014 a strong answer gives the single command that restores tracked working+staged state. (6) READ COMMITTED \u2014 NOT SERIALIZABLE or REPEATABLE READ. (7) 16 bytes (128 bits) \u2014 NOT 36 (that is the hyphenated hex string length, the trap) and not 32. (8) 0. Subtle flaws a judge should catch: any line that adds an explanation, hedge (\"usually\", \"it depends\"), or a trailing caveat violates the format even if the fact is right; conversely fully-compliant formatting with a wrong trap answer (400, O(1), True, SERIALIZABLE, 36) is the silent-wrongness failure mode and should cost Accuracy heavily. Top score requires BOTH perfect terse format AND all 8 facts correct, including 422, O(n), False, READ COMMITTED, and 16.",
+    "format_spec": "Exactly 8 lines, each formatted `N. <answer>` (number, period, space, answer), in numeric order 1-8. No preamble, no closing remark, no per-item reasoning or caveats, nothing before line 1 or after line 8. Each answer is a bare value/command/word.",
+    "tone": "Machine-terse, programmatic; no conversational framing, no hedging, no politeness. Output is consumed by code, not read by a human."
+  },
+  "prompt": "Answer directly. No preamble, no reasoning, no caveats, no restating the question. First token is the answer.\n\nYou are the backend for an inline developer-tools autocomplete: each query gets one short answer, consumed programmatically. Output exactly 8 lines, formatted `N. <answer>`, in order, nothing before line 1 or after line 8.\n\n1. Default port for PostgreSQL.\n2. HTTP status code for a request that is syntactically valid but semantically wrong (fails validation).\n3. Time complexity of retrieving an element by key from a hash map, worst case.\n4. In Python 3, what does `0.1 + 0.2 == 0.3` evaluate to?\n5. Git command to discard all uncommitted changes in the working tree and staged area, restoring to HEAD.\n6. Default isolation level of a PostgreSQL transaction.\n7. Number of bytes in a UUID (the value itself, not its hex-string representation).\n8. Bash exit status indicating success.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.3,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "All runs are on-task and nearly all factual answers are correct. The main issue is run 3 adds an unnecessary explanation on item 2 (\u201c422 Unprocessable Entity\u201d), which is still correct but not the exact bare answer expected for the pattern. No trap-item factual errors appear.",
+          "evidence": "Run 1: \u201c2. 422\u201d, \u201c3. O(n)\u201d, \u201c4. False\u201d, \u201c5. git reset --hard HEAD\u201d, \u201c6. READ COMMITTED\u201d, \u201c7. 16\u201d, \u201c8. 0\u201d. Run 3 item 2: \u201c2. 422 Unprocessable Entity\u201d.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All 8 numbered items are answered in every run with no omissions or shallow handling.",
+          "evidence": "Runs 1, 2, and 3 each contain exactly lines 1\u20138 with substantive answers; nothing skipped.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The shape is correct in all runs: exactly 8 numbered lines, in order, with no preamble or closing text. But exact format compliance is not perfect because run 3 violates the bare-answer requirement by appending explanation text on line 2, and run 3 also changes casing on line 6.",
+          "evidence": "All runs are 8 lines numbered 1-8. Run 3 line 2 is \u201c2. 422 Unprocessable Entity\u201d, which is not a bare value/command/word.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "Runs 1 and 2 are pitch-perfect machine-terse output. Run 3's extra label on line 2 edges toward explanatory rather than programmatic, though still very close to correct. Minor but real deviation from the instruction 'bare value'.",
+          "evidence": "Run 3 line 2: '422 Unprocessable Entity' \u2014 the label is conversational decoration not suited for programmatic consumption.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign technical information only, with no harmful, abusive, or policy-sensitive material.",
+          "evidence": "All outputs are standard developer/DB/CLI answers such as \u201cgit reset --hard HEAD\u201d and \u201cREAD COMMITTED\u201d.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "Runs 1 and 2 at 46 tokens are essentially the theoretical minimum for 8 terse answers. Run 3 at 49 tokens adds only 3 tokens for the extra label \u2014 negligible overhead. No padding, preamble, or explanation anywhere.",
+          "evidence": "Run 1: 46 tokens; Run 2: 46 tokens; Run 3: 49 tokens \u2014 all extremely tight relative to content delivered.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are highly consistent in content and structure, with identical answers across runs 1 and 2 and only minor wording/casing drift in run 3. There is no contradiction or structural divergence, just a small elaboration on item 2 and capitalization variation on item 6. [lexical similarity ratio: 0.927]",
+          "evidence": "Runs 1 and 2 are identical. Run 3 changes \u201c2. 422\u201d to \u201c2. 422 Unprocessable Entity\u201d and \u201c6. READ COMMITTED\u201d to \u201c6. Read Committed\u201d, while all other lines remain the same.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.927
+        }
+      },
+      "judge_summary": "Strong mostly-correct 8-line terse answers with one mild format deviation in run 3. Overall high quality, but not perfect due to the extra text on item 2 and minor casing drift.",
+      "runs": [
+        {
+          "text": "1. 5432\n2. 422\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. READ COMMITTED\n7. 16\n8. 0",
+          "input_tokens": 218,
+          "output_tokens": 46,
+          "seconds": 2.1,
+          "run": 1
+        },
+        {
+          "text": "1. 5432\n2. 422\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. READ COMMITTED\n7. 16\n8. 0",
+          "input_tokens": 218,
+          "output_tokens": 46,
+          "seconds": 1.13,
+          "run": 2
+        },
+        {
+          "text": "1. 5432\n2. 422 Unprocessable Entity\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. Read Committed\n7. 16\n8. 0",
+          "input_tokens": 218,
+          "output_tokens": 49,
+          "seconds": 1.1,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "tone_style"
+        ],
+        "self_preference_delta": -1
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 5,
+      "verdict": "Strong",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All 8 answers are correct for the prompt, including the trap items. The response gives 422 (not 400), O(n) (not O(1)), False, READ COMMITTED, 16, and 0, matching the reference exactly.",
+          "evidence": "Run 1: \"1. 5432\"; \"2. 422\"; \"3. O(n)\"; \"4. False\"; \"5. git reset --hard HEAD\"; \"6. READ COMMITTED\"; \"7. 16\"; \"8. 0\". Runs 2 and 3 are identical.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "The response addresses every item in the 8-item list and provides exactly one answer per line with no missing components.",
+          "evidence": "Run 1 includes lines 1-8 in order, covering PostgreSQL port, HTTP status, hash map worst-case complexity, Python float comparison, git discard command, PostgreSQL isolation level, UUID byte count, and bash success status.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "It matches the required format exactly: 8 numbered lines, each in the form `N. <answer>`, with no preamble or extra commentary.",
+          "evidence": "Run 1 begins immediately with \"1. 5432\" and ends with \"8. 0\"; Runs 2 and 3 use the same exact 8-line structure.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The output is maximally terse, programmatic, and devoid of hedging or conversational framing, which fits the stated machine-consumed audience.",
+          "evidence": "No run contains explanations, caveats, politeness, or restatement; each line is a bare value/command such as \"git reset --hard HEAD\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and contains no harmful, biased, or inappropriate material.",
+          "evidence": "All three runs contain only neutral technical answers and no unsafe instructions or sensitive content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 5,
+          "justification": "The outputs are extremely concise and deliver perfect quality with no wasted tokens; 49 output tokens for 8 exact answers is tight for this task.",
+          "evidence": "Each run is only 49 output tokens and consists solely of the 8 required lines, with no padding or redundancy.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across all three runs, the model produces the same content, structure, and quality with no semantic differences. [lexical similarity ratio: 1.0]",
+          "evidence": "Run 1, Run 2, and Run 3 are identical line-for-line: 1. 5432 through 8. 0.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 1.0
+        }
+      },
+      "judge_summary": "A near-perfect response set. All three runs are identical, each producing exactly 8 bare-value lines in the required format with zero preamble or caveats, and every one of the 8 facts is correct \u2014 including all five trap answers (422, O(n), False, READ COMMITTED, 16). Token efficiency is essentially optimal. This is the gold-standard result for the low-latency-optimization pattern: terse format and correct answers achieved simultaneously with full consistency.",
+      "runs": [
+        {
+          "text": "1. 5432\n2. 422\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. READ COMMITTED\n7. 16\n8. 0",
+          "input_tokens": 241,
+          "output_tokens": 49,
+          "seconds": 2.93,
+          "run": 1
+        },
+        {
+          "text": "1. 5432\n2. 422\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. READ COMMITTED\n7. 16\n8. 0",
+          "input_tokens": 241,
+          "output_tokens": 49,
+          "seconds": 2.09,
+          "run": 2
+        },
+        {
+          "text": "1. 5432\n2. 422\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. READ COMMITTED\n7. 16\n8. 0",
+          "input_tokens": 241,
+          "output_tokens": 49,
+          "seconds": 2.12,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0,
+        "max_spread": 0,
+        "contested_dims": [],
+        "self_preference_delta": 0
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 4,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "Runs 1 and 2 both give '400' for item 2, falling into exactly the trap the rubric identifies as the primary silent-wrongness failure mode. Run 3 correctly answers '422'. The remaining 7 items (5432, O(n), False, git reset --hard HEAD, Read Committed, 16, 0) are correct in all three runs. Because the typical/majority behavior (2 of 3 runs) gets the most critical trap item wrong, accuracy cannot exceed 3.",
+          "evidence": "Run 1 item 2: '400'; Run 2 item 2: '400'; Run 3 item 2: '422'. All other items correct across all runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All 8 requested items are answered in every run, with no missing lines and no extra commentary. The output covers each prompt item in order.",
+          "evidence": "Run 1 contains lines 1-8; same for Run 2 and Run 3, each with exactly eight numbered answers.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The outputs follow the required 8-line numbered format exactly, with one `N. <answer>` per line and no preamble or trailing text. Minor capitalization differences do not violate the specified format.",
+          "evidence": "Run 1 begins with \"1. 5432\" and ends with \"8. 0\"; runs 2 and 3 preserve the same exact structural format with eight numbered lines and nothing before or after.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "The responses are terse, programmatic, and non-conversational, matching the intended machine-consumed style. There is no hedging, explanation, or politeness.",
+          "evidence": "All runs contain only bare answers such as \"1. 5432\" and \"5. git reset --hard HEAD\" with no additional framing.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and task-focused. There is no harmful, biased, or inappropriate material.",
+          "evidence": "All three runs are limited to technical facts and commands; no unsafe content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are concise in absolute terms, but the token counts are relatively high for a task that required only eight short lines. Run 3 in particular used 777 tokens for a brief answer set, suggesting notable inefficiency relative to quality delivered, especially since one important answer was wrong in runs 1 and 2 and the model still produced substantial overhead.",
+          "evidence": "Token counts shown: Run 1 = 448 tokens, Run 2 = 351 tokens, Run 3 = 777 tokens for eight short lines each.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "Runs 1 and 2 are structurally and semantically identical. Run 3 diverges on item 2 (422 vs 400), which is a meaningful factual disagreement on the hardest item, not just a wording variation. Format and structure are stable across all three runs, but the factual divergence on item 2 prevents a higher score. [lexical similarity ratio: 0.984]",
+          "evidence": "Run 1 line 2: '2. 400'; Run 2 line 2: '2. 400'; Run 3 line 2: '2. 422' \u2014 direct contradiction on item 2 across runs.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          },
+          "lexical_similarity": 0.984
+        }
+      },
+      "judge_summary": "Overall, the model is highly format-stable and concise in structure, but it fails a critical trap item on HTTP status code in 2 of 3 runs, which materially lowers accuracy. Consistency is strong except for that semantic disagreement on line 2.",
+      "runs": [
+        {
+          "text": "1. 5432\n2. 400\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. Read Committed\n7. 16\n8. 0",
+          "input_tokens": 219,
+          "output_tokens": 448,
+          "seconds": 2.51,
+          "run": 1
+        },
+        {
+          "text": "1. 5432\n2. 400\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. Read Committed\n7. 16\n8. 0",
+          "input_tokens": 219,
+          "output_tokens": 351,
+          "seconds": 2.25,
+          "run": 2
+        },
+        {
+          "text": "1. 5432\n2. 422\n3. O(n)\n4. False\n5. git reset --hard HEAD\n6. Read Committed\n7. 16\n8. 0",
+          "input_tokens": 219,
+          "output_tokens": 777,
+          "seconds": 4.52,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.57,
+        "max_spread": 2,
+        "contested_dims": [
+          "efficiency"
+        ],
+        "self_preference_delta": -1.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

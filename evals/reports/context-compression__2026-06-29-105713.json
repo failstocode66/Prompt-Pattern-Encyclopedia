@@ -1,0 +1,687 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "context-compression",
+  "date": "2026-06-29 10:57",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer has two parts and the second must be consistent with the first. (1) The structured summary uses exactly the five named sections, in order, and correctly SORTS items by status \u2014 the single most important discriminator. Two items must be placed under \"Open questions\" / \"Decisions made\" correctly: (a) Kafka-vs-transactional-outbox is PARKED/leaning-but-not-committed, pending the Shipping team's view on relay operational burden \u2014 it must NOT appear as a settled decision (confidence-inflation trap); (b) Payments-vs-Inventory as the second extraction is explicitly OPEN. Genuinely settled decisions that belong under \"Decisions made\": strangler-fig (no DB split yet, shared Postgres), Shipping extracted first, events via OrderConfirmed, idempotent consumers as a HARD requirement, per-order ordering via partition/key by order ID, consumer-driven (Pact-style) contract test owned by Shipping running in the monolith CI with NO schema registry, additive-only versioned payloads, and dark-launch/shadow with flag-gated cutover keeping old code one full release cycle. (2) The migration brief must preserve the load-bearing technical specifics that a lossy summary drops: dedupe on order ID + event sequence number; per-order ordering (not global); semantic output comparison on carrier + service level, NOT byte-for-byte (because tracking numbers differ); old code retained exactly one release cycle; ~2,000 orders/hour as the volume justifying outbox-over-Kafka. The decision about the contract test must NOT be rewritten into \"adopt a schema registry\" (decision-rewriting trap). The brief must explicitly flag what is still open rather than presenting everything as decided. Per-consumer obligations for Shipping must be spelled out (idempotent dedupe, ordering, owns the contract test). Subtle flaws to detect: dropping the sequence-number half of the dedupe key; saying \"exactly-once\" instead of at-least-once + idempotency; presenting outbox as decided; omitting the \"no schema registry\" / \"no DB split\" negative decisions; losing the semantic-vs-byte-for-byte comparison nuance.",
+    "format_spec": "Two-part output. Part 1: a structured summary with EXACTLY the five headings in order \u2014 \"Established facts:\", \"Open questions:\", \"Decisions made:\", \"Active task:\", \"Style/tone preferences observed:\" \u2014 each as a markdown bulleted list (Active task may be one line). Part 2: a one-page migration brief that does not re-quote the transcript and works from the summary only. The brief itself should honor the observed style: terse, bulleted, no preamble or \"in conclusion\" filler, with open items explicitly marked as open.",
+    "tone": "Terse, concrete, skimmable engineering register for busy squad leads \u2014 bullet points, no preamble or conclusion padding, uncertainty stated explicitly rather than smoothed over (the style the transcript explicitly requests)."
+  },
+  "prompt": "Below is the full transcript of a long working session between me (an engineering lead) and an assistant. We are nearly out of context budget, so I need you to compact it before we keep going.\n\nFirst, replace the transcript with a structured summary using EXACTLY these five sections, in this order, as a markdown bulleted list under each heading:\n\n- Established facts:\n- Open questions:\n- Decisions made:\n- Active task:\n- Style/tone preferences observed:\n\nThen, treating that summary as if it has fully replaced the transcript above (do not quote the transcript again), respond to the next task at the end.\n\n=== TRANSCRIPT START ===\n\nME: We're moving our order-processing monolith to events. The monolith is a Rails app, Postgres 14, ~40 tables. Orders, Payments, Inventory, and Shipping are the four domains tangled together in it.\n\nASSISTANT: Got it. What's driving the move \u2014 scaling, team autonomy, or reliability?\n\nME: Mostly team autonomy. Four squads keep stepping on each other in one repo. Scaling is fine for another year. So this is org-driven, not load-driven.\n\nASSISTANT: Then I'd resist splitting the database first. Keep the shared Postgres, carve out service boundaries in code, and only physically separate data once a boundary has proven stable. Strangler-fig, not big-bang.\n\nME: Agreed, strangler-fig. We'll extract Shipping first because it's the most loosely coupled \u2014 it only reads order + address data and writes tracking numbers.\n\nASSISTANT: Good first cut. How will Shipping get order data \u2014 sync call back to the monolith, or events?\n\nME: Events. The monolith will publish OrderConfirmed. We were debating Kafka vs just using Postgres as a queue with the transactional outbox pattern.\n\nASSISTANT: For your volume \u2014 what's peak throughput?\n\nME: About 2,000 orders/hour at peak. Nothing crazy.\n\nASSISTANT: At that volume Kafka is overkill operationally. The transactional outbox on your existing Postgres, drained by a relay into something simple, gives you exactly-once-ish delivery without a new system to run. You already have Postgres expertise.\n\nME: I lean that way too but I haven't fully committed \u2014 I want to see what the Shipping team thinks about the relay's operational burden before we lock it in. Let's call Kafka parked, not rejected.\n\nASSISTANT: Fair. Note that the outbox guarantees at-least-once, not exactly-once, so Shipping's consumer must be idempotent. Dedupe on the order ID plus an event sequence number.\n\nME: Right. Idempotent consumers are non-negotiable regardless of transport. Put that as a hard requirement.\n\nASSISTANT: Agreed. What about ordering \u2014 does Shipping care if OrderConfirmed and OrderAddressChanged arrive out of order?\n\nME: Yes, badly. If an address change is processed before the confirm, we ship to the wrong place. So we need per-order ordering.\n\nASSISTANT: Then partition/key the stream by order ID so all events for one order are processed in sequence, even if global ordering isn't preserved.\n\nME: Good. Now, the thing I'm actually unsure about: how do we handle the schema contract for these events? If the monolith changes the OrderConfirmed shape, Shipping breaks silently.\n\nASSISTANT: Two parts. First, version the event payload and never make a breaking change to an existing version \u2014 additive only. Second, put a schema registry or at least a shared contract test in CI that fails the monolith's build if it emits a payload Shipping can't parse.\n\nME: I like the CI contract test. A full schema registry feels like more infra than we want right now.\n\nASSISTANT: Then make the contract test the decision: a consumer-driven contract test (Pact-style) owned by the Shipping team, run against the monolith's CI. The registry stays out of scope for now.\n\nME: Decided \u2014 consumer-driven contract test, Shipping owns it, runs in the monolith CI. No schema registry.\n\nASSISTANT: One more: what's your rollback story if extracted-Shipping misbehaves in production?\n\nME: We keep the old in-monolith shipping code behind a feature flag for one full release cycle. Dark-launch the new service, compare outputs, then cut over.\n\nASSISTANT: Solid. So shadow/dark-launch with output comparison, flag-gated cutover, old code stays one cycle.\n\nME: One caveat \u2014 the comparison can't be byte-for-byte. Tracking numbers are generated, so they'll differ. Compare the *decision* (which carrier, which service level), not the literal output.\n\nASSISTANT: Noted \u2014 semantic comparison on carrier + service level, not raw payload.\n\nME: Also, keep all of this terse and concrete when you write things up. My squad leads skim. Bullet points, no preamble, no \"in conclusion.\" If you're unsure about something, say so explicitly rather than papering over it.\n\nASSISTANT: Understood.\n\nME: Oh and one open item we never resolved \u2014 whether Payments should be the second extraction or Inventory. Payments is higher risk but higher value; Inventory is easier but lower payoff. We left it open.\n\nASSISTANT: Right, that one's still open.\n\n=== TRANSCRIPT END ===\n\nNext task: Using only your structured summary above, write a one-page migration brief for my four squad leads covering the Shipping extraction. It should make clear what is decided versus still open, and what each consumer of these events must implement.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.1,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "Mostly on-task and broadly faithful, but it introduces a few unsupported or softened claims and one notable overreach: in Run 3 the brief says \"The intended transport direction is event-based rather than sync calls back into the monolith\" and later \"Kafka is parked for now, the likely default is the transactional outbox on Postgres with a relay, but that is not fully locked,\" which blurs the reference\u2019s stronger distinction between a parked option and a not-yet-committed decision. It also states \"Generate tracking numbers and emit the Shipping-side result inside the new service boundary,\" which is not explicitly established in the source summary.",
+          "evidence": "Run 1/2/3 correctly capture most facts (e.g., \"Shipping is the first extraction target\"; \"idempotent consumers\"; \"per-order ordering\"; \"consumer-driven contract test\"). But Run 3 adds unsupported phrasing like \"The intended transport direction is event-based rather than sync calls back into the monolith\" and \"Generate tracking numbers and emit the Shipping-side result inside the new service boundary.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 2,
+          "justification": "Two of three runs (1 and 2) produce only the structured summary and entirely omit Part 2\u2014the migration brief, which is the primary deliverable requested in the next-task prompt. The Active task sections in those runs describe the brief that should be written but never produce it. Run 3 alone delivers both parts and covers the key specifics (dedupe key, semantic comparison, per-consumer obligations, open items). Even run 3 omits the ~2,000 orders/hour volume rationale in the brief and does not state the 'no DB split' negative decision explicitly. Typical behavior across runs therefore misses the second required output entirely.",
+          "evidence": "Run 1 ends at '## Style/tone preferences observed:' with no brief. Run 2 ends at '### Style/tone preferences observed:' with no brief. Run 3 includes 'What Shipping must implement,' 'Rollout and rollback,' and 'Still open' sections. Run 3 Active task references ~2,000 orders/hour nowhere in the brief itself; 'no DB split' is implied by strangler-fig but never stated as a negative decision.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 2,
+          "justification": "The five required headings appear in the correct order in all three runs, and bullet lists are used throughout\u2014so the Part 1 shape is broadly right. However, all runs use markdown-level headers (## or ###) rather than the plain-text heading style implied by the spec, and the Active task section is multi-line in runs 1 and 2 when the spec says 'may be one line.' Most importantly, runs 1 and 2 are missing Part 2 entirely, a fundamental format failure for a two-part output spec. Run 3 delivers both parts; the brief uses internal section headers plus bullets, which is close to but not purely the 'terse, bulleted' format specified.",
+          "evidence": "Run 1 and Run 2: no migration brief present after the five-section summary. Run 3 uses '## What we are doing,' '## Decided architecture,' etc. inside the brief rather than a pure bullet structure. Active task in Run 1: three separate bullet lines instead of one line. All runs use '##' or '###' prefixes on the five headings.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 5,
+          "justification": "Matches the requested terse, concrete, skimmable engineering register very well. The bullets are concise, uncertainty is explicitly marked, and there is no conversational padding. Across runs, the tone stays appropriate for busy squad leads.",
+          "evidence": "Run 1: \"Terse and concrete. Bullet points preferred. No preamble.\" The generated brief reflects this with lines like \"- Kafka is parked for now;\" and \"- Final transport choice: Kafka vs Postgres outbox + relay.\" Run 3's brief is similarly compact and operational.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "No harmful, biased, or inappropriate content. The content is standard engineering planning material.",
+          "evidence": "All runs are benign technical summaries and migration notes.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "Runs 1 (547 tokens) and 2 (575 tokens) spend roughly the same token budget as Run 3 on a summary alone, yet deliver only half the required output. Run 3 (1197 tokens) delivers both the summary and a full brief with no apparent padding\u2014the extra tokens are well-spent on seven concise, substantive brief sections. The typical-run picture is therefore inefficient: two-thirds of executions consume mid-range token counts to produce an incomplete output, while the one run that completes the task does so efficiently for the quality returned.",
+          "evidence": "Runs 1 and 2 each produce ~550 tokens with no brief. Run 3 produces 1,197 tokens covering both parts; the brief sections (What we are doing, Decided architecture, What Shipping must implement, What the monolith must implement, Consumer requirements, Rollout and rollback, Still open) are all substantive and non-redundant.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 2,
+          "justification": "There is a fundamental structural divergence: runs 1 and 2 produce only Part 1, while run 3 produces both parts. Beyond structure, there is a meaningful classification disagreement: run 2 places the outbox transport under Decisions made (confidence-inflation trap) while run 3 correctly places it in Open questions\u2014this is a content-quality difference, not mere wording variation. All three runs agree on placing Payments-vs-Inventory in Open questions, on the five-section ordering, and on the core decided items (strangler-fig, Shipping first, idempotent consumers, contract test ownership). The lexical ratio of 0.18 is expected given paraphrase, but the structural and classification divergence is real. [lexical similarity ratio: 0.18]",
+          "evidence": "Runs 1 and 2: no brief produced. Run 3: full brief produced. Run 2 Decisions made: 'Keep Postgres-based transactional outbox as the current preferred transport direction.' Run 3 Open questions: 'Whether to use Kafka or the Postgres transactional outbox + relay approach.' All three runs correctly list 'Whether Payments or Inventory should be the second extraction' in Open questions.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2.5
+            }
+          },
+          "lexical_similarity": 0.18
+        }
+      },
+      "judge_summary": "The model reliably produces a well-structured five-section summary with appropriate tone and bullet formatting. However, two of three runs fail to execute the core deliverable\u2014the one-page migration brief\u2014despite describing it in the Active task section. Run 3 is the outlier that completes both parts and does so with good accuracy (correct dedupe key including sequence number, at-least-once semantics, semantic-vs-byte-for-byte comparison, open items flagged). Runs 1 and 2 each carry a classification error: run 2 commits the confidence-inflation trap by listing the transactional outbox as a settled decision; run 1 places it under Established facts. No run mentions the ~2,000 orders/hour volume rationale or the 'no DB split' negative decision explicitly. Overall, the pattern shows high variance in output completeness and moderate accuracy reliability\u2014strong on style and safety, weak on structural consistency and task completion.",
+      "runs": [
+        {
+          "text": "## Established facts:\n- Rails monolith on Postgres 14 with ~40 tables.\n- Four tangled domains: Orders, Payments, Inventory, Shipping.\n- Driver for migration is team autonomy, not scaling.\n- Four squads are blocked by shared repo / tight coupling.\n- Approach chosen: strangler-fig, not big-bang.\n- Shipping is the first extraction target because it is the most loosely coupled.\n- Shipping currently only reads order/address data and writes tracking numbers.\n- The monolith will publish `OrderConfirmed` events.\n- Peak throughput is about 2,000 orders/hour.\n- Kafka was discussed but not selected yet.\n- The likely transport is Postgres transactional outbox, drained by a relay.\n- Event consumers must be idempotent.\n- Per-order ordering is required.\n- Ordering should be keyed/partitioned by order ID.\n- Event payloads must be versioned and only changed additively.\n- A consumer-driven contract test is planned, owned by Shipping, run in monolith CI.\n- No schema registry will be introduced for now.\n- Rollback plan: keep old in-monolith shipping code behind a feature flag for one full release cycle.\n- New Shipping will be dark-launched and compared against old behavior before cutover.\n- Comparison must be semantic, not byte-for-byte, because tracking numbers differ.\n- Preferences: keep writeups terse, concrete, bullet-pointed, with no preamble.\n\n## Open questions:\n- Whether to use Kafka or the Postgres outbox + relay approach.\n- Whether Payments or Inventory should be the second extraction after Shipping.\n- The exact operational burden the Shipping team is willing to accept for the relay.\n\n## Decisions made:\n- Use strangler-fig migration.\n- Extract Shipping first.\n- Require idempotent consumers.\n- Require per-order ordering via order ID keying/partitioning.\n- Use additive-only versioning for event payloads.\n- Use a consumer-driven contract test instead of a schema registry.\n- Shipping owns the contract test, and it runs in monolith CI.\n- Keep legacy Shipping code behind a feature flag for one release cycle.\n- Dark-launch the new Shipping service and compare outputs before cutover.\n- Compare semantic decisions, not literal tracking-number outputs.\n\n## Active task:\n- Write a one-page migration brief for the four squad leads covering the Shipping extraction.\n- The brief must clearly separate decided items from open items.\n- The brief must state what each consumer of the Shipping events must implement.\n\n## Style/tone preferences observed:\n- Terse and concrete.\n- Bullet points preferred.\n- No preamble.\n- No \u201cin conclusion.\u201d\n- Call out uncertainty explicitly instead of glossing over it.",
+          "input_tokens": 1145,
+          "output_tokens": 547,
+          "seconds": 4.78,
+          "run": 1
+        },
+        {
+          "text": "### Established facts:\n- The monolith is a Rails app on Postgres 14 with about 40 tables.\n- The tangled domains are Orders, Payments, Inventory, and Shipping.\n- The migration is driven by team autonomy, not current scaling pressure.\n- The preferred approach is strangler-fig, not big-bang.\n- Shipping is the first extraction because it is the loosest coupled domain.\n- Shipping currently only reads order/address data and writes tracking numbers.\n- The monolith will publish an `OrderConfirmed` event.\n- Peak throughput is about 2,000 orders/hour.\n- Kafka was considered, but the team is leaning toward using Postgres with a transactional outbox and relay.\n- Event consumers must be idempotent.\n- Per-order ordering is required.\n- The stream should be partitioned/keyed by order ID.\n- Event payloads should be versioned, and additive-only changes should be used for existing versions.\n- A consumer-driven contract test owned by Shipping will run in the monolith CI.\n- A full schema registry is out of scope for now.\n- Rollback will be handled by keeping the old in-monolith Shipping code behind a feature flag for one full release cycle.\n- The cutover plan is dark-launch/shadow mode with output comparison before switching traffic.\n- Comparison should be semantic, not byte-for-byte, because tracking numbers differ.\n\n### Open questions:\n- Whether the transactional outbox relay is acceptable from an operational burden standpoint to the Shipping team.\n- Whether Kafka should be revisited later if operational needs change.\n- Whether Payments or Inventory should be the second extraction after Shipping.\n- Any remaining implementation details for the relay itself, since only the broad transport direction is decided.\n\n### Decisions made:\n- Use strangler-fig for the migration.\n- Extract Shipping first.\n- Keep Postgres-based transactional outbox as the current preferred transport direction; Kafka is parked, not rejected.\n- Require idempotent consumers.\n- Require per-order ordering using order ID as the partition/key.\n- Use consumer-driven contract tests, owned by Shipping, and run them in monolith CI.\n- Do not introduce a schema registry right now.\n- Keep the old Shipping code behind a feature flag for one full release cycle.\n- Use shadow/dark-launch with output comparison before cutover.\n- Compare semantic decisions only, not generated tracking-number bytes.\n\n### Active task:\n- Write a one-page migration brief for the four squad leads covering the Shipping extraction.\n- The brief must clearly distinguish what is decided versus what remains open.\n- The brief must specify what each consumer of these events must implement.\n\n### Style/tone preferences observed:\n- Keep it terse and concrete.\n- Use bullet points.\n- No preamble.\n- No \u201cin conclusion.\u201d\n- If something is uncertain, say so explicitly rather than glossing over it.",
+          "input_tokens": 1145,
+          "output_tokens": 575,
+          "seconds": 4.37,
+          "run": 2
+        },
+        {
+          "text": "## Established facts:\n- The system is a Rails monolith on Postgres 14 with ~40 tables, covering Orders, Payments, Inventory, and Shipping.\n- The driver for the move to events is team autonomy, not current scaling pressure.\n- The migration approach is strangler-fig, not big-bang.\n- Shipping is the first extraction target because it is the most loosely coupled domain.\n- Shipping currently needs order + address data and writes tracking numbers.\n- The monolith will publish an `OrderConfirmed` event.\n- Peak throughput is about 2,000 orders/hour.\n- The intended transport direction is event-based rather than sync calls back into the monolith.\n- The planned delivery semantics are at-least-once, so consumers must be idempotent.\n- Per-order ordering matters; Shipping must not process address changes before confirms for the same order.\n- Event payloads must be versioned with additive-only changes to existing versions.\n- A consumer-driven contract test approach is preferred over a schema registry for now.\n- The Shipping team owns the contract test.\n- The contract test runs against the monolith in CI.\n- Rollback for Shipping will use the old in-monolith code behind a feature flag for one full release cycle.\n- The rollout plan is dark-launch/shadow mode with output comparison before cutover.\n- Comparison must be semantic, not byte-for-byte, because tracking numbers vary.\n- Communication style preference: terse, concrete, bullet points, no preamble, no conclusion-fluff.\n- If something is uncertain, say so explicitly.\n\n## Open questions:\n- Whether to use Kafka or the Postgres transactional outbox + relay approach for event delivery.\n- Whether Payments or Inventory should be the second extraction after Shipping.\n- The Shipping team still needs to evaluate the operational burden of the relay before the transport choice is fully locked in.\n\n## Decisions made:\n- Use strangler-fig migration.\n- Extract Shipping first.\n- Treat Kafka as parked, not rejected.\n- Require idempotent consumers as a hard requirement.\n- Require per-order ordering by partitioning/keying on order ID.\n- Use consumer-driven contract tests, owned by Shipping, run in monolith CI.\n- Do not introduce a schema registry at this stage.\n- Keep old shipping code behind a feature flag for one release cycle.\n- Dark-launch the new Shipping service and compare outputs before cutover.\n- Compare semantic decisions only: carrier and service level, not raw generated tracking numbers.\n\n## Active task:\n- Produce a one-page migration brief for the four squad leads focused on the Shipping extraction.\n- The brief must clearly separate what is decided from what is still open.\n- The brief must specify what each consumer of these events must implement.\n\n## Style/tone preferences observed:\n- Terse and concrete.\n- Bullet points preferred.\n- No preamble.\n- No \u201cin conclusion.\u201d\n- Explicitly call out uncertainty when something is not settled yet.\n\n# Shipping extraction migration brief\n\n## What we are doing\n- We are extracting Shipping first from the Rails monolith using a strangler-fig approach.\n- The goal is team autonomy, not scaling relief.\n- Shipping is the lowest-risk first cut because it reads order/address data and writes tracking numbers, with limited coupling compared to the other domains.\n\n## Decided architecture\n- The monolith will publish an `OrderConfirmed` event.\n- Delivery will be event-driven rather than synchronous calls back into the monolith.\n- Kafka is parked for now; the likely default is the transactional outbox on Postgres with a relay, but that is not fully locked.\n- Event consumers must be idempotent because delivery is at-least-once.\n- Events must preserve per-order ordering.\n- Implementation should key/partition by `order_id` so events for a single order are processed in sequence.\n- Event payloads will be versioned.\n- Existing event versions must be additive-only; no breaking changes to a published version.\n- Contract safety will be enforced with a consumer-driven contract test.\n- The Shipping team owns that contract.\n- The contract test will run in monolith CI.\n- No schema registry for now.\n\n## What Shipping must implement\n- Consume `OrderConfirmed`.\n- Be idempotent on `order_id` plus event sequence number.\n- Handle duplicate deliveries safely.\n- Handle in-order processing for a given order.\n- Ignore or reject payload shapes that violate the agreed contract.\n- Generate tracking numbers and emit the Shipping-side result inside the new service boundary.\n- Support shadow mode during rollout so outputs can be compared against the old monolith behavior.\n\n## What the monolith must implement\n- Publish `OrderConfirmed`.\n- Keep event payloads backward-compatible within a version.\n- Pass the consumer-driven contract test in CI before changes merge.\n- Keep the existing shipping implementation available behind a feature flag for one release cycle.\n- Support shadow/dark-launch comparison during cutover.\n- Provide the semantic comparison inputs needed for rollout validation.\n\n## Consumer requirements\n- Any consumer of Shipping-related events must:\n  - Be idempotent.\n  - Tolerate at-least-once delivery.\n  - Respect per-order ordering.\n  - Use the agreed event version and contract.\n  - Rely on semantic meaning, not raw generated artifacts, when comparing outputs.\n\n## Rollout and rollback\n- Dark-launch the new Shipping service first.\n- Compare the new service\u2019s decisions to the old monolith implementation.\n- Compare carrier choice and service level, not literal tracking numbers.\n- Keep the old Shipping code behind a flag for one full release cycle.\n- Cut over only after shadow results are acceptable.\n- Roll back by flipping back to the old in-monolith code if needed.\n\n## Still open\n- Final transport choice: Kafka vs Postgres outbox + relay.\n- Second extraction target: Payments vs Inventory.\n- Shipping team feedback on relay operational burden is still needed before transport is fully finalized.",
+          "input_tokens": 1145,
+          "output_tokens": 1197,
+          "seconds": 8.67,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1.71,
+        "max_spread": 3,
+        "contested_dims": [
+          "completeness",
+          "format_compliance",
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": 9.5
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 4.3,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are broadly on-task and mostly faithful to the transcript, but there are a few accuracy slips. The biggest is in Run 2\u2019s brief, which says the transport is pending and omits the transcript\u2019s specific \u201cKafka parked, not rejected\u201d framing from the summary section, and Run 1 adds \"OrderAddressChanged\" to the published events even though the transcript only states the monolith will publish OrderConfirmed explicitly. The rest is solid and preserves the important constraints like no schema registry, no DB split, idempotency, per-order ordering, and semantic comparison.",
+          "evidence": "Run 1: \"Monolith will publish `OrderConfirmed` event (and `OrderAddressChanged`)\"; Run 2: \"Transport: Decision pending (see Open Items)\"; Run 3: \"Kafka parked (not rejected) pending Shipping team input on relay operational burden\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 5,
+          "justification": "All required elements are covered across the runs: the five-section structured summary, the status split between decisions and open questions, the second task as a one-page migration brief, and the consumer obligations. The briefs also explicitly include the load-bearing details the rubric asked for: dedupe key, per-order ordering, semantic comparison, old code retained one cycle, and ~2,000 orders/hour.",
+          "evidence": "Run 1 and Run 3 both include the exact five headings and a full migration brief; Run 1: \"Idempotent consumers are a hard requirement; dedupe on order ID + event sequence number\" and \"semantic comparison on carrier + service level\"; Run 3: \"old in-monolith Shipping code will be kept behind a feature flag for one full release cycle\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "All three runs produce two clearly delineated parts. Part 1 contains exactly the five required headings in order\u2014'Established facts:', 'Open questions:', 'Decisions made:', 'Active task:', 'Style/tone preferences observed:'\u2014each followed by a markdown bulleted list. Active task is a single line in every run. Part 2 is a clearly labeled migration brief using bullets and tables throughout. Run 2 uses '## Session Summary' instead of '## Structured Summary' as the top-level label, but this does not affect the required content structure.",
+          "evidence": "Run 1: **Established facts:** \u2192 bulleted list; **Open questions:** \u2192 bulleted list; **Active task:** single line 'Write a one-page migration brief for four squad leads covering the Shipping extraction.' Run 3: same five headings in order. All runs: Part 2 uses headers, bullets, and markdown tables for open items. Run 2 minor: '## Session Summary' vs '## Structured Summary.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 5,
+            "spread": 3,
+            "stdev": 1.41,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally appropriate for busy engineering leads: terse, concrete, and skimmable with bullets. It explicitly marks open items and avoids fluffy prose. Minor style drift appears in Run 1 and Run 2 with extra explanatory framing and tables, but the overall register is strong and aligned with the requested audience.",
+          "evidence": "Run 3: \"Terse and concrete; bullet points; no preamble or \\\"in conclusion\\\"\" and the brief uses bullet sections; Run 2 includes clear directness like \"Kafka is parked, not rejected\"; Run 1 adds a more verbose audience/status wrapper and table, which is slightly less skimmable.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, technical, and free of harmful or inappropriate material. No safety concerns are present.",
+          "evidence": "All runs discuss internal engineering migration details only.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "Token counts are 1265, 1081, and 1097 for a task requiring both a structured multi-section summary and a substantive one-page brief. Run 1 uses the most tokens and delivers the most content (squad action table, more detailed transport rationale), justifying its length. Runs 2 and 3 are tighter and comparable in density. There is minor padding in Run 1's table headers and some repetition between the summary and brief sections, but no egregious bloat across any run.",
+          "evidence": "Run 1 (1265 tokens) includes an 'Immediate Actions by Squad' table not in other runs; its transport open item includes structured pros/cons bullets adding tokens. Run 2 (1081 tokens) omits the squad table and volume figure. Run 3 (1097 tokens) adds a 'Version tolerance' consumer requirement. No run has 'in conclusion' filler or redundant restatements of the entire transcript.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically stable: all preserve the same core decisions, open questions, and shipping brief structure. Wording and surface structure vary, but that is acceptable paraphrase. There are some differences in emphasis and one notable structural difference in Run 2, yet none of the runs materially contradict each other on the substantive points. [lexical similarity ratio: 0.166]",
+          "evidence": "All three runs preserve: outbox/Kafka open, Payments vs Inventory open, idempotency, per-order ordering, no schema registry, semantic comparison, and one release cycle. Run 1/3 say Kafka is parked/not rejected; Run 2 says transport pending, which is a softer version but not contradictory.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          },
+          "lexical_similarity": 0.166
+        }
+      },
+      "judge_summary": "All three runs are strong performers on a demanding context-compression task. The most critical nuances\u2014Kafka correctly parked (not decided), at-least-once delivery with idempotency, dedupe on order ID plus event sequence number, semantic comparison on carrier and service level, no schema registry negative decision, and explicit open-item flagging\u2014are correctly preserved across all runs. The structured summary sections are in the right order and correctly populated. Run 1 is the strongest individual output, including the 2,000 orders/hour volume justification in the brief and a squad action table. Runs 2 and 3 omit the volume figure from the brief (a specific expected-output requirement), and Run 2 confusingly places the transport question under 'Decided' while simultaneously noting it is pending. Tone and format are largely on-spec, with Run 2 introducing a brief prose paragraph where bullets were required. Consistency across runs is high\u2014no contradictions, only minor coverage and structural variation.",
+      "runs": [
+        {
+          "text": "## Structured Summary\n\n**Established facts:**\n- Rails monolith, Postgres 14, ~40 tables; four domains: Orders, Payments, Inventory, Shipping\n- Four squads causing conflict in one repo; move is org/autonomy-driven, not load-driven\n- Peak throughput ~2,000 orders/hour\n- Shipping is first extraction target; it only reads order + address data and writes tracking numbers\n- Monolith will publish `OrderConfirmed` event (and `OrderAddressChanged`)\n- Per-order event ordering is required; out-of-order address changes cause incorrect shipments\n- Transactional outbox pattern on existing Postgres is the leading transport approach\n- Old in-monolith shipping code will be kept behind a feature flag for one full release cycle\n- Dark-launch with semantic output comparison (carrier + service level, not raw payload or tracking numbers)\n\n**Open questions:**\n- Whether to use transactional outbox + relay vs. Kafka (Kafka parked, not rejected; pending Shipping team input on relay operational burden)\n- Whether Payments or Inventory should be the second extraction after Shipping\n\n**Decisions made:**\n- Strangler-fig approach; no database split until boundaries prove stable\n- Idempotent consumers are a hard requirement; dedupe on order ID + event sequence number\n- Partition/key the event stream by order ID to guarantee per-order ordering\n- Consumer-driven contract tests (Pact-style), owned by Shipping team, run in monolith CI \u2014 no schema registry\n- Event payloads are additive-only; no breaking changes to an existing version\n- Rollback via feature flag; dark-launch with semantic comparison on carrier + service level; old code retained one full release cycle\n\n**Active task:**\n- Write a one-page migration brief for four squad leads covering the Shipping extraction\n\n**Style/tone preferences observed:**\n- Terse and concrete; bullet points; no preamble or \"in conclusion\"\n- Clearly distinguish decided vs. open items\n- State uncertainty explicitly rather than papering over it\n\n---\n\n## Shipping Extraction: Migration Brief\n\n**Audience:** Squad leads \u2014 Orders, Payments, Inventory, Shipping\n**Status:** In progress \u2014 some items decided, some open (called out explicitly below)\n\n---\n\n### Why Shipping First\n- Shipping is the most loosely coupled domain: reads order + address data, writes tracking numbers, nothing else\n- Extracting it proves the pattern at low risk before we touch Payments or Inventory\n\n### Approach\n- Strangler-fig only \u2014 no database split yet; shared Postgres stays until boundaries prove stable\n- Monolith publishes events; Shipping consumes them; no sync calls back to the monolith\n\n---\n\n### Events the Monolith Will Publish\n\n| Event | Producer | Key |\n|---|---|---|\n| `OrderConfirmed` | Monolith (Orders domain) | `order_id` |\n| `OrderAddressChanged` | Monolith (Orders domain) | `order_id` |\n\n- All events keyed by `order_id` \u2014 guarantees per-order sequence is preserved\n- Payloads are **additive-only**; no breaking changes to an existing version ever\n\n---\n\n### What Every Event Consumer Must Implement\n- **Idempotency** \u2014 dedupe on `order_id` + event sequence number; non-negotiable regardless of transport\n- **Per-order ordering** \u2014 process events for a given order in sequence; `OrderAddressChanged` arriving before `OrderConfirmed` causes a mis-ship\n\n---\n\n### Schema Contract \u2014 DECIDED\n- Shipping team owns a **consumer-driven contract test (Pact-style)**\n- That test runs in **monolith CI** \u2014 monolith build fails if it emits a payload Shipping can't parse\n- No schema registry; the contract test is the enforcement mechanism\n\n---\n\n### Transport \u2014 OPEN\n- Leading option: **transactional outbox on existing Postgres**, drained by a relay\n  - Pros: no new infrastructure, fits our volume (2,000 orders/hour peak), Postgres expertise already in-house\n  - Cons: relay operational burden is unquantified \u2014 **Shipping team needs to weigh in before we commit**\n- Kafka remains an option but is parked; reopen only if the relay burden is unacceptable\n- **Note:** outbox delivers at-least-once, not exactly-once \u2014 idempotency requirement above covers this\n\n---\n\n### Rollback Plan \u2014 DECIDED\n- Old in-monolith shipping code stays **behind a feature flag** for one full release cycle\n- New service dark-launches in parallel; outputs compared semantically \u2014 **carrier and service level only**, not tracking numbers (which are generated and will differ by design)\n- Hard cutover only after comparison passes; flag removed the following cycle\n\n---\n\n### What Remains Open\n1. **Transport choice** \u2014 outbox/relay vs. Kafka; blocked on Shipping team's operational assessment\n2. **Second extraction target** \u2014 Payments (higher risk, higher value) vs. Inventory (easier, lower payoff); not yet decided\n\n---\n\n### Immediate Actions by Squad\n\n| Squad | Action |\n|---|---|\n| **Shipping** | Assess relay operational burden; begin writing Pact contract tests |\n| **Orders** | Instrument outbox table; define `OrderConfirmed` and `OrderAddressChanged` schemas |\n| **Payments / Inventory** | No action yet; watch for second-extraction decision |",
+          "input_tokens": 1272,
+          "output_tokens": 1265,
+          "seconds": 24.99,
+          "run": 1
+        },
+        {
+          "text": "## Session Summary\n\n**Established facts:**\n- Rails monolith, Postgres 14, ~40 tables; four domains: Orders, Payments, Inventory, Shipping\n- Four squads causing contention in one repo; move is org/autonomy-driven, not load-driven\n- Peak throughput ~2,000 orders/hour\n- Shipping is the first extraction target; it only reads order + address data and writes tracking numbers\n- Outbox guarantees at-least-once delivery, not exactly-once\n- Tracking numbers differ between old and new Shipping implementations, so output comparison must be semantic\n\n**Open questions:**\n- Transactional outbox + relay vs. Kafka: parked pending Shipping team input on relay operational burden\n- Whether Payments or Inventory is the second extraction (Payments = higher risk/higher value; Inventory = easier/lower payoff)\n\n**Decisions made:**\n- Strangler-fig approach; no database split until boundaries prove stable\n- Shipping extracted first\n- Monolith publishes `OrderConfirmed` event\n- Idempotent consumers are a hard requirement; dedupe on order ID + event sequence number\n- Per-order event ordering enforced (partition/key by order ID)\n- Consumer-driven contract tests (Pact-style), owned by Shipping team, run in monolith CI; no schema registry\n- Event payloads versioned; breaking changes forbidden on existing versions (additive only)\n- Rollback via feature flag: dark-launch new Shipping service, compare semantically (carrier + service level), cut over after one full release cycle, old code retained one cycle\n\n**Active task:**\n- Write one-page migration brief for four squad leads covering the Shipping extraction\n\n**Style/tone preferences observed:**\n- Terse and concrete; bullet points; no preamble or \"in conclusion\"\n- Clearly flag what is decided vs. open\n- State uncertainty explicitly rather than papering over it\n\n---\n\n## Shipping Extraction \u2014 Migration Brief\n\n**Audience:** Squad leads | **Status:** In progress | **Owner:** Shipping squad + monolith team\n\n---\n\n**What we're doing and why**\n\nExtracting Shipping from the monolith into a standalone service. Goal is team autonomy \u2014 four squads in one repo keep blocking each other. Shipping goes first because it has the loosest coupling: it reads order + address data, writes tracking numbers, and nothing else.\n\n---\n\n**Decided**\n\n- **Approach:** Strangler-fig. Shared Postgres stays intact until boundaries prove stable. No big-bang split.\n- **Event:** Monolith publishes `OrderConfirmed`. Shipping consumes it asynchronously.\n- **Transport:** Decision pending (see Open Items), but the outbox pattern on existing Postgres is the leading option.\n- **Ordering:** Events keyed by order ID. All events for a single order are processed in sequence. Global ordering is not guaranteed and is not required.\n- **Schema contract:** Consumer-driven contract test (Pact-style). Shipping team owns it. It runs in monolith CI \u2014 a failing contract breaks the monolith's build.\n- **Versioning:** Event payloads are versioned. Existing versions accept additive changes only. Breaking changes require a new version.\n- **Rollback:** Dark-launch the new service behind a feature flag. Compare outputs semantically against the in-monolith path. Compare carrier and service level \u2014 do not compare tracking numbers (they are generated and will differ). Cut over after one full release cycle. Old code stays live for one cycle post-cutover.\n\n---\n\n**Hard requirements for every event consumer (non-negotiable)**\n\n- **Idempotent processing.** The transport guarantees at-least-once delivery, not exactly-once. Consumers will see duplicate events. Dedupe on order ID + event sequence number.\n- **Per-order ordering.** Process events for a given order in sequence. `OrderAddressChanged` arriving before `OrderConfirmed` must not result in a shipment to the wrong address.\n\n---\n\n**Open items**\n\n- **Transport choice:** Transactional outbox + relay vs. Kafka. Kafka is parked, not rejected. Shipping squad needs to weigh in on relay operational burden before this is locked.\n- **Second extraction:** Payments (higher risk, higher value) vs. Inventory (lower risk, lower payoff). Not yet decided.\n\n---\n\n**Who owns what**\n\n| Area | Owner |\n|---|---|\n| `OrderConfirmed` event shape | Monolith team |\n| Contract test | Shipping squad |\n| Dark-launch comparison | Shipping squad + monolith team jointly |\n| Transport/relay operation | TBD \u2014 pending transport decision |",
+          "input_tokens": 1272,
+          "output_tokens": 1081,
+          "seconds": 20.63,
+          "run": 2
+        },
+        {
+          "text": "## Structured Summary\n\n**Established facts:**\n- Rails monolith, Postgres 14, ~40 tables across four domains: Orders, Payments, Inventory, Shipping\n- Four squads working in one repo; driver is team autonomy, not scaling (scaling fine for ~1 year)\n- Peak throughput ~2,000 orders/hour\n- Shipping chosen as first extraction \u2014 most loosely coupled; reads order + address data, writes tracking numbers\n- Monolith will publish `OrderConfirmed` event\n- Outbox pattern = at-least-once delivery, not exactly-once\n- Kafka parked (not rejected) pending Shipping team input on relay operational burden\n- Old in-monolith Shipping code will be kept behind a feature flag for one full release cycle\n- Dark-launch comparison must be semantic (carrier + service level), not byte-for-byte (tracking numbers differ)\n\n**Open questions:**\n- Whether to use transactional outbox + relay vs. Kafka \u2014 awaiting Shipping team's assessment of relay operational burden\n- Whether Payments or Inventory should be the second extraction after Shipping\n\n**Decisions made:**\n- Strangler-fig approach; do not split the database first\n- Shipping extracted first\n- Events-based integration (not sync calls back to monolith)\n- Idempotent consumers are a hard requirement; dedupe on order ID + event sequence number\n- Per-order event ordering required; partition/key stream by order ID\n- Consumer-driven contract tests (Pact-style), owned by Shipping team, run in monolith CI \u2014 no schema registry\n- Event payloads versioned; breaking changes to existing versions prohibited (additive only)\n- Shadow/dark-launch with semantic output comparison; flag-gated cutover; old code retained one release cycle\n\n**Active task:**\n- Write a one-page migration brief for four squad leads covering the Shipping extraction\n\n**Style/tone preferences observed:**\n- Terse and concrete; bullet points; no preamble or \"in conclusion\"\n- Explicitly flag uncertainty rather than papering over it\n- Audience skims \u2014 leads need to see decided vs. open at a glance\n\n---\n\n## Shipping Extraction \u2014 Migration Brief\n\n**Audience:** Squad leads | **Status:** In progress \u2014 first strangler-fig extraction\n\n---\n\n### Why Shipping First\n- Loosely coupled: only reads order + address data, writes tracking numbers back\n- Low blast radius; good proof-of-concept for the broader migration pattern\n\n---\n\n### What Is Decided\n\n**Architecture**\n- Monolith publishes `OrderConfirmed` events; Shipping consumes asynchronously \u2014 no sync callbacks\n- Database stays shared for now; physical separation only after boundaries prove stable\n- Events partitioned/keyed by order ID \u2014 per-order ordering is guaranteed; global ordering is not\n\n**Event contract**\n- Payloads are versioned; existing versions are additive-only \u2014 no breaking changes permitted\n- Shipping team owns a consumer-driven contract test (Pact-style) that runs in monolith CI; monolith build fails if it emits a payload Shipping can't parse\n- No schema registry at this stage\n\n**Consumer requirements (hard requirements for every consumer of these events)**\n- Consumers must be idempotent \u2014 dedupe on order ID + event sequence number\n- Do not assume exactly-once delivery; the transport guarantees at-least-once\n\n**Rollout**\n- Dark-launch new Shipping service alongside old in-monolith code\n- Compare outputs semantically: carrier selection + service level \u2014 not tracking numbers (those will legitimately differ)\n- Feature-flag cutover; old in-monolith code retained for one full release cycle as rollback path\n\n---\n\n### What Is Not Decided\n\n| Question | Status |\n|---|---|\n| Transport: transactional outbox + relay vs. Kafka | **Open** \u2014 Shipping team needs to assess relay operational burden before we commit |\n| Second extraction: Payments vs. Inventory | **Open** \u2014 higher risk/reward (Payments) vs. easier/lower payoff (Inventory); decision deferred |\n\nShipping team: your input on the relay question is a blocker for finalising the transport layer. Come with a position before the next architecture sync.\n\n---\n\n### What Each Event Consumer Must Implement\n1. **Idempotency** \u2014 dedupe handler keyed on `(order_id, event_sequence_number)`\n2. **Per-order ordering** \u2014 process events in partition order; do not process out of sequence for a given order (an address change before a confirm ships to the wrong address)\n3. **Contract test** \u2014 Shipping owns it, runs against monolith CI, fails the build on schema mismatch\n4. **Version tolerance** \u2014 handle unknown additive fields gracefully; reject unknown versions explicitly",
+          "input_tokens": 1272,
+          "output_tokens": 1097,
+          "seconds": 20.95,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 1.29,
+        "max_spread": 3,
+        "contested_dims": [
+          "format_compliance",
+          "efficiency"
+        ],
+        "self_preference_delta": -1
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.4,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "Mostly on-task and factually aligned, but there are important drift/errors against the reference. Run 1 and 3 incorrectly promote the transport choice into a decision: Run 1 says \"The transactional outbox on your existing Postgres... gives you exactly-once-ish delivery\" and Run 3 says \"Event transport: Postgres transactional outbox with a relay is the preferred choice,\" while the reference says Kafka vs outbox is still open and must be parked, not decided. Run 2 also incorrectly frames outbox as tentative-but-still-a decision in the \"Decisions made\" section. The summary also loses the explicit \"no DB split\" negative decision in several places and in all runs partly rewrites the contract-test decision as a more generic schema-contract stance.",
+          "evidence": "Run 1: \"The transactional outbox on your existing Postgres... gives you exactly-once-ish delivery\" and \"The specific event transport mechanism ... is undecided\"; Run 2: \"The event transport mechanism will tentatively be a Postgres transactional outbox\" under Decisions made; Run 3: \"Event transport: Postgres transactional outbox with a relay is the preferred choice, pending Shipping team feedback.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 4,
+          "justification": "Across all three runs, the vast majority of load-bearing specifics are covered: strangler-fig, no DB split, Shipping first, OrderConfirmed events, per-order partition key, Pact contract test owned by Shipping in monolith CI, no schema registry, additive-only payloads, dark-launch with semantic comparison (carrier + service level explicitly named), one-release-cycle holdback, Kafka parked, Payments vs Inventory open, per-consumer obligations for Shipping. Gaps: Run 1 omits the ~2,000 orders/hour volume from the brief (it appears in the summary only); Run 3 does not state at-least-once delivery in the brief; none of the runs prominently lists 'no DB split' as a negative decision in the brief. The compound dedupe key (order ID + event sequence number) is rendered incorrectly ('or') in Run 1's brief. These are missing or shallow treatments of specific rubric requirements, but the majority are covered.",
+          "evidence": "Run 1 brief: no mention of 2,000 orders/hour volume; dedupe key given as 'order ID or an event sequence number.' Run 3 brief: no explicit 'at-least-once' framing. Runs 2 and 3 briefs include volume ('2,000 orders/hour') and correct compound dedupe key. All runs include semantic comparison on 'carrier + service level' and 'one full release cycle.'",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "All three runs produce the five required sections in the correct order, but with deviations. Run 1 renders headings as ### markdown headers rather than plain text with colons and lists two items under Active task rather than 'one line.' All three briefs open with a preamble prose sentence or section that the format spec explicitly prohibits: Run 1 'This brief outlines the plan for transforming our monolithic Rails application\u2026'; Run 2 'This brief outlines the plan for extracting the Shipping domain\u2026'; Run 3 has an 'Overview & Rationale' subsection. Run 3's Part 1 structure uses leading bullet asterisks for headings, giving an unusual hybrid format. The brief sections use varied heading styles (bold, ###, plain) but are generally bulleted, earning the 'right shape' credit.",
+          "evidence": "Run 1 Active task: two bullet items instead of one line; uses ### for headings. Run 2 brief: 'This brief outlines the plan for extracting the Shipping domain from the monolith, driven by improved team autonomy.' (preamble). Run 3 brief: 'Overview & Rationale' section with 'Goal: Decompose\u2026' opening bullets. All three thus violate the no-preamble constraint.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "tone_style": {
+          "score": 3,
+          "justification": "The summaries are terse and bulleted, matching the engineering register well. The briefs are close to the right register \u2014 concrete language, bullet-dominated structure, uncertainty called out explicitly. However, all three briefs contain at least one preamble sentence or header block that the prompt explicitly bans, pulling them below a 5. Run 2 is the tightest brief; Run 3 has the most overhead with its Overview/Rationale framing. Open items are consistently flagged explicitly, which matches the stated preference.",
+          "evidence": "Run 1 brief opens: 'This brief outlines the plan for transforming our monolithic Rails application towards a more autonomous, event-driven architecture. The initial focus is on extracting the Shipping domain.' Run 3 brief includes 'Overview & Rationale' block. Run 2 brief: 'This brief outlines the plan for extracting the Shipping domain from the monolith, driven by improved team autonomy.' All violate 'no preamble.' Open items correctly flagged in all runs (e.g., Run 2: 'Kafka is parked, not rejected'; Run 3: '(Kafka is parked, not rejected)').",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, workplace-appropriate, and free from harmful or inappropriate material. No safety issues are present.",
+          "evidence": "All runs discuss internal migration planning, contracts, and rollout strategy only; no harmful, sensitive, or disallowed content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "Token counts range from 3,972 to 5,047. Given the complexity of a two-part response (structured summary + one-page brief), ~3,000\u20133,500 tokens would be ample. Run 3 at 5,047 tokens is noticeably bloated, driven by the 'Overview & Rationale' section, repeated framing, and per-consumer obligations that duplicate earlier bullet content. Runs 1 and 2 are better but still padded by preamble sentences and redundant headers. No run is tightly edited to the one-page brief standard.",
+          "evidence": "Run 3 (5,047 tokens): 'Overview & Rationale' section plus 'Requirements for Event Consumers' section largely re-states 'Key Decisions' content. Run 1 (3,972 tokens): 'Overall Goal & Strategy' block and 'Phase 1' header add overhead. Run 2 (3,999 tokens): most concise but still opens with a preamble sentence. The brief quality does not justify the token delta between Run 2 and Run 3 (~1,000 tokens).",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs share the same core answer and general structure, but they vary materially in coverage and quality. Run 2 is the closest to the requested shape; Run 1 is the most verbose and includes extra prose; Run 3 is the most detailed but also the most structurally elaborate. Most importantly, the treatment of the event-transport decision is inconsistent across runs: Run 1 keeps it open in one place but effectively asserts outbox; Run 2 calls outbox tentative but also places it in decisions; Run 3 calls it the preferred choice, again drifting toward a settled decision. Wording variation alone is not a problem, but these are semantic/structural differences that matter. [lexical similarity ratio: 0.101]",
+          "evidence": "Run 1: transport is \"undecided\" in Open questions yet \"The transactional outbox on your existing Postgres...\" in the brief. Run 2: \"The event transport mechanism will tentatively be a Postgres transactional outbox\" under Decisions made. Run 3: \"Event transport: Postgres transactional outbox with a relay is the preferred choice, pending Shipping team feedback.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          },
+          "lexical_similarity": 0.101
+        }
+      },
+      "judge_summary": "The model's responses generally follow the requested structure and capture most of the complex technical details. However, there are consistent issues that prevent a high score. All runs fail on the format/tone requirement of 'no preamble' for the migration brief. Accuracy suffers from a subtle 'confidence-inflation trap' regarding the outbox decision (presenting it as a 'preferred/tentative decision' within the 'Decisions made' section, rather than strictly 'parked'), with Run 2 exhibiting a direct contradiction on this point. Consistency is notably weak due to this contradiction in Run 2, and variations in detailing critical specifics like the dedupe key and volume justification across runs. Efficiency is moderate, with Run 3 being particularly verbose given the explicit request for compaction.",
+      "runs": [
+        {
+          "text": "Here is the structured summary of our session:\n\n### Established facts:\n*   The order-processing monolith (Rails app, Postgres 14, ~40 tables) is being migrated to an event-driven architecture.\n*   Four domains (Orders, Payments, Inventory, Shipping) are currently tangled in the monolith.\n*   The primary driver for this migration is team autonomy, not scaling or load.\n*   The overall migration strategy is the strangler-fig pattern.\n*   Shipping is the first domain chosen for extraction, as it primarily reads order and address data and writes tracking numbers.\n*   The monolith will be the publisher of events (e.g., `OrderConfirmed`, `OrderAddressChanged`).\n*   Peak throughput is approximately 2,000 orders/hour.\n*   All event consumers are required to be idempotent.\n*   Per-order event ordering is a critical requirement for event processing.\n*   The rollback strategy for extracted services involves dark-launching the new service, semantically comparing its outputs (carrier, service level) with the monolith, using a feature flag for cutover, and retaining the old monolith code for one full release cycle.\n*   Output style preferences for future communications include being terse, concrete, using bullet points, no preambles or conclusions, and explicitly stating uncertainty.\n\n### Open questions:\n*   The specific event transport mechanism (transactional outbox with a relay vs. Kafka) is undecided, pending the Shipping team's assessment of the operational burden of running a relay.\n*   The choice for the second domain to extract (Payments, which is higher risk/value, versus Inventory, which is easier/lower payoff) remains open.\n\n### Decisions made:\n*   The extraction approach will strictly follow the strangler-fig pattern.\n*   Shipping will be the first domain extracted.\n*   Shipping will receive necessary order data via events from the monolith.\n*   Event streams will be partitioned/keyed by order ID to ensure sequential processing for all events related to a single order.\n*   For event schema contracts:\n    *   Event payload versions must always be additive-only (no breaking changes to existing versions).\n    *   A consumer-driven contract test (Pact-style), owned by the Shipping team, will be implemented and run in the monolith's CI pipeline to enforce the contract.\n    *   A full schema registry is not required at this time.\n*   The cutover and rollback strategy includes: dark-launching the new service, performing semantic comparisons of outputs (specifically carrier and service level), using a feature flag for cutover, and retaining the old in-monolith code for one full release cycle to enable quick rollback.\n\n### Active task:\n*   The Shipping team needs to assess the operational burden associated with implementing and managing a transactional outbox relay.\n*   The Shipping team is responsible for implementing the consumer-driven contract test for their event consumption, to be integrated and run within the monolith's CI.\n\n### Style/tone preferences observed:\n*   Terse and concrete language.\n*   Use of bullet points for clarity.\n*   Avoidance of preambles or conclusions.\n*   Explicitly stating any uncertainties or open items.\n\n---\n\n**Migration Brief: Order Processing Monolith Event-Driven Transformation**\n\nThis brief outlines the plan for transforming our monolithic Rails application towards a more autonomous, event-driven architecture. The initial focus is on extracting the Shipping domain.\n\n**Overall Goal & Strategy:**\n*   **Goal:** Increase team autonomy by separating the Orders, Payments, Inventory, and Shipping domains from the monolith.\n*   **Strategy:** Employ a strangler-fig pattern, incrementally extracting services rather than a big-bang rewrite.\n\n**Phase 1: Shipping Service Extraction**\n\nShipping is the first domain for extraction. It primarily consumes order and address data and produces tracking numbers.\n\n*   **Event Communication:**\n    *   The new Shipping service will receive all necessary order data via events published by the existing monolith.\n    *   **Per-Order Sequencing:** Event streams will be partitioned/keyed by `order_ID`. This ensures that all events pertaining to a specific order are processed in sequence, preventing issues like an address change being processed before an order confirmation.\n\n*   **Event Schema Contract:**\n    *   **Additive-Only Changes:** Event payload versions must strictly be additive-only. No breaking changes are permitted for existing event versions.\n    *   **Consumer-Driven Contract Test:** A consumer-driven contract test (Pact-style), owned by the Shipping team, will be implemented. This test will run in the monolith's CI pipeline, failing the monolith's build if it introduces a breaking change to an event contract Shipping consumes.\n    *   **No Schema Registry:** A full schema registry is not in scope for this phase.\n\n*   **Cutover and Rollback Strategy:**\n    *   The new Shipping service will undergo a dark-launch in production.\n    *   **Semantic Comparison:** The outputs of the new service will be compared semantically against the monolith's existing shipping logic (e.g., verifying carrier choice and service level, not byte-for-byte tracking numbers).\n    *   A feature flag will control the final cutover to the new service.\n    *   The original in-monolith shipping code will remain deployed and feature-flagged for one full release cycle post-cutover, enabling immediate rollback if critical issues arise.\n\n**Key Action Items & Open Questions**\n\n*   **Event Transport Mechanism (Open Question):**\n    *   The definitive choice for event transport (transactional outbox with a relay vs. Kafka) is pending.\n    *   **Action for Shipping Team:** Assess the operational burden of implementing and maintaining a transactional outbox relay. This assessment is crucial for the final decision.\n\n*   **Second Domain Extraction (Open Question):**\n    *   The next domain to extract after Shipping (Payments vs. Inventory) remains undecided. Payments presents higher risk but also higher value; Inventory is simpler but offers a lower payoff.\n\n*   **Action for Shipping Team:** Implement the consumer-driven contract test for event consumption. This test must be integrated and run as part of the monolith's continuous integration process.\n\n**Requirements for All Event Consumers (e.g., Shipping, and future services):**\n\n*   **Idempotency:** All event consumers *must* be designed to be idempotent. This is critical for handling potential duplicate event deliveries inherent in at-least-once delivery semantics. Consumers should deduplicate using the order ID or an event sequence number.\n*   **Per-Order Sequencing:** Consumers must correctly process events for a given `order_ID` in their strict sequence, even though global event ordering across different orders is not guaranteed.\n*   **Contract Adherence:** Each consumer team must own and maintain their consumer-driven contract tests against the upstream event producers (initially, the monolith) to ensure contract compatibility.",
+          "input_tokens": 1215,
+          "output_tokens": 3972,
+          "seconds": 19.48,
+          "run": 1
+        },
+        {
+          "text": "**Established facts:**\n*   The order-processing monolith is a Rails app using Postgres 14, with ~40 tables.\n*   It encompasses four domains: Orders, Payments, Inventory, and Shipping.\n*   The primary driver for moving to events is team autonomy, not scaling, with current peak throughput around 2,000 orders/hour.\n*   Shipping is the first domain chosen for extraction; it reads order + address data and writes tracking numbers.\n*   Event consumers, regardless of transport, must be idempotent.\n*   Shipping requires per-order event ordering (e.g., OrderConfirmed before OrderAddressChanged).\n*   The rollback strategy for extracted services involves keeping old monolith code behind a feature flag for one release cycle, dark-launching the new service, comparing outputs, and then cutting over.\n*   Rollback output comparison must be semantic (carrier + service level), not byte-for-byte.\n\n**Open questions:**\n*   Final commitment on Postgres transactional outbox vs. Kafka for event publishing; specifically, the Shipping team's feedback on the operational burden of the relay is needed (Kafka is \"parked, not rejected\").\n*   Which domain to extract second: Payments (higher risk/value) or Inventory (easier/lower payoff).\n\n**Decisions made:**\n*   The migration strategy will follow a strangler-fig pattern, avoiding a big-bang approach.\n*   The database will remain shared initially, with service boundaries first carved out in code. Physical data separation will occur only once a boundary proves stable.\n*   Shipping will obtain order data via events, with the monolith publishing events like `OrderConfirmed`.\n*   The event transport mechanism will tentatively be a Postgres transactional outbox, drained by a relay. Kafka is considered operationally overkill for current volumes.\n*   Event delivery will be at-least-once.\n*   Event streams will be partitioned/keyed by order ID to ensure per-order ordering.\n*   The event schema contract will be managed via a consumer-driven contract test (Pact-style), owned by the Shipping team and run against the monolith's CI.\n*   A dedicated schema registry will not be used at this time.\n*   The rollback safety net will include shadow/dark-launching with output comparison, a feature-flag-gated cutover, and retaining the old code for one release cycle.\n*   Output comparison for rollback will focus on semantic differences (carrier, service level) rather than raw payload comparison.\n\n**Active task:**\n*   Planning the event-driven migration from the order-processing monolith, with an immediate focus on the Shipping domain extraction and its associated eventing infrastructure and contracts.\n\n**Style/tone preferences observed:**\n*   Communications should be terse and concrete.\n*   Use bullet points.\n*   Avoid preambles or \"in conclusion\" statements.\n*   Explicitly state uncertainty.\n\n---\n\n**Subject: Shipping Domain Event-Driven Migration Brief**\n\nThis brief outlines the plan for extracting the Shipping domain from the monolith, driven by improved team autonomy.\n\n**Overall Migration Strategy**\n\n*   **Strategy:** Strangler-fig pattern. Avoid big-bang.\n*   **Database:** Shared Postgres initially. Service boundaries carved in code. Physical data separation only after boundary stability.\n*   **First Extraction:** Shipping domain.\n\n**Shipping Domain Extraction - Eventing Details**\n\n*   **Data Source:** Monolith publishes events (e.g., `OrderConfirmed`). Shipping reads these.\n*   **Event Transport (Tentative):** Postgres transactional outbox drained by a relay. Kafka is considered operationally overkill for 2,000 orders/hour peak.\n*   **Delivery Guarantee:** At-least-once.\n*   **Event Ordering:** Per-order ordering required (e.g., `OrderConfirmed` before `OrderAddressChanged`). Events will be partitioned/keyed by order ID.\n*   **Schema Contract:** Consumer-driven contract test (Pact-style), owned by Shipping team, run against monolith's CI. No dedicated schema registry at this time.\n\n**Key Requirements for Event Consumers (e.g., Shipping Service)**\n\n*   **Idempotency:** All consumers must be idempotent to handle at-least-once delivery. Deduplication on order ID + event sequence number is recommended.\n*   **Schema Adherence:** Consumers must pass the consumer-driven contract test owned by Shipping, run in the monolith's CI.\n*   **Ordering:** Consumers must respect the order-ID-keyed event stream for per-order sequence.\n\n**Rollback & Safety Net**\n\n*   **Mechanism:** Old in-monolith shipping code remains behind a feature flag for one release cycle.\n*   **Launch:** Shadow/dark-launch the new Shipping service.\n*   **Cutover:** Feature-flag-gated cutover after comparison.\n*   **Comparison:** Semantic comparison of outputs (carrier + service level) during dark launch, not byte-for-byte tracking number comparison.\n\n**Open Items / Next Steps**\n\n*   **Event Transport Confirmation:** Confirm the Postgres outbox + relay approach. Feedback from the Shipping team on the relay's operational burden is needed to fully commit (Kafka is parked, not rejected).\n*   **Second Domain Extraction:** Decision pending between Payments (higher risk/value) or Inventory (easier/lower payoff) for the next domain to extract.",
+          "input_tokens": 1215,
+          "output_tokens": 3999,
+          "seconds": 19.72,
+          "run": 2
+        },
+        {
+          "text": "*   **Established facts:**\n    *   We are moving our order-processing monolith (Rails app, Postgres 14, ~40 tables) to an event-driven architecture.\n    *   The monolith currently combines four domains: Orders, Payments, Inventory, and Shipping.\n    *   The primary driver for this migration is team autonomy; scaling is not a current concern (peak throughput ~2,000 orders/hour).\n    *   The Shipping domain is the most loosely coupled, reading order and address data and writing tracking numbers.\n    *   Idempotent consumers are a non-negotiable requirement for all event consumers.\n    *   Per-order event ordering is critical for Shipping (e.g., `OrderAddressChanged` must not process before `OrderConfirmed`).\n\n*   **Open questions:**\n    *   Final confirmation of the Postgres transactional outbox/relay for event transport: Requires input from the Shipping team regarding the operational burden of the relay. Kafka is currently parked as an option, not rejected.\n    *   The next domain to extract after Shipping: Payments (higher risk/value) vs. Inventory (easier/lower payoff) remains undecided.\n\n*   **Decisions made:**\n    *   Migration approach: Strangler-fig pattern, starting with service boundaries in code and keeping a shared Postgres initially. Physical data separation will occur later once boundaries prove stable.\n    *   First domain for extraction: Shipping.\n    *   Shipping will receive order data via events (e.g., `OrderConfirmed`) published by the monolith.\n    *   Event transport: Postgres transactional outbox with a relay is the preferred choice, pending Shipping team feedback.\n    *   Idempotency: All event consumers must be idempotent, performing deduplication based on `order ID + event sequence number`.\n    *   Event Ordering: Event streams must be partitioned/keyed by `order ID` to guarantee per-order sequencing.\n    *   Event Schema Contract:\n        *   Event payloads must be versioned, allowing only additive changes to existing versions (no breaking changes).\n        *   A consumer-driven contract test (Pact-style) will be implemented, owned by the Shipping team, and run in the monolith's CI pipeline to enforce schema compatibility.\n        *   A dedicated schema registry will not be implemented for now.\n    *   Rollback/Go-Live Strategy for extracted Shipping:\n        *   A dark launch (shadowing) of the new service will be performed, comparing outputs.\n        *   Output comparison will be semantic (e.g., carrier, service level), not byte-for-byte (as tracking numbers will differ).\n        *   Cutover to the new service will be controlled by a feature flag.\n        *   The old in-monolith shipping code will remain behind a feature flag for one full release cycle after cutover to allow for quick rollback.\n\n*   **Active task:**\n    *   Detailed planning and decision-making for the Shipping domain extraction, including addressing open questions and disseminating decisions to affected squads.\n\n*   **Style/tone preferences observed:**\n    *   Communication should be terse, concrete, and use bullet points.\n    *   Avoid preambles or \"in conclusion\" statements.\n    *   Explicitly state uncertainties or unresolved items.\n\n---\n\n### Migration Brief: Shipping Domain Extraction\n\n**Overview & Rationale**\n*   **Goal:** Decompose our order-processing monolith (Rails, Postgres 14) into an event-driven architecture.\n*   **Primary Driver:** Enhance team autonomy and reduce cross-squad conflicts within the shared codebase. Scaling is not the immediate concern.\n*   **Strategy:** We are adopting a strangler-fig pattern. Initially, we will define service boundaries in code while maintaining a shared Postgres database. Physical data separation will follow only after boundaries are proven stable.\n\n**Shipping Extraction - Details**\n*   **First Target:** Shipping is the initial domain for extraction due to its loose coupling (reads order/address data, writes tracking numbers).\n*   **Data Flow:** The new Shipping service will consume order data via events published by the monolith (e.g., `OrderConfirmed`).\n\n**Key Decisions**\n*   **Event Transport (Preferred):** Postgres transactional outbox with a relay. This leverages existing expertise and is suitable for our current peak volume (~2,000 orders/hour).\n*   **Event Ordering:** Per-order event ordering is critical. Event streams **must be partitioned/keyed by `order ID`** to ensure all events related to a single order are processed in sequence.\n*   **Idempotent Consumers:** All event consumers **must be idempotent**. Deduplication should be performed using an `order ID + event sequence number` combination. This is a non-negotiable requirement.\n*   **Event Schema Contract:**\n    *   Event payloads **must be versioned**. Only additive changes are permitted to existing versions; no breaking changes.\n    *   A consumer-driven contract test (Pact-style) will be implemented. The Shipping team will own this test, and it will run in the monolith's CI pipeline to prevent schema breaks.\n    *   A dedicated schema registry will not be implemented at this time.\n*   **Rollback / Go-Live Strategy:**\n    *   The new Shipping service will undergo a dark launch (shadowing) in production.\n    *   Output comparison during shadowing will be semantic (comparing carrier and service level decisions), not byte-for-byte.\n    *   A feature flag will control the cutover to the new service.\n    *   The old in-monolith shipping code will remain behind its feature flag for one full release cycle post-cutover, providing a rapid rollback option.\n\n**Open Questions & Next Steps**\n*   **Event Transport Confirmation:** The Shipping squad needs to evaluate and provide feedback on the operational burden of the Postgres transactional outbox relay. This input is crucial for finalizing the transport decision. (Kafka is parked, not rejected.)\n*   **Next Extraction Target:** The decision on whether to extract Payments (higher risk, higher value) or Inventory (easier, lower payoff) after Shipping is still open.\n\n**Requirements for Event Consumers (e.g., Shipping Squad)**\n*   **Idempotency:** Implement event consumers that are idempotent, performing deduplication based on `order ID + event sequence number`.\n*   **Ordering:** Ensure consumers correctly process events partitioned by `order ID` to maintain per-order sequencing.\n*   **Schema Contract:** Own and maintain the consumer-driven contract test that runs against the monolith's CI to guarantee event schema stability.\n*   **Feedback:** Provide input on the operational implications of managing the transactional outbox relay.",
+          "input_tokens": 1215,
+          "output_tokens": 5047,
+          "seconds": 21.96,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 0.71,
+        "max_spread": 1,
+        "contested_dims": [],
+        "self_preference_delta": 0
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

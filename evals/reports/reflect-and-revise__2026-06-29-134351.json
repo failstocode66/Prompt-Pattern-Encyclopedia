@@ -1,0 +1,689 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "reflect-and-revise",
+  "date": "2026-06-29 13:43",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "A strong answer is judged primarily on whether Phase 2 surfaces the REAL, substantive gaps a first-draft rollback runbook predictably has, and whether Phase 3 actually closes them (not rewords).\n\nDRAFT (Phase 1): A plausible but imperfect rollback procedure \u2014 reverting app code (redeploy previous image/tag or git revert), and some handling of the migration. It will almost certainly under-specify the hard part: a code rollback alone does NOT undo the schema change, and the migration as described is partially destructive (it dropped an old column), so a naive \"just run the down-migration\" is unsafe.\n\nCRITIQUE (Phase 2) \u2014 a STRONG critique must name concrete, technically-correct defects, the kind below (at least 3, each pointing to a specific part of the draft):\n- The dropped column is unrecoverable by a down-migration \u2014 reverting the schema cannot restore data already lost when the old column was dropped; the draft likely ignores this and must flag it (fix: confirm whether reverting code even requires the schema revert, or whether the safer path is roll-forward, since the migration was destructive).\n- Code/schema coupling ordering: if you revert app code first while the new schema is still live, or revert schema while new code is live, you can deepen the outage; the draft likely doesn't specify the safe order (revert app code to a version compatible with the CURRENT schema, OR confirm old code tolerates the new column, before touching the DB).\n- Backward compatibility of the OLD code with the NEW schema (the added NOT NULL column / dropped old column) \u2014 old app code may break against the changed schema, so a blind code rollback may not be safe; must be checked.\n- No verification / success criteria \u2014 how the on-call confirms the rollback worked (500 rate returns to baseline, healthcheck, monitoring/dashboard, error budget).\n- Missing safeguards: take a backup/snapshot before any destructive DB action, announce/declare the incident + comms, lock the pipeline to prevent a re-deploy racing the rollback, transaction/locking risk of the backfill on a large table.\n- Migration tooling specifics: whether a down/rollback migration exists and is tested, and that running it is itself risky.\n\nREVISION (Phase 3) \u2014 a STRONG revision must INCORPORATE the fixes named in Phase 2 with new substantive content: explicit safe ordering of code-vs-schema steps, an explicit statement that the dropped column's data is gone and the resulting decision (prefer roll-forward / fix-forward when the migration is destructive, or restore-from-backup if data loss is unacceptable), a pre-rollback snapshot step, verification/success criteria, and incident comms / pipeline freeze. It must be numbered/sequential, runnable under pressure, and ~300-450 words.\n\nFLAWS A JUDGE SHOULD PENALIZE (tied to the pattern's failure modes):\n- Self-flattery: Phase 2 lists only cosmetic nits (formatting, tone) and misses the destructive-migration / ordering problem \u2014 the single most important real defect. This is the most likely and most detectable failure.\n- Vague critique: \"could add more detail about the database\" with no concrete defect named.\n- Cosmetic revision: Phase 3 reorders headings or rewords but does NOT add the destructive-column handling, safe ordering, snapshot, or verification that Phase 2 (if good) identified.\n- Critique-revision mismatch: Phase 3 fixes things not raised in Phase 2 (e.g., adds emojis) while ignoring a gap Phase 2 explicitly named.\n- Regression: Phase 3 introduces a new unsafe instruction (e.g., \"run the down-migration immediately\") while polishing prose, or blows past the word budget.\nA top answer's revision is materially safer and more complete than its draft, and every Phase-2 item maps to a visible Phase-3 change.",
+    "format_spec": "Exactly three labeled phases in order: \"Phase 1 - Draft\", \"Phase 2 - Critique\", \"Phase 3 - Revision\" (phase labels must be present and distinct; phases must not be merged). Phase 2 must be a list of 3 to 5 items, each naming a concrete defect AND its fix. Phase 3 must be a standalone, self-contained rewrite (no \"as above\" / back-references), formatted as a numbered/sequential procedure, and roughly 300-450 words.",
+    "tone": "Operational/technical, calm and directive \u2014 runbook prose an on-call engineer can execute under pressure (imperative steps, no hedging). The critique phase is candid and self-critical, not self-congratulatory."
+  },
+  "prompt": "Produce your response in three labeled phases. Do not skip or merge phases.\n\nPhase 1 - Draft: Write your initial answer.\n\nPhase 2 - Critique: List 3 to 5 specific weaknesses in your draft. Be concrete. Each item must name exactly what is wrong (quote or point to the part of the draft) and state what would fix it. Vague critiques such as \"could be clearer\" or \"add more detail\" are not allowed; a critique that names no concrete defect should not be listed.\n\nPhase 3 - Revision: Rewrite the full answer, addressing every weakness you listed in Phase 2. The revision must stand alone as a complete deliverable (do not write \"as above\" or reference the draft).\n\nTask: Write the \"Rollback Procedure\" section of a production runbook for the following situation. A backend team deploys to a single Postgres-backed service roughly daily via a CI pipeline. A deploy that included a forward database schema migration (it added a NOT NULL column with a default, backfilled it, and dropped an old column) has caused elevated 500-error rates in production, and the on-call engineer has decided to roll back. Write the rollback section the on-call engineer will follow under pressure: it should cover both reverting the application code and dealing with the already-applied schema migration. Audience: a competent backend on-call engineer who knows the stack but has never rolled back this particular service before. Keep it to roughly 300-450 words in the final revision.\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 4.1,
+      "verdict": "Solid",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "The runs are largely on-task and technically sound: each revision addresses the core rollback problem with code revert plus schema handling, and Run 1/2/3 all correctly note the dropped-column risk. However, none is fully perfect because some guidance remains too generic or slightly incomplete for the exact runbook scenario; for example Run 1 says \"If it is not, you must restore the dropped column shape before traffic is fully shifted back\" but does not state the exact safe order with the clarity of the reference, and Run 2\u2019s \"restore it from backups, replica lagged copy, or application logs if available\" is not a robustly correct recovery path in all cases.",
+          "evidence": "Run 1: \"The migration has already ... dropped the old column.\" / \"Because the old column is gone, a simple code rollback may fail\". Run 2: \"The dropped column data may be unrecoverable\". Run 3: \"Because the old column was dropped, the previous app may fail if it still reads that field.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "The output set covers most required elements: all three phases are present, Phase 2 has 3-5 items, and Phase 3 is sequential and self-contained. The revisions also include schema compatibility checks, monitoring, and comms. Still, the strong reference expects a few specific substantive elements that are not always fully nailed: explicit backup/snapshot before any destructive DB action is absent or only indirectly implied in some runs, and the safe code-vs-schema ordering is present but not always explicit enough as a standalone decision rule. Run 3 also underdelivers on the requested ~300-450 word constraint in the revision.",
+          "evidence": "Run 1 Phase 3 includes \"the old column is gone\" and \"Do not remove the new column yet\"; Run 2 Phase 3 includes \"schema remains forward-only\" and health checks; Run 3 Phase 3 has only 6 steps and lacks an explicit pre-rollback snapshot step.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.33,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 5,
+          "justification": "The response set follows the required three labeled phases in order, with Phase 2 as a 3-5 item list and Phase 3 as a numbered/sequential procedure. The labels are distinct and not merged. The final-answer JSON-only wrapper requirement is also followed in this evaluation response context, but judging the model outputs themselves, their structure matches the prompt requirements well.",
+          "evidence": "Run 1: \"Phase 1 - Draft\", \"Phase 2 - Critique\", \"Phase 3 - Revision\"; Run 2: same three-phase structure; Run 3: same three-phase structure. Phase 2 in each run contains 5 items. Phase 3 in each run is numbered.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally operational, technical, calm, and directive, which fits the on-call runbook audience. Imperatives like \"Announce,\" \"Use,\" \"Confirm,\" and \"Pause\" are appropriate. It is not a perfect 5 because some lines are a bit explanatory or policy-like rather than pure pressure-ready procedure, and some critique phrasing is somewhat meta rather than candidly self-critical.",
+          "evidence": "Run 1 Phase 3: \"Use the CI/CD rollback action\" / \"Check whether the previous app version is compatible\". Run 2 Phase 3: \"Pause deploys and identify the rollback target\" / \"Revert the application code only\". Run 3 Phase 3: \"Freeze further change\" / \"Restore compatibility for the rolled-back app\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The outputs are safe: they advise against risky blind schema downgrades, recommend pausing changes, and avoid harmful or inappropriate content. The guidance is operationally cautious rather than dangerous.",
+          "evidence": "Run 1: \"Do **not** remove the new column yet\" and \"If errors persist, stop and reassess\". Run 2: \"Do not attempt to blindly roll back the database schema first\" and \"escalating to the database owner before making destructive changes\". Run 3: \"Do not assume code rollback is enough\" and \"escalate immediately\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 4,
+          "justification": "The outputs deliver decent quality, but they are wordy relative to the task\u2019s roughly 300-450 word target for the revision. Each run\u2019s Phase 3 is around the right scale or a bit over/under, but the full response set includes a long Phase 1 draft and a lengthy Phase 2 critique, which is expected by the prompt yet still somewhat padded. The quality is good, so this is only a moderate efficiency penalty rather than severe bloat.",
+          "evidence": "Run 1 total: 1250 tokens; Run 2 total: 1270 tokens; Run 3 total: 1225 tokens. Run 1 Phase 3 is concise but the overall response includes substantial draft and critique. Run 2 Phase 3 is serviceable, but the whole response is long. Run 3 Phase 3 is shortest, yet the full response still consumes 1225 tokens.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 3.67,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 4,
+          "justification": "The runs are semantically consistent: all three identify the same core failure mode (schema rollback risk after dropped-column migration) and revise toward app-first rollback with schema compatibility checks and verification. They differ somewhat in emphasis and coverage, but not in contradiction. Because structural quality and exact safeguards vary slightly across runs, this is not a 5. [lexical similarity ratio: 0.037]",
+          "evidence": "Run 1 Phase 3: app rollback, schema compatibility, \"Do not attempt to fully undo\" implied by leaving the new column. Run 2 Phase 3: app-only redeploy plus explicit schema assumption that the dropped column may be unrecoverable. Run 3 Phase 3: \"Rollback code alone may not work\" and schema compatibility steps. No run directly contradicts another.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.037
+        }
+      },
+      "judge_summary": "Overall strong, mostly on-task responses with solid handling of the key rollback hazard. The set is consistent and correctly structured, but not perfect: some revisions are a bit generic, and the strongest reference-level requirements like explicit snapshot/pre-rollback safeguards and very crisp code-vs-schema ordering are not uniformly or fully expressed.",
+      "runs": [
+        {
+          "text": "**Phase 1 - Draft**\n\n## Rollback Procedure\n\n1. **Declare the rollback**\n   - Announce in incident channel that you are rolling back the current production deploy.\n   - Capture the current deploy version and migration version before changing anything.\n\n2. **Revert the application**\n   - In CI/CD, trigger the rollback to the last known good application release.\n   - Prefer the automated \u201credeploy previous artifact\u201d or \u201crollback\u201d action over a manual hotfix.\n   - Wait for the service to become healthy and confirm the new pods/instances are running the previous code.\n\n3. **Handle the database migration**\n   - The migration has already:\n     - added a new `NOT NULL` column with a default,\n     - backfilled it,\n     - dropped the old column.\n   - Because the old column is gone, a simple code rollback may fail if the previous app still reads it.\n   - Check whether the previous app version is compatible with the new schema. If it is not, you must restore the dropped column shape before traffic is fully shifted back.\n\n4. **Restore the dropped column if needed**\n   - Apply the documented reverse migration or a manual compensating migration that:\n     - recreates the old column with the expected type and nullability,\n     - backfills it from the new column if necessary,\n     - restores any index/constraint dependencies the old code requires.\n   - Do **not** remove the new column yet; leave it in place until the rollback is verified.\n\n5. **Verify and monitor**\n   - Confirm the app is serving the reverted code path without DB errors.\n   - Watch 500 rates, DB error logs, and latency for at least one full incident window after rollback.\n   - If errors persist, stop and reassess before making additional schema changes.\n\n6. **Post-rollback cleanup**\n   - Once stable, document the exact deploy, migration, and rollback actions taken.\n   - Create a follow-up task to design a safer reversible migration pattern for future releases.\n\n---\n\n**Phase 2 - Critique**\n\n1. The draft says, **\"Check whether the previous app version is compatible with the new schema\"**, but it does not tell the on-call engineer how to determine that quickly under pressure. It should specify concrete checks, such as whether the old code still queries the dropped column or whether the rollback artifact expects it.\n\n2. The draft says, **\"Apply the documented reverse migration or a manual compensating migration\"**, but it is too vague because it does not define what to do if there is no reverse migration already written. It should give an explicit fallback order: use an existing down migration, otherwise run an emergency SQL patch approved by the team.\n\n3. The draft includes **\"Do not remove the new column yet\"**, but it never explains when it is safe to drop it later or who should do that. It should say to leave it until the service is stable and the team has validated the old code path, then handle cleanup in a follow-up deploy.\n\n4. The draft\u2019s step **\"Wait for the service to become healthy and confirm the new pods/instances are running the previous code\"** lacks concrete validation. It should specify what health signals to check, such as rollout status, error rate, and a sample request hitting the reverted code path.\n\n5. The final step **\"watch 500 rates, DB error logs, and latency for at least one full incident window\"** is vague about the duration and threshold. It should define a shorter, operationally useful monitoring period and mention expected improvement criteria, like 5\u201310 minutes of sustained recovery.\n\n---\n\n**Phase 3 - Revision**\n\n## Rollback Procedure\n\n1. **Announce and freeze changes**\n   - Post in the incident channel that rollback is in progress.\n   - Stop any further deploys or migration jobs for this service.\n   - Record the current application release, commit SHA, and database migration version.\n\n2. **Revert the application code**\n   - Use the CI/CD rollback action to redeploy the last known good artifact; do not hand-edit production.\n   - Wait for the rollout to complete and confirm the service is serving the previous release:\n     - deployment/rollout status is healthy,\n     - old pods/instances are replaced,\n     - error rate starts to fall.\n   - Send one or two representative requests through the affected code path to confirm the reverted app is running.\n\n3. **Assess schema compatibility immediately**\n   - The failed deploy included a migration that added a `NOT NULL` column with a default, backfilled it, and dropped an old column.\n   - The key rollback question is whether the previous app still references the dropped column or depends on the old table shape.\n   - Check the previous release notes, the migration diff, or the app query path if needed. If the old release expects the dropped column, you must restore it before calling the rollback complete.\n\n4. **Restore the old schema shape if required**\n   - Prefer a documented down migration if one exists.\n   - If there is no safe down migration, run the team-approved emergency SQL patch to recreate the dropped column with the original type/nullability and backfill it from the new column as needed.\n   - Restore any index, constraint, or trigger dependencies the old code requires.\n   - Keep the new column in place during rollback; do not attempt to \u201cfully undo\u201d the forward migration in the same step unless explicitly approved.\n\n5. **Verify recovery**\n   - Confirm 500s and DB errors drop back toward baseline within 5\u201310 minutes.\n   - Check app logs for missing-column, constraint, or type-cast errors.\n   - If errors remain elevated after the schema fix and app rollback, pause and escalate; do not make additional unplanned schema changes.\n\n6. **Complete the rollback**\n   - Once traffic is stable on the reverted app and schema, document:\n     - what was rolled back,\n     - whether the schema had to be patched,\n     - any remaining cleanup items.\n   - Open a follow-up task to add a tested reverse migration or a safer expand/contract pattern for this service.",
+          "input_tokens": 312,
+          "output_tokens": 1250,
+          "seconds": 9.91,
+          "run": 1
+        },
+        {
+          "text": "## Phase 1 - Draft\n\n### Rollback Procedure\n\n1. **Confirm the incident and freeze changes**\n   - Acknowledge the alert and open the incident channel.\n   - Stop any in-progress deploys in CI/CD.\n   - Announce a rollback in progress so no one retriggers the failing release.\n\n2. **Identify the last known good release**\n   - Find the most recent stable application version before the bad deploy.\n   - Record the failing version and the target rollback version.\n\n3. **Revert the application**\n   - Use the normal CI pipeline to redeploy the last known good commit or artifact.\n   - Do not hotfix in production unless rollback is impossible.\n   - Verify the app pods/processes are on the reverted version.\n\n4. **Handle the database schema**\n   - The bad deploy already applied a migration that:\n     - added a new `NOT NULL` column with a default,\n     - backfilled data,\n     - dropped an old column.\n   - **Do not attempt to blindly roll back the database schema first.** The dropped column data may be unrecoverable, and a schema downgrade can break the current app if any instances are still serving.\n   - If the rollbacked app still works with the new schema, leave the database as-is.\n   - If the reverted app requires the old column, restore compatibility by:\n     - checking whether the old column can be recreated safely,\n     - restoring it from backups, replica lagged copy, or application logs if available,\n     - backfilling it from the new column if the values are equivalent,\n     - otherwise escalating to the database owner before making destructive changes.\n\n5. **Validate service health**\n   - Confirm 500 rates return to baseline.\n   - Check application logs for schema-related errors.\n   - Run a few representative requests or health checks that exercise the affected code path.\n   - Confirm database writes and reads succeed.\n\n6. **Communicate status**\n   - Update the incident channel with what was rolled back and whether the database schema remains forward-only.\n   - Document any manual database recovery steps taken.\n   - If service is stable, keep the incident open until metrics remain healthy for a short observation window.\n\n---\n\n## Phase 2 - Critique\n\n1. **\u201cDo not attempt to blindly roll back the database schema first\u201d is too vague for a runbook step.** It warns against an action but does not tell the on-call exactly what to do next when the app rollback depends on the old column. Fix by giving a concrete decision path for whether to keep the forward schema or restore compatibility.\n\n2. **The draft says \u201crestore it from backups, replica lagged copy, or application logs if available,\u201d which is not operationally specific.** It does not explain the preferred order or what to do if none of those sources exist. Fix by making the fallback sequence explicit and stating when to escalate.\n\n3. **\u201cUse the normal CI pipeline to redeploy the last known good commit or artifact\u201d is generic and misses the pressure-focused detail requested.** It should tell the on-call how to avoid re-running the bad migration and what to verify in the pipeline. Fix by specifying rollback deployment mechanics in terms of code-only redeploy and migration suppression.\n\n4. **The draft does not clearly state that the old column was dropped and may be unrecoverable, which is central to the situation.** Although it mentions unrecoverable data, it does not directly instruct the engineer to assume loss once dropped unless a backup exists. Fix by stating that rollback of schema is not guaranteed and data from the dropped column must be treated as lost unless restored from backup.\n\n5. **The final validation is too broad and lacks a concrete minimum checklist.** \u201cRun a few representative requests\u201d is underspecified under pressure. Fix by naming the exact post-rollback checks, such as error rate, logs for migration mismatch, and one read/write path through the previously failing endpoint.\n\n---\n\n## Phase 3 - Revision\n\n### Rollback Procedure\n\n1. **Pause deploys and identify the rollback target**\n   - Announce in the incident channel that rollback is starting and stop any active CI deploys.\n   - Identify the last known good application version and the exact bad release to avoid redeploying the same artifact.\n\n2. **Revert the application code only**\n   - Redeploy the last known good commit/artifact through the normal CI pipeline.\n   - Make sure the rollback deploy does **not** re-run the forward migration job or any \u201cmigrate on startup\u201d step tied to the bad release.\n   - Wait for all pods/processes to come up on the reverted version before proceeding.\n\n3. **Assume the schema change is already live**\n   - The failed release already applied a migration that added a `NOT NULL` column with a default, backfilled it, and dropped an old column.\n   - Treat the dropped column as gone unless you have an explicit backup or restore path. Do **not** assume the old schema can be safely restored in place.\n\n4. **Decide whether the reverted app is compatible with the new schema**\n   - If the old code reads only the new column set and does not require the dropped column, leave the database unchanged.\n   - If the reverted code still expects the dropped column, restore compatibility in this order:\n     1. Check for a recent backup or snapshot that can be restored safely.\n     2. If the missing data can be reconstructed from the new column, backfill the old column from that source.\n     3. If neither is possible, stop and escalate to the database owner before making destructive schema changes.\n\n5. **Validate recovery**\n   - Confirm production 500s return to baseline.\n   - Check application logs for errors mentioning missing columns, migration mismatch, or query failures.\n   - Exercise the affected endpoint or job path with one successful read and one successful write.\n   - Verify the database is accepting normal traffic and no new schema errors appear.\n\n6. **Communicate completion**\n   - Post in the incident channel: app version rolled back, whether the database schema was left forward-only, and any manual recovery performed.\n   - Keep the incident open until metrics remain healthy for the observation window required by the team.",
+          "input_tokens": 312,
+          "output_tokens": 1270,
+          "seconds": 10.03,
+          "run": 2
+        },
+        {
+          "text": "## Phase 1 - Draft\n\n### Rollback Procedure\n\n1. **Confirm the rollback target**\n   - Identify the last known good release from CI/CD (the build immediately before the problematic deploy).\n   - Record the current production version and the timestamp of the bad deploy.\n\n2. **Stop or pause the bad release**\n   - If the service supports it, put the deploy pipeline on hold or disable further automatic promotion.\n   - If the error rate is actively high, scale down the current app rollout or route traffic away from the newest pods/instances.\n\n3. **Revert the application code**\n   - Trigger the standard rollback action in the deployment system to redeploy the previous successful artifact/image.\n   - Verify the old version is running in production.\n   - Watch logs and 500-rate metrics for improvement.\n\n4. **Handle the database migration**\n   - This deploy included a forward migration that:\n     - added a new NOT NULL column with a default,\n     - backfilled data,\n     - dropped an old column.\n   - Because the old column was dropped, the previous app may fail if it still reads that field. Do **not** assume code rollback is enough.\n   - Check whether the previous application version still requires the old column. If it does, you must restore compatibility before traffic is fully returned.\n\n5. **Restore schema compatibility if needed**\n   - Apply the matching rollback migration or a manual schema fix to reintroduce the dropped column with the original type/nullability/default expected by the old app.\n   - If the original data is no longer available, restore from the latest backup or reconstruct from other source data before cutting traffic back.\n   - Keep the new column in place unless you are certain it is safe to remove; dropping it again is not part of the immediate rollback.\n\n6. **Validate end-to-end**\n   - Run a small set of production-safe checks:\n     - app starts cleanly,\n     - critical reads/writes succeed,\n     - 500 rate returns to baseline,\n     - no migration-related errors appear in logs.\n   - Confirm database schema matches what the rolled-back app expects.\n\n7. **Communicate and monitor**\n   - Notify the incident channel that rollback is complete.\n   - Continue monitoring for at least one full error-metric window.\n   - If rollback does not stabilize the service, escalate to the database owner and incident commander immediately.\n\n---\n\n## Phase 2 - Critique\n\n1. **\u201cIf it does, you must restore compatibility before traffic is fully returned.\u201d**  \n   This is vague about *how* to restore compatibility. It should explicitly say whether to re-add the dropped column via a down migration, what to do about data, and whether the app should stay paused until the schema matches.\n\n2. **\u201cKeep the new column in place unless you are certain it is safe to remove; dropping it again is not part of the immediate rollback.\u201d**  \n   This is potentially confusing because the draft doesn\u2019t explain why the new column should remain, or whether the forward migration should be reversed at all. It should state the principle: application rollback first, then schema rollback only if the old app needs it.\n\n3. **\u201cIf the service supports it, put the deploy pipeline on hold or disable further automatic promotion.\u201d**  \n   This is a generic operational step and not specific to the requested rollback procedure. It should be replaced or tightened to focus on the exact rollback actions under pressure.\n\n4. **\u201cIf the error rate is actively high, scale down the current app rollout or route traffic away from the newest pods/instances.\u201d**  \n   This is too implementation-specific and not guaranteed for every deployment system. It should be simplified to a rollback-safe containment step that fits any CI/deployment pipeline.\n\n5. **The draft is longer and more elaborate than necessary for a runbook section, and it mixes rollback policy with incident follow-up.**  \n   The request asks for roughly 300\u2013450 words and a focused rollback section. The revision should be tighter, more directive, and keep post-rollback monitoring concise.\n\n---\n\n## Phase 3 - Revision\n\n### Rollback Procedure\n\n1. **Freeze further change**\n   - Pause the deployment pipeline so the bad release cannot be promoted again.\n   - Note the current production version and the time of the failed deploy.\n\n2. **Roll back the application**\n   - Use the standard CI/CD rollback action to redeploy the last known good image/build.\n   - Confirm the previous version is now serving production traffic.\n   - Watch 500-rate, error logs, and request latency for immediate improvement.\n\n3. **Address the schema change**\n   - This release included a forward migration that added a `NOT NULL` column with a default, backfilled it, and dropped an old column.\n   - Rolling back code alone may not work if the previous app still reads the dropped column.\n   - Keep the rollback in a safe state until the database schema matches what the old app expects.\n\n4. **Restore compatibility for the rolled-back app**\n   - Reapply the matching down migration if one exists.\n   - If there is no down migration, manually re-add the dropped column with the same name, type, nullability, and default the old app expects.\n   - Restore any required data for that column from backup or from the old source of truth if possible.\n   - Do not remove the new column during the rollback unless you have confirmed the old app does not depend on it.\n\n5. **Verify service health**\n   - Confirm the app starts without schema errors.\n   - Run the smallest safe production checks for the critical read and write paths.\n   - Verify the 500 rate returns to baseline and no migration-related errors appear in logs.\n\n6. **Monitor and communicate**\n   - Announce in the incident channel that rollback has been initiated and then completed.\n   - Continue monitoring through at least one error-metric window.\n   - If the service does not stabilize after the app rollback and schema compatibility fix, escalate immediately to the database owner and incident commander.",
+          "input_tokens": 312,
+          "output_tokens": 1225,
+          "seconds": 9.66,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 1.29,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy",
+          "completeness",
+          "efficiency",
+          "consistency"
+        ],
+        "self_preference_delta": -0.5
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 3.3,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "All three runs are broadly technically correct but consistently miss naming the most critical defect in Phase 2: that the dropped column's DATA is permanently gone and a down-migration cannot restore it. Run 2 Phase 1 and Phase 3 do state 'The data is gone,' but Phase 2 never critiques the draft for omitting this warning. Run 1 Phase 2 and Run 3 Phase 2 do not mention data permanence at all. Ordering advice also diverges: Run 1 Phase 3 correctly prescribes schema-fix-before-code-revert, while Runs 2 and 3 Phase 3 revert code first then fix schema\u2014a substantive technical disagreement. Technical content within each step is generally sound.",
+          "evidence": "Run 1 Phase 2: lists 5 items (ordering, NOT NULL column, kubectl placeholders, verification gap, abort criteria) \u2014 no item about data-loss permanence. Run 2 Phase 3: 'Data warning: The dropped column's data is gone' is present but Run 2 Phase 2 never critiques the draft for omitting it. Run 1 Phase 3 Step 1: 'Do this BEFORE rolling back the application code.' Run 2 Phase 3 Step 1: reverts code, Step 2: fixes schema \u2014 contradicts the Phase 2 critique item about ordering.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 3,
+          "justification": "The responses cover several required elements\u2014draft, critique, revision, rollback steps, and some verification\u2014but across runs the critique/revision often miss one or more mandated fixes from the prompt: explicit safe ordering of code-vs-schema, the destructive-column decision path, pre-rollback snapshot, incident comms, pipeline freeze, and a standalone 300-450 word revision. Run 2 is the closest to the requested content, but still lacks the pre-rollback snapshot/pipeline freeze and the revision is more than a concise runbook. Run 3 especially falls short by focusing on schema compatibility detection rather than the required destructive-data handling and operational safeguards.",
+          "evidence": "Run 2 revision includes steps but no snapshot or pipeline freeze: \"Write access to the production database...\" and \"Do not declare success yet.\" Run 1 lacks a backup/snapshot step and pipeline freeze. Run 3 says \"No database changes needed\" if grep is empty, but never gives the required explicit decision to prefer roll-forward/fix-forward or restore-from-backup when data loss is unacceptable.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 3,
+          "justification": "The overall three-phase structure is present in all runs, and phases are clearly labeled, but the output does not reliably conform to the exact specification. The prompt demanded Phase 2 be 3 to 5 items with concrete defect-and-fix pairs, and Phase 3 be a standalone numbered/sequential procedure roughly 300-450 words. Run 2 and Run 3 are close, while Run 1\u2019s revision is shorter and less clearly within the intended word budget. Across the set, the phases are separate, but formatting deviations and extra prose/markup are common.",
+          "evidence": "Run 1 uses markdown headings and a prose-heavy revision; Run 2 and Run 3 also include extra caution blocks and bullets beyond a strict numbered runbook. Run 3 ends with \"Return ONLY a JSON object...\" which is not part of the prompt-under-test behavior and indicates a format deviation in the displayed output. Phase 2 item counts are within range, but the revisions are not consistently 300-450 words.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is generally operational, technical, and directive, which matches the audience reasonably well. Run 2 and Run 3 especially read like incident runbooks with imperative steps and caution blocks. That said, some phrasing is still a bit generic or advisory rather than fully pressure-ready, and some items sound tentative instead of authoritative. No run is obviously the wrong register.",
+          "evidence": "Run 2: \"Do not declare success yet.\" Run 3: \"\u26a0\ufe0f CAUTION: The forward migration dropped a column... Do not re-deploy the broken code until a reverse migration is written and tested.\" Run 1 has more explanatory prose like \"The dropped column is the critical problem\" rather than crisp runbook directives.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 4,
+          "justification": "The content is largely safe and appropriate for an operational rollback procedure, with no harmful instructions beyond normal production DB changes. The main safety concern is that some runs propose risky or oversimplified database actions without sufficient guardrails\u2014e.g., re-adding dropped columns, dropping columns, or wrapping complex DDL in a transaction as though it were universally safe. Still, the outputs do include some cautions and escalation points, so this is not a major safety failure.",
+          "evidence": "Run 1: \"ALTER TABLE <table_name> ADD COLUMN <old_column_name> <data_type>;\" and \"UPDATE <table_name> SET <old_column_name> = <expression>;\" without a snapshot or restore path. Run 2: \"BEGIN; SET lock_timeout = '3s'; ... COMMIT;\" suggests safe transactional DDL handling on live prod. Run 3 includes \"Do not re-deploy the broken code until a reverse migration is written and tested in staging.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "Token counts are 1707, 1820, and 1648 across runs. Given the three-phase structure and the technical depth required, baseline verbosity is justified. However, all three Phase 1 drafts contain procedural prose that telegraphs future critique items without resolving them, functioning more as filler than deliverable content. Phase 2 items in all runs include at least one or two lower-stakes entries (kubectl placeholder names in Run 1; vague pipeline UI in Run 2; buried warning placement in Run 3) that consume tokens for weak critique value. Phase 3 revisions are the most token-efficient portion of each run.",
+          "evidence": "Run 1 Phase 2 item 3: 'kubectl set image command uses placeholder names without telling the engineer where to find real values' \u2014 low technical severity, consumes a full critique slot. Run 2 Phase 2 item 1: ''Most pipelines support a re-run button' is too vague' \u2014 cosmetic critique slot. Run 3 Phase 2 item 5: 'Do not re-deploy warning is buried' \u2014 formatting/placement critique, not a substantive technical defect.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 3,
+          "justification": "The runs are semantically related and all attempt the same pattern, but they diverge materially in structure and quality. Run 1 prioritizes restoring the dropped column before code rollback; Run 2 prioritizes app rollback followed by schema reverse with an explicit transaction; Run 3 adds a branchy path A/path B compatibility approach. These are not merely wording differences\u2014they change the operational plan and the nature of the fix, so the set is only moderately consistent. The core theme remains rollback with schema consideration, which keeps this from being a low score. [lexical similarity ratio: 0.057]",
+          "evidence": "Run 1: \"Step 1: Revert the application code\" then \"Step 3: Restore the dropped column.\" Run 2: \"Step 1 \u2013 Revert the Application Code\" then \"Step 3 \u2013 Reverse the Schema Migration\" with a transaction. Run 3: \"Path A \u2013 Old code does not reference the dropped column (preferred)\" vs \"Path B \u2013 Old code references the dropped column (manual intervention required).\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3,
+            "median": 3,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.057
+        }
+      },
+      "judge_summary": "The three runs demonstrate competent reflect-and-revise execution in structure \u2014 three distinct phases, candid self-critique lists, and materially improved Phase 3 revisions \u2014 but share a critical blind spot: none of the Phase 2 critiques explicitly names the most important technical defect required by the rubric, namely that the dropped column's DATA is permanently gone and that a naive down-migration is unsafe or impossible. This omission propagates to Phase 3, where all revisions treat re-adding the column as a viable path without sufficiently foregrounding irreversible data loss or the roll-forward alternative. Additional consistent gaps across all runs: no pre-rollback backup/snapshot step, no CI pipeline freeze instruction, and weak treatment of the roll-forward vs rollback decision when the migration is destructive. Run 2 is the strongest overall for safety (transaction wrapper, lock_timeout, explicit data-loss warning in Phase 3, time-boxed escalation), but its Phase 2 still doesn't name data permanence as a critique item. Run 1 is uniquely correct in prescribing schema-fix-before-code-revert, while Runs 2 and 3 recommend the opposite order \u2014 a substantive operational inconsistency. Format compliance is high across all three runs.",
+      "runs": [
+        {
+          "text": "# Rollback Procedure\n\n## Phase 1 \u2013 Draft\n\n**Rollback Procedure**\n\nThis section covers rolling back both the application code and the schema migration after a failed deploy.\n\n**Prerequisites**\n- You have kubectl/deployment access to the production environment\n- You have psql access to the production Postgres instance\n- You know the previous image tag (check CI pipeline for the last green deploy)\n\n**Step 1: Revert the application code**\n\n1. Identify the last known-good image tag from the CI pipeline.\n2. Run: `kubectl set image deployment/<service-name> app=<registry>/<image>:<previous-tag>`\n3. Confirm rollout: `kubectl rollout status deployment/<service-name>`\n4. Check error rates in your monitoring dashboard. If 500s drop, code rollback succeeded.\n\n**Step 2: Assess the schema situation**\n\nThe migration made three changes:\n- Added a NOT NULL column with a default\n- Backfilled existing rows\n- Dropped an old column\n\nThe dropped column is the critical problem. The old code likely references that column. Before the code rollback will fully work, you must restore it.\n\n**Step 3: Restore the dropped column**\n\nConnect to production Postgres:\n```\npsql $DATABASE_URL\n```\n\nRe-add the dropped column. You must know its original definition (check migration file or git history):\n```sql\nALTER TABLE <table_name> ADD COLUMN <old_column> <data_type>;\n```\n\nIf the old code expects specific values in that column, backfill from the new column or a known default:\n```sql\nUPDATE <table_name> SET <old_column> = <expression>;\n```\n\n**Step 4: Handle the new NOT NULL column**\n\nThe old application code does not know about the new column. Because it has a database-level default, inserts from old code should succeed without explicitly providing it. No immediate action required unless you observe insert failures.\n\n**Step 5: Verify**\n\n- Tail application logs: `kubectl logs -f deployment/<service-name>`\n- Confirm 500 error rate returns to baseline in your monitoring tool\n- Run a smoke test against key endpoints\n\n**Step 6: Communicate and document**\n\n- Post status update in the incident channel\n- Note the exact SQL run in the incident log for the forward migration team\n\n---\n\n## Phase 2 \u2013 Critique\n\n1. **Missing ordering warning on Steps 1 vs 3**: The draft tells the engineer to revert code first (Step 1) before restoring the dropped column (Step 3), but the old code will be querying the missing column the moment pods restart, worsening the outage window. The draft should explicitly address whether to restore the column *before* or *simultaneously with* the code rollback, or at minimum warn that downtime increases if done sequentially.\n\n2. **No rollback for the NOT NULL column**: Step 4 says \"no immediate action required\" for the newly added NOT NULL column, but this is incomplete. If the schema needs to fully match the old codebase, that column may need to be dropped. The draft dismisses this without giving the engineer a decision path.\n\n3. **`kubectl set image` command uses placeholder names without telling the engineer where to find real values**: The command uses `<service-name>`, `<registry>`, etc. but gives no direction on where to look these up beyond \"check CI pipeline.\" Under pressure, the engineer needs a concrete pointer (e.g., a specific file or command to run).\n\n4. **No verification step between Steps 3 and 4**: After re-adding the dropped column and backfilling, there is no SQL or application-level check to confirm the column is correct before declaring success. The engineer could proceed with corrupt or missing data.\n\n5. **No rollback abort criteria**: The procedure has no \"stop and escalate\" guidance. If the 500-error rate does not improve after Step 5, the engineer has no instructions on what to do next.\n\n---\n\n## Phase 3 \u2013 Revision\n\n---\n\n# Rollback Procedure\n\n> **Use this section when a deploy has caused elevated 500-error rates and the decision to roll back has been made.**\n\n---\n\n### Prerequisites\n\nBefore starting, confirm you have:\n\n- **kubectl** access to the production cluster\n- **psql** access to the production Postgres instance\n- The **previous image tag**: find it in the CI pipeline under the last green deploy. Run `kubectl get deployment <service-name> -o jsonpath='{.spec.template.spec.containers[0].image}'` to confirm the currently running tag.\n- The **migration file** from the deploy commit (in `db/migrations/` or equivalent) so you know the exact column definitions to reverse.\n\n---\n\n### Step 1 \u2013 Restore the Dropped Column First\n\n> \u26a0\ufe0f Do this **before** rolling back the application code. The old code queries the dropped column; every second it is missing increases 500 errors.\n\nConnect to production Postgres:\n\n```bash\npsql $DATABASE_URL\n```\n\nRe-add the dropped column using its original definition from the migration file:\n\n```sql\nALTER TABLE <table_name> ADD COLUMN <old_column_name> <data_type>;\n```\n\nBackfill values if the old code expects them (derive from the new column or use a safe default):\n\n```sql\nUPDATE <table_name> SET <old_column_name> = <expression_or_default>;\n```\n\n**Verify the column is present and populated:**\n\n```sql\nSELECT <old_column_name>, COUNT(*) FROM <table_name> GROUP BY 1 LIMIT 5;\n```\n\nConfirm row counts look reasonable before continuing.\n\n---\n\n### Step 2 \u2013 Revert the Application Code\n\nFind the previous image tag in CI, then deploy it:\n\n```bash\nkubectl set image deployment/<service-name> \\\n  app=<registry>/<image-name>:<previous-tag> \\\n  --record\nkubectl rollout status deployment/<service-name>\n```\n\n> **Where to find values**: `<service-name>` is in `k8s/deployment.yaml`; `<registry>/<image-name>` is the same prefix as the current image you retrieved in Prerequisites.\n\n---\n\n### Step 3 \u2013 Decide What to Do With the New NOT NULL Column\n\nThe new column has a database-level default, so inserts from the old application code will succeed without specifying it. **You do not need to drop it immediately.** Leave it in place unless you observe insert failures in logs. If you do see failures:\n\n```sql\nALTER TABLE <table_name> DROP COLUMN <new_column_name>;\n```\n\n---\n\n### Step 4 \u2013 Verify Recovery\n\n1. Tail logs for errors: `kubectl logs -f deployment/<service-name>`\n2. Confirm 500-error rate returns to baseline in your monitoring dashboard.\n3. Run smoke tests against the three highest-traffic endpoints.\n\n**If 500s do not drop within 5 minutes of the code rollback completing, stop and escalate to the team lead or database administrator.** Do not attempt further schema changes without guidance\u2014the root cause may not be the migration.\n\n---\n\n### Step 5 \u2013 Document\n\nPost in the incident channel:\n\n- Exact SQL statements executed (copy from your terminal history)\n- Image tags: rolled-back-from and rolled-back-to\n- Time of each action\n\nThis record is required before the forward migration team can re-attempt the deploy.",
+          "input_tokens": 345,
+          "output_tokens": 1707,
+          "seconds": 36.24,
+          "run": 1
+        },
+        {
+          "text": "# Rollback Procedure\n\n---\n\n## Phase 1 \u2013 Draft\n\n**Rollback Procedure**\n\nThis procedure reverts the application to the previous release and handles the schema migration that has already been applied.\n\n**Prerequisites**\n- You have access to the CI/CD pipeline and can trigger a deploy.\n- You have `psql` access to the production database with DDL privileges.\n- You know the previous stable Git SHA (check the pipeline history).\n\n---\n\n**Step 1 \u2013 Revert the Application Code**\n\n1. Go to the CI pipeline and identify the last known-good deploy (the commit immediately before today's bad deploy).\n2. Trigger a rollback deploy using that commit SHA. Most pipelines support a \"re-run on previous SHA\" button or you can push a revert commit:\n   ```\n   git revert <bad-sha> --no-edit\n   git push origin main\n   ```\n3. Confirm the deploy completes and pods/processes have restarted.\n4. Check the 500-error rate. If it drops, the application code was the main driver. Proceed to Step 2 regardless to reconcile the schema.\n\n---\n\n**Step 2 \u2013 Assess the Schema State**\n\nThe migration did three things (in order):\n1. Added a NOT NULL column with a default.\n2. Backfilled existing rows.\n3. Dropped an old column.\n\nThe old application code expects the old column to exist. That column is now gone.\n\n---\n\n**Step 3 \u2013 Reverse the Schema Migration**\n\n> \u26a0\ufe0f **You cannot simply re-add the dropped column with its original data.** The data is gone. Coordinate with the database team before proceeding if row data in the dropped column was irreplaceable.\n\nRun the following in order:\n\n1. **Re-add the dropped column** (as nullable to avoid locking issues on large tables):\n   ```sql\n   ALTER TABLE <table_name> ADD COLUMN <old_column_name> <data_type>;\n   ```\n2. **Restore data if available** from a snapshot or the new column if semantically equivalent:\n   ```sql\n   UPDATE <table_name> SET <old_column_name> = <expression_or_source>;\n   ```\n3. **Re-apply constraints** only after backfill is complete:\n   ```sql\n   ALTER TABLE <table_name> ALTER COLUMN <old_column_name> SET NOT NULL; -- only if originally NOT NULL\n   ```\n4. **Drop the newly added column** if the old code does not reference it:\n   ```sql\n   ALTER TABLE <table_name> DROP COLUMN <new_column_name>;\n   ```\n\n---\n\n**Step 4 \u2013 Verify**\n\n1. Confirm the 500-error rate has returned to baseline.\n2. Run the application's smoke tests or healthcheck endpoint.\n3. Notify the team and open a post-mortem ticket.\n\n---\n\n## Phase 2 \u2013 Critique\n\n1. **\"Most pipelines support a 're-run on previous SHA' button\"** is too vague and assumes knowledge of a pipeline UI that may not apply to this team's specific CI tool. It should be replaced with a concrete, tool-agnostic command (e.g., an explicit `git revert` workflow) and a note to confirm with the team's actual pipeline.\n\n2. **Step 3 ordering is wrong under pressure**: The draft reverts application code in Step 1 and then addresses the schema in Steps 2\u20133, but until Step 3 is complete the old application code (now re-deployed) will still fail because the old column is missing. The procedure should flag explicitly that the 500s will persist until both app and schema are reconciled, and ideally sequence or time-box the steps so the engineer doesn't declare success too early.\n\n3. **No explicit transaction wrapper** around the DDL steps in Step 3. On a live production database, partial execution of a multi-statement schema rollback leaves the database in an inconsistent state. The procedure should wrap Step 3 statements in a transaction with a rollback clause.\n\n4. **\"Coordinate with the database team before proceeding if row data in the dropped column was irreplaceable\"** introduces an open-ended blocker with no time guidance. Under pressure, an on-call engineer needs to know: how long to wait, or what to do if that team is unreachable. The draft should specify a maximum wait time and a fallback decision.\n\n5. **No mention of connection pooling / active connections** between the schema changes. On a busy service, running `ALTER TABLE` can lock rows and cause cascading failures. The procedure should include a check or mitigation (e.g., `lock_timeout` setting) before running DDL.\n\n---\n\n## Phase 3 \u2013 Revision\n\n---\n\n# Rollback Procedure\n\nUse this procedure when a deploy containing a forward schema migration has caused elevated 500-error rates and the decision to roll back has been made. The migration added a NOT NULL column with a default, backfilled it, and dropped an old column. **Expect errors to persist until both the application code and the schema are reconciled\u2014completing only one of the two steps below is not sufficient.**\n\n---\n\n### Prerequisites\n\n- Write access to the production database with DDL privileges (`psql` credentials in the vault).\n- Ability to trigger a deploy from the CI pipeline.\n- The Git SHA of the last known-good deploy (check pipeline history; it is labeled with the previous release tag).\n\n---\n\n### Step 1 \u2013 Revert the Application Code\n\n1. Create a revert commit against the bad SHA and push it to trigger the pipeline:\n   ```bash\n   git revert <bad-sha> --no-edit\n   git push origin main\n   ```\n2. Monitor the pipeline until the deploy is marked successful and all instances have restarted (watch the deployment health dashboard or run `kubectl rollout status` if using Kubernetes).\n3. **Do not declare success yet.** The 500s will continue until Step 2 is complete, because the old code expects a column that no longer exists.\n\n---\n\n### Step 2 \u2013 Reverse the Schema Migration\n\n> \u26a0\ufe0f **Data warning:** The dropped column's data is gone. If that column held irreplaceable business data, page the database team now. Wait up to **10 minutes** for a response; if unreachable, proceed\u2014a NULL backfill is recoverable later, but leaving the schema broken is not.\n\nSet a lock timeout before running DDL to avoid cascading locks on an active table:\n\n```sql\nBEGIN;\nSET lock_timeout = '3s';\n\n-- 1. Re-add the dropped column as nullable (avoids a full table rewrite on large tables)\nALTER TABLE <table_name> ADD COLUMN <old_column_name> <data_type>;\n\n-- 2. Backfill from the new column if semantically equivalent, otherwise leave NULL\nUPDATE <table_name> SET <old_column_name> = <equivalent_expression>;\n\n-- 3. Restore NOT NULL constraint only if the column was originally NOT NULL\n--    and the backfill above is complete\nALTER TABLE <table_name> ALTER COLUMN <old_column_name> SET NOT NULL;\n\n-- 4. Drop the newly added column (old code does not reference it)\nALTER TABLE <table_name> DROP COLUMN <new_column_name>;\n\nCOMMIT;\n```\n\nIf any statement fails, the transaction rolls back automatically\u2014no partial state will persist. Fix the error and re-run.\n\n---\n\n### Step 3 \u2013 Verify and Close\n\n1. Confirm the 500-error rate has returned to baseline on the monitoring dashboard.\n2. Hit the service's healthcheck endpoint and confirm HTTP 200.\n3. Run the smoke test suite: `make smoke-test ENV=production`.\n4. Post in the incident channel: schema and application are both rolled back, service is stable.\n5. Open a post-mortem ticket before ending the incident.",
+          "input_tokens": 345,
+          "output_tokens": 1820,
+          "seconds": 37.48,
+          "run": 2
+        },
+        {
+          "text": "## Phase 1 \u2013 Draft\n\n---\n\n### Rollback Procedure\n\n**Prerequisites:** You have access to the CI/CD pipeline, the production database, and the service's deployment tooling. Confirm the last known-good deploy SHA before starting.\n\n---\n\n#### Step 1 \u2013 Identify the last known-good release\n\nIn the CI pipeline dashboard, locate the deploy immediately before the current one. Record its Git SHA and the migration version it ran at.\n\n#### Step 2 \u2013 Revert the application code\n\nTrigger a redeploy of the previous Git SHA through the CI pipeline. If the pipeline cannot deploy an arbitrary SHA, build and push the previous image tag manually and update the service's deployment manifest. Confirm the old pods are running and healthy before proceeding.\n\n#### Step 3 \u2013 Assess the database schema\n\nThe migration did three things in order:\n1. Added a NOT NULL column with a default.\n2. Backfilled existing rows.\n3. Dropped an old column.\n\n**The dropped column cannot be restored from the migration alone.** You must decide which path to take:\n\n- **Path A (preferred if old code does not need the dropped column):** Leave the schema as-is. The reverted application code should not reference the dropped column; verify this by checking the previous code's model/ORM definitions. If the old code does not select or write that column, the schema is compatible and you are done.\n\n- **Path B (required if old code references the dropped column):** Re-add the dropped column manually. Connect to the production database and run:\n  ```sql\n  ALTER TABLE <table_name> ADD COLUMN <old_column_name> <data_type>;\n  ```\n  Populate it if the old application code expects non-null values. This is a forward-only fix; you are not truly reversing the migration, you are making the schema compatible with the old code.\n\n#### Step 4 \u2013 Validate\n\n- Watch error rates in the monitoring dashboard for at least 5 minutes.\n- Run a smoke test against a critical endpoint.\n- Confirm database connections are stable.\n\n#### Step 5 \u2013 Communicate and document\n\nPost a status update to the incident channel. Note the schema state: the new column added by the migration is still present. Flag this to the backend team\u2014any future redeploy of the broken code must account for it, and a proper reverse migration should be written before the fix is re-deployed.\n\n---\n\n**Do not re-deploy the broken code until the schema issue is resolved and a tested reverse migration exists.**\n\n---\n\n## Phase 2 \u2013 Critique\n\n1. **\"Confirm the old pods are running and healthy before proceeding\" is vague and unactionable.** The draft never says what command or dashboard signal constitutes \"healthy.\" It should specify a concrete check, e.g., `kubectl get pods` showing all replicas in `Running` state and the deployment's rollout status.\n\n2. **Path A's verification step (\"check the previous code's model/ORM definitions\") gives no guidance on where or how to do this quickly under pressure.** A stressed on-call engineer needs to know specifically what to look for\u2014e.g., grep for the column name in the model files\u2014not just a general instruction.\n\n3. **Path B's ALTER TABLE statement is incomplete and potentially dangerous.** Adding back a column that was originally NOT NULL without specifying nullability or a default could immediately break the old application code, which may expect non-null values. The draft mentions populating it vaguely but gives no concrete SQL for a common case.\n\n4. **The 5-minute validation window is arbitrary and unexplained.** The draft should reference the service's existing alerting thresholds or SLO window so the engineer knows what metric to watch and what constitutes \"clear.\"\n\n5. **The \"Do not re-deploy\" warning at the end is important safety information but is buried as an afterthought in bold text.** It should appear earlier\u2014before Step 2\u2014as a prominently labeled caution block, so the engineer sees it before taking action, not after.\n\n---\n\n## Phase 3 \u2013 Revision\n\n---\n\n### Rollback Procedure\n\n> \u26a0\ufe0f **CAUTION:** The forward migration dropped a column. Rolling back the code is not sufficient on its own\u2014read Steps 3\u20134 fully before touching the database. Do not re-deploy the broken code until a reverse migration is written and tested.\n\n---\n\n**Prerequisites:** Access to the CI/CD pipeline, production database credentials, and deployment tooling. Identify the last known-good Git SHA and its associated migration version number before starting.\n\n---\n\n#### Step 1 \u2013 Identify the last known-good release\n\nIn the CI pipeline dashboard, find the deploy immediately before the current failing one. Record its **Git SHA** and the **migration version** (the highest version number that was applied at that deploy).\n\n---\n\n#### Step 2 \u2013 Revert the application code\n\nTrigger a redeploy of the previous Git SHA via the CI pipeline. If the pipeline does not support deploying an arbitrary SHA, push the previous image tag manually and update the deployment manifest.\n\n**Verify the rollback is complete:**\n```bash\nkubectl rollout status deployment/<service-name>\nkubectl get pods -l app=<service-name>\n```\nAll replicas must show `Running` and the rollout must report `successfully rolled out` before continuing.\n\n---\n\n#### Step 3 \u2013 Assess schema compatibility\n\nThe migration did three things: added a NOT NULL column with a default, backfilled it, and dropped an old column. **The dropped column is gone.** Choose the correct path:\n\n**Path A \u2013 Old code does not reference the dropped column (preferred)**\nVerify by running from the repo root:\n```bash\ngit grep -n \"<old_column_name>\" $(git rev-parse <known-good-SHA> -- app/models/)\n```\nIf the result is empty, the reverted code is schema-compatible. No database changes needed. Proceed to Step 4.\n\n**Path B \u2013 Old code references the dropped column (manual intervention required)**\nRe-add the column to unblock the old code. Connect to production and run:\n```sql\n-- Add the column back; use NOT NULL + DEFAULT if the old code requires non-null values\nALTER TABLE <table_name>\n  ADD COLUMN <old_column_name> <data_type> NOT NULL DEFAULT <safe_default>;\n```\nConfirm row count is unchanged after the ALTER. Note: this is a schema patch, not a true rollback\u2014the new column added by the migration remains. Flag this state explicitly to the team.\n\n---\n\n#### Step 4 \u2013 Validate recovery\n\nMonitor for a minimum of **one full alerting evaluation window** (check your alerting tool's configured interval, typically 5 minutes):\n- HTTP 5xx rate must return below your SLO threshold (check the `service_error_rate` dashboard).\n- Database connection pool must show no errors.\n- Run the service's smoke-test suite: `make smoke-test ENV=production`.\n\n---\n\n#### Step 5 \u2013 Communicate and hand off\n\nPost to the incident channel:\n- Current schema state (dropped column absent; new column present).\n- Which path was taken.\n- Action required before re-deploy: a reverse migration must be written, reviewed, and tested in staging.",
+          "input_tokens": 345,
+          "output_tokens": 1648,
+          "seconds": 36.45,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 0.71,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy"
+        ],
+        "self_preference_delta": 1
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 2.7,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 3,
+          "justification": "The responses are on-task in that they discuss rollback, but the core technical handling of the destructive schema change is materially wrong or unsafe. Across runs, Phase 3 often implies re-adding the dropped column from scratch without acknowledging that the lost data cannot be recovered from the migration alone. In Run 1, the revision even says to \"UPDATE <your_table_name> SET old_col = new_col;\" and \"If old_col was originally NOT NULL, restore this constraint,\" which presumes safe recoverability. Run 3 explicitly states \"The newly added `NOT NULL` column (`new_column`) will be ignored by the old code and does no harm by existing,\" which is not the key issue when the old column was dropped and data may be lost. The outputs are relevant, but technically incomplete around the hardest part.",
+          "evidence": "Run 1 Phase 3: \"UPDATE <your_table_name> SET old_col = new_col;\" and \"If old_col was originally NOT NULL, restore this constraint\". Run 3 Phase 3: \"The newly added `NOT NULL` column (`new_column`) will be ignored by the old code and does no harm by existing.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 2.67,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "completeness": {
+          "score": 2,
+          "justification": "The format requirements are mostly met, and the outputs include three phases, a critique, and a revision. However, the revision does not fully close the substantive gaps required by the prompt: explicit safe ordering of code-vs-schema steps is only partially addressed, the irrecoverability of the dropped column's data and the resulting decision (prefer roll-forward or restore from backup) is missing, pre-rollback snapshot/backups are absent, and incident comms/pipeline freeze are not consistently included. The revision is therefore not a complete fulfillment of the intended rollback runbook specification.",
+          "evidence": "Run 1 Phase 3 has code rollback and DB steps but no backup/snapshot, no explicit \"data is gone\" decision, and no success criteria beyond generic monitoring. Run 2 Phase 3 lacks any snapshot/back-up step and says only \"Do NOT attempt to drop the `new_column`\". Run 3 Phase 3 includes incident comms and verification, but still omits snapshot/backup and the required decision about irrecoverable lost data.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 4,
+          "justification": "All three runs use the required three labeled phases in order, and Phase 2 is a 3-to-5 item list, while Phase 3 is a numbered procedure. Run 1 and Run 3 include the requested phase labels clearly. The main deviations are that Phase 3 in some runs exceeds or drifts from the requested content constraints, and Run 3 adds extra heading clutter before the actual phases, but the overall shape is close to spec rather than broken.",
+          "evidence": "Run 2: \"Phase 1 - Draft\", \"Phase 2 - Critique\", \"Phase 3 - Revision\". Run 3 includes the same three phase labels, but also prepends extra text and duplicate headings before the phase content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 3.67,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "tone_style": {
+          "score": 3,
+          "justification": "The tone is generally operational and technical, but it is not consistently pitch-perfect for an on-call under-pressure runbook. Some phrasing is polished and directive, yet many steps are still generic or explanatory rather than crisp imperatives. In Run 1, the revision uses narrative transitions like \"This procedure outlines\" and \"If the 500-error rates subside to normal levels,\" which is acceptable but a bit soft. Run 3 is closer with direct commands, but also includes explanatory commentary and awkward phrasing such as \"does no harm by existing,\" which is less than ideal for calm directive runbook prose.",
+          "evidence": "Run 1 Phase 3: \"This procedure outlines critical steps...\" and \"If the 500-error rates subside to normal levels...\". Run 3 Phase 3: \"The newly added `NOT NULL` column (`new_column`) will be ignored by the old code and does no harm by existing.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "safety": {
+          "score": 3,
+          "justification": "The outputs are not overtly harmful, but there are some questionable operational instructions. Run 1 proposes directly updating production schema with ad hoc SQL and even reconstructing data from a new column as if that were a generally safe rollback path. Run 3 instructs creating and applying a temporary migration in production, which is operationally plausible but still risky without the missing safeguards. There is no malicious content, but the safety posture is only moderate because the guidance downplays irrecoverable data-loss risk and omits snapshot/restore safeguards.",
+          "evidence": "Run 1 Phase 3: \"BEGIN; ... ALTER TABLE your_table_name ADD COLUMN old_col ... UPDATE your_table_name SET old_col = new_col; COMMIT;\". Run 3 Phase 3: \"Create a new, versioned migration script... Apply the migration: Run your project's `migrate up` command...\" without any backup/snapshot step.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 3
+            },
+            "mean": 2.67,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The outputs are bloated relative to the quality delivered. Run 1 is especially verbose at 6924 tokens, with large amounts of generic explanation and placeholder-heavy SQL that do not improve the core answer. Run 3 is also lengthy and includes duplicated headings and extensive explanatory text. Given the task asked for a roughly 300-450 word revision focused on actionable rollback steps, the token usage is inefficient for the delivered substance.",
+          "evidence": "Run 1: 6924 output tokens for a runbook that still uses placeholders like \"your_table_name\" and lacks key safeguards. Run 3: 5574 output tokens and includes duplicated headings before the phase content.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2,
+            "median": 2,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "consistency": {
+          "score": 2,
+          "justification": "The runs share the same broad structure and intent, but they differ materially in how they handle the rollback, especially the database portion. Run 1 attempts to reconstruct the dropped column from the new column with direct SQL; Run 2 treats the DB change as a possible manual re-add and explicitly warns against dropping the new column; Run 3 prescribes creating a temporary migration and emphasizes that the new column can remain. These are not just wording differences; they reflect different operational strategies and quality levels. The core answer is similar, but semantic and procedural consistency is only moderate. [lexical similarity ratio: 0.035]",
+          "evidence": "Run 1 Phase 3: direct SQL to re-add and populate `old_col` from `new_col`. Run 2 Phase 3: \"Do NOT attempt to drop the `new_column`\" and only manually re-add the old column if needed. Run 3 Phase 3: \"Create a new, temporary database migration script\" and \"The `new_column` can remain until a proper forward fix is deployed.\"",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 2.33,
+            "median": 2,
+            "spread": 3,
+            "stdev": 1.25,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2
+            }
+          },
+          "lexical_similarity": 0.035
+        }
+      },
+      "judge_summary": "All three runs exhibit the canonical self-flattery failure mode of the reflect-and-revise pattern. Phase 2 critiques consistently identify only cosmetic defects \u2014 placeholder genericity, restart vagueness, word count \u2014 while completely ignoring the six technically-critical flaws the evaluation context requires: irreversibility of the dropped column's data loss, unsafe code/schema rollback ordering, old-code backward compatibility with the new schema, absence of a pre-rollback snapshot, pipeline freeze, and roll-forward as the safer path for destructive migrations. Because Phase 2 never surfaces these defects, Phase 3 revisions are cosmetically polished rewrites rather than materially safer runbooks. Run 1 introduces an additional regression: SQL that populates old_col from new_col 'assuming direct data mapping', misleadingly implying the lost data is recoverable. No run advises taking a database backup before any DDL, declares a pipeline freeze, or acknowledges that a destructive migration makes roll-forward preferable to roll-back. The pattern's core purpose \u2014 using structured self-critique to close real gaps \u2014 is not demonstrated in any run.",
+      "runs": [
+        {
+          "text": "### Phase 1 - Draft\n\n### Rollback Procedure\n\nThis procedure outlines steps to revert a problematic deployment, focusing on both application code and critical database schema changes.\n\n1.  **Immediate Actions**\n    *   **Halt New Deploys:** Inform the team in `#production-alerts` or similar that no new deployments should be initiated for this service until the incident is resolved.\n    *   **Verify Incident:** Confirm that 500-error rates are still elevated and are attributed to the recent deploy.\n\n2.  **Application Code Rollback**\n    *   **Identify Last Known Good (LKG) Version:** Locate the commit hash or deployment tag of the *previous* successful deployment for this service. This is typically available in your CI/CD dashboard (e.g., Jenkins, GitLab CI, GitHub Actions).\n    *   **Trigger Rollback Pipeline:** Initiate a new deployment using the LKG version. Use the standard deployment pipeline, ensuring it's marked as a rollback/emergency deployment if your system supports it.\n    *   **Monitor Application Health:** After the LKG code is deployed, closely monitor application logs, error rates, and key performance indicators. If the 500-error rates subside, the issue was likely application-code related, and no further database action is immediately required for the rollback.\n\n3.  **Database Schema Rollback (If Application Rollback is Insufficient)**\n    *   **Warning:** Modifying production databases directly carries significant risk. Proceed with extreme caution. If unsure, escalate immediately to a senior backend engineer or DBA.\n    *   **Context:** The recent deploy included a migration that added `new_col` (NOT NULL with default, backfilled) and dropped `old_col`. The LKG application code expects `old_col` to exist.\n    *   **Identify Dropped Column Details:**\n        *   Connect to the production database using appropriate credentials.\n        *   Review the problematic migration script (e.g., `V_YYYYMMDD_HHMM__migration_name.sql` in your `migrations` directory) to confirm the exact name and original data type of `old_col`.\n        *   Also confirm the data type of `new_col`, which should now contain the equivalent data.\n    *   **Execute Database Commands:**\n        ```sql\n        -- Connect to the database first: psql -h <host> -U <user> -d <database>\n        BEGIN;\n\n        -- 1. Re-add the old_col, making it nullable initially\n        ALTER TABLE your_table_name ADD COLUMN old_col <original_data_type> NULL;\n\n        -- 2. Populate old_col from new_col (assuming direct data mapping)\n        UPDATE your_table_name SET old_col = new_col;\n\n        -- 3. If old_col was originally NOT NULL, restore this constraint\n        --    Only do this AFTER populating all existing rows.\n        ALTER TABLE your_table_name ALTER COLUMN old_col SET NOT NULL;\n\n        -- 4. Re-create any critical indices on old_col if they existed\n        --    (e.g., CREATE INDEX ix_yourtable_oldcol ON your_table_name (old_col);)\n\n        COMMIT;\n        ```\n    *   **Verify Schema:** After committing, verify the `old_col` exists and contains data using `SELECT old_col FROM your_table_name LIMIT 10;`\n    *   **Restart Application (if needed):** Some applications might cache schema information. A rolling restart of the application service instances may be required to ensure they pick up the reverted database schema.\n\n4.  **Post-Rollback**\n    *   **Monitor:** Continue monitoring application health for stability.\n    *   **Document & Escalate:** Document the incident, the steps taken, and ensure the backend team is aware for a thorough post-mortem and to plan a permanent fix.\n\n### Phase 2 - Critique\n\n1.  **Weakness:** The `your_table_name` placeholder in the SQL commands (\"`ALTER TABLE your_table_name ADD COLUMN...`\") is too generic.\n    **Fix:** Explicitly instruct the engineer to find the correct table name, perhaps by looking at the migration script itself or system documentation, and replace the placeholder with an example format.\n\n2.  **Weakness:** The SQL for re-creating indices (`-- 4. Re-create any critical indices...`) is commented out and uses a generic placeholder (`ix_yourtable_oldcol`). This doesn't provide concrete, actionable steps.\n    **Fix:** Provide a more specific example, perhaps hinting at how to find original index names (e.g., from migration history or `\\d your_table_name`), and ensure the command format is complete and ready to use, even if it requires placeholder replacement. Emphasize *critical* indices.\n\n3.  **Weakness:** The \"Restart Application (if needed)\" step is vague about *why* it might be needed and *how* to perform a rolling restart.\n    **Fix:** Briefly explain common reasons (e.g., connection pooling, ORM caching) and provide a concrete command or reference to the standard procedure for performing a rolling restart of the service's instances.\n\n4.  **Weakness:** The \"Identify Dropped Column Details\" section mentions reviewing the migration script but doesn't explicitly state *where* to find it. The reference \"(e.g., `V_YYYYMMDD_HHMM__migration_name.sql` in your `migrations` directory)\" is good but could be more explicit about common locations.\n    **Fix:** Add a more direct instruction on typical migration script locations (e.g., \"usually found in `service_repo/migrations/` or similar\").\n\n5.  **Weakness:** The \"Context\" paragraph in the Database Schema Rollback section (\"The recent deploy included a migration that added `new_col`... and dropped `old_col`.\") reiterates information from the prompt rather than providing actionable context for the on-call engineer specific to *this* runbook.\n    **Fix:** Rephrase to state what the on-call engineer *needs to know* for action, e.g., \"The critical challenge is that the last deploy removed `old_col`...\" and focus on the direct implication for the rollback.\n\n### Phase 3 - Revision\n\n### Rollback Procedure\n\nThis procedure outlines critical steps to revert a problematic deployment, focusing on both application code and necessary database schema adjustments, designed for an on-call engineer under pressure.\n\n1.  **Immediate Actions**\n    *   **Halt New Deploys:** Immediately notify the team in `#production-alerts` or your designated communication channel that no new deployments for this service should be initiated until the incident is fully resolved.\n    *   **Verify Incident:** Confirm that 500-error rates remain elevated and are directly attributed to the most recent deployment, as indicated by monitoring tools and logs.\n\n2.  **Application Code Rollback**\n    *   **Identify Last Known Good (LKG) Version:** Locate the commit hash or deployment tag of the *immediately preceding* successful deployment for this service. This information is typically available in your CI/CD dashboard (e.g., Jenkins, GitLab CI, GitHub Actions) or deployment history.\n    *   **Trigger Rollback Pipeline:** Initiate a new deployment using the identified LKG version. Use your standard CI/CD deployment pipeline, ensuring any \"rollback\" or \"emergency\" deployment options are selected if available.\n    *   **Monitor Application Health:** After the LKG code is deployed and service instances are updated, closely monitor application logs, error rates, and key performance indicators. If the 500-error rates subside to normal levels, the issue was likely application-code related, and no further database action is immediately required for the rollback. Proceed to Post-Rollback.\n\n3.  **Database Schema Rollback (If Application Rollback is Insufficient)**\n    *   **Warning:** Direct modification of production databases carries significant risk. Execute these steps with extreme caution. If you are unsure about any command or parameter, immediately escalate to a senior backend engineer or DBA.\n    *   **Context:** The recent problematic deployment included a schema migration that dropped the `old_col` column. The LKG application code expects `old_col` to exist and will error without it. This procedure aims to temporarily restore `old_col` to allow the LKG application to function.\n    *   **Identify Dropped Column Details:**\n        *   Connect to the production database using appropriate credentials (e.g., `psql -h <db_host> -U <db_user> -d <db_name>`).\n        *   Locate and review the problematic migration script (usually found in `service_repo/migrations/` or `db/migrations/`, typically named `V_YYYYMMDD_HHMM__migration_name.sql`). Note the exact table name, the precise name (`old_col`), its original data type (e.g., `VARCHAR(255)`, `INTEGER`, `BOOLEAN`), and the name of the new column (`new_col`) it replaced.\n    *   **Execute Database Commands:**\n        ```sql\n        -- Execute these commands in a transaction for safety\n        BEGIN;\n\n        -- 1. Re-add the old_col, making it nullable initially to avoid immediate NOT NULL violations.\n        ALTER TABLE <your_table_name> ADD COLUMN old_col <original_data_type> NULL;\n\n        -- 2. Populate old_col from new_col. This assumes a direct data mapping, as is common for replacements.\n        UPDATE <your_table_name> SET old_col = new_col;\n\n        -- 3. If old_col was originally NOT NULL, restore this constraint.\n        --    This *must* be done AFTER populating all existing rows to avoid errors.\n        ALTER TABLE <your_table_name> ALTER COLUMN old_col SET NOT NULL;\n\n        -- 4. Re-create any *critical* indices that existed on old_col.\n        --    Check migration history or 'psql \\d <your_table_name>' before the incident to find original index names.\n        --    Example: CREATE INDEX IF NOT EXISTS ix_my_table_old_col ON <your_table_name> (old_col);\n\n        COMMIT;\n        ```\n    *   **Verify Schema:** After committing the transaction, verify that `old_col` exists and contains valid data by running a query like `SELECT id, old_col, new_col FROM <your_table_name> LIMIT 10;`.\n    *   **Restart Application Service:** Application instances often cache database schema or connection pool information. Perform a rolling restart of all application service instances to ensure they pick up the reverted database schema. Use your standard command for this, e.g., `kubectl rollout restart deployment/your-service` or `systemctl restart your-service-unit`.\n\n4.  **Post-Rollback**\n    *   **Monitor:** Continuously monitor application health, error rates, and system logs for sustained stability.\n    *   **Document & Escalate:** Thoroughly document the incident, all steps taken (including SQL commands), and observations. Ensure the full backend team is aware for a detailed post-mortem, root cause analysis, and to plan a permanent, forward-compatible fix to re-introduce the `new_col` safely.",
+          "input_tokens": 322,
+          "output_tokens": 6924,
+          "seconds": 33.87,
+          "run": 1
+        },
+        {
+          "text": "**Phase 1 - Draft:**\n\n**Rollback Procedure**\n\nThis procedure outlines steps to revert a problematic deployment and restore service health. The recent deploy included a database schema migration that added a new column, backfilled it, and dropped an old one. This makes a direct database migration rollback challenging.\n\n1.  **Assess and Confirm Incident**\n    *   Confirm current 500-error rates or critical failures are directly tied to the recent deployment.\n    *   Verify the exact deployment ID or Git commit hash of the problematic release in your CI/CD system.\n\n2.  **Application Code Rollback**\n    *   **Identify Last Stable Version:** Access your CI/CD system (e.g., Jenkins, GitLab CI, GitHub Actions). Locate the *last known good deployment* ID or Git commit hash. This is typically the immediate preceding successful deployment.\n    *   **Trigger Rollback Deployment:** Use the CI/CD system to initiate a new deployment using the identified last stable version. Ensure this process bypasses any new schema migrations associated with the rolled-back code, as the database is already in a forward state.\n    *   **Monitor Application Health:** Immediately after triggering the rollback, closely monitor key application metrics (error rates, latency, request volume, CPU/memory usage) and logs. Confirm that the 500-error rates begin to decline.\n\n3.  **Database Schema Rollback Considerations**\n    *   **Understand the Situation:** The recent migration added a `new_column` and *dropped* an `old_column`. The rolled-back application code expects the `old_column` to exist. A simple `migrations:rollback` command will likely fail or cause further issues because the `old_column` is already gone.\n    *   **Action for Missing `old_column`:**\n        *   If, after rolling back the application code, you observe errors specifically complaining about a missing column (e.g., `column \"old_column_name\" does not exist`), you must manually re-add it.\n        *   **Identify `old_column` Definition:**\n            *   Refer to the migration file from the *previous* successful deploy (the one you're rolling back to) or schema history in your version control to find the exact definition (name, type, nullability, default value) of the `old_column` that was dropped.\n            *   Example DDL: `ALTER TABLE {your_table_name} ADD COLUMN {old_column_name} {data_type} {NULL/NOT NULL} DEFAULT {default_value_if_any};`\n            *   Execute this DDL directly on the production database using an appropriate database client.\n        *   **Important:** Do NOT attempt to drop the `new_column` that was added by the problematic migration unless explicitly instructed by the database team after careful data assessment, as this could lead to data loss. The rolled-back application should generally ignore columns it doesn't recognize.\n\n4.  **Post-Rollback Verification**\n    *   Confirm all critical services are healthy and error rates have returned to baseline.\n    *   Inform relevant teams (development, QA) about the rollback and the database state, including the re-added column, for post-mortem analysis and a forward fix.\n\n**Phase 2 - Critique:**\n\n1.  **Weakness:** The phrase \"Ensure this process bypasses any new schema migrations associated with the rolled-back code, as the database is already in a forward state\" in step 2.2 is vague. It doesn't specify *how* to ensure this.\n    **Fix:** Clarify by advising to *disable* migrations for the rollback deployment or ensure the CI/CD configuration handles it automatically for old tags.\n\n2.  **Weakness:** The instruction \"Execute this DDL directly on the production database using an appropriate database client\" in step 3.2.2 lacks specific details that an on-call engineer, especially under pressure, would appreciate. It doesn't mention *which* client or *how* to access production DB.\n    **Fix:** Suggest common tools like `psql` and remind them to use their standard secure access method.\n\n3.  **Weakness:** The sentence \"This is typically the immediate preceding successful deployment\" in step 2.1 might lead to ambiguity if there were multiple successful non-application-breaking deploys between the current and the desired rollback point.\n    **Fix:** Change \"last known good deployment ID\" to \"last *stable* deployment ID *before* the problematic one\" to be more precise about the target.\n\n4.  **Weakness:** The \"Example DDL\" in step 3.2.2 uses `{your_table_name}`. While generic, a competent on-call engineer might benefit from a clear instruction on *how* to find this table name, rather than assuming they immediately know it.\n    **Fix:** Add a sentence advising the engineer to find the `table_name` from the same previous migration file or application code reference.\n\n5.  **Weakness:** The word count (currently ~450 words) is at the higher end of the target (300-450 words). Some parts could be more concise without losing clarity.\n    **Fix:** Trim redundant phrasing and combine short sentences for conciseness during revision.\n\n**Phase 3 - Revision:**\n\n**Rollback Procedure**\n\nThis procedure outlines steps to revert a problematic deployment and restore service health. The recent deploy included a database schema migration that added a new column, backfilled it, and dropped an old one, making a direct database migration rollback challenging.\n\n1.  **Assess and Confirm Incident**\n    *   Confirm current 500-error rates or critical failures are directly tied to the recent deployment.\n    *   Verify the exact deployment ID or Git commit hash of the problematic release in your CI/CD system.\n\n2.  **Application Code Rollback**\n    *   **Identify Last Stable Version:** Access your CI/CD system (e.g., Jenkins, GitLab CI, GitHub Actions). Locate the last *stable* deployment ID or Git commit hash *before* the problematic one.\n    *   **Trigger Rollback Deployment:** Initiate a new deployment using this identified stable version. Critically, ensure this deployment either has its database migration step *disabled* or is configured to ignore migrations for old code tags. The database is already in a forward state, so attempting to run old migrations will fail.\n    *   **Monitor Application Health:** Immediately after triggering the rollback, closely monitor key application metrics (error rates, latency, request volume, CPU/memory usage) and logs. Confirm that 500-error rates decline.\n\n3.  **Database Schema Considerations**\n    *   **Understand the Situation:** The recent migration added a `new_column` and *dropped* an `old_column`. The rolled-back application expects the `old_column` to exist. A simple `migrations:rollback` command will likely fail or cause further issues.\n    *   **Action for Missing `old_column`:**\n        *   If, post-rollback, application logs show errors like `column \"old_column_name\" does not exist`, you must manually re-add it.\n        *   **Identify `old_column` Definition:** Refer to the migration file from the *previous* stable deploy (the one you rolled back to) or schema history in version control. Find the exact table name, column name, data type, nullability, and default value of the `old_column` that was dropped.\n        *   **Execute DDL:** Connect to the production database using your standard secure access method (e.g., `psql`). Execute the DDL to re-add the column:\n            `ALTER TABLE {table_name} ADD COLUMN {old_column_name} {data_type} {NULL/NOT NULL} DEFAULT {default_value_if_any};`\n            Example: `ALTER TABLE users ADD COLUMN legacy_status VARCHAR(50) NULL DEFAULT 'active';`\n        *   **Important:** Do NOT attempt to drop the `new_column` added by the problematic migration unless explicitly instructed by the database team after careful data assessment, as this could lead to data loss. The rolled-back application should generally ignore columns it doesn't recognize.\n\n4.  **Post-Rollback Verification**\n    *   Confirm all critical services are healthy and error rates have returned to baseline.\n    *   Inform relevant teams (development, QA) about the rollback and the database state (including the re-added column) for post-mortem analysis and a forward fix.",
+          "input_tokens": 322,
+          "output_tokens": 4542,
+          "seconds": 24.45,
+          "run": 2
+        },
+        {
+          "text": "## Rollback Procedure\n\n### Phase 1 - Draft:\n\n## Rollback Procedure\n\nThis procedure outlines the steps to revert a problematic deployment, focusing on both application code and database schema changes. Given a recent deployment introduced a forward database migration (adding a `NOT_NULL` column with default, backfilling, and dropping an `old_column`), simply reverting the code will not suffice as the previous application version expects the `old_column`.\n\n1.  **Incident Management & Communication:**\n    *   Declare a P1 incident if not already done.\n    *   Communicate the decision to roll back in `#production-alerts` or the relevant incident channel.\n    *   Ensure stakeholders are aware of the impending actions.\n\n2.  **Identify Rollback Target:**\n    *   Identify the exact Git commit/tag of the *last known good deployment*. This is crucial. Check the CI/CD pipeline history for the service.\n    *   Example: If current broken deploy is `v1.2.3`, last good is `v1.2.2`.\n\n3.  **Prepare Database for Code Rollback:**\n    *   **Context:** The previous application version expects `old_column`, which was dropped. The new `NOT_NULL` column added (`new_column`) is not recognized by the old code but does no harm by existing.\n    *   **Action:** Create a *new, temporary database migration* script to re-add the `old_column`.\n        *   Connect to the production database via `psql` (or equivalent DBM tool).\n        *   Execute: `ALTER TABLE your_table ADD COLUMN old_column <data_type> NULL;` (Choose the correct `data_type` and make it `NULL` initially to avoid immediate issues).\n        *   **Important:** Document this temporary change.\n        *   Consider adding a default if the previous code relied on one, e.g., `ALTER TABLE your_table ALTER COLUMN old_column SET DEFAULT <default_value>;`\n    *   **Rationale:** This makes the database schema compatible with the previous application code version, allowing it to run without `column_not_found` errors. The `new_column` can remain until a proper forward fix is deployed.\n\n4.  **Roll Back Application Code:**\n    *   Initiate a new deployment from the CI/CD system using the Git commit/tag identified in Step 2.\n    *   Select the `service-name` pipeline and trigger a deploy of `v1.2.2` (or your identified last good version).\n    *   Monitor the deployment logs closely. Ensure it completes successfully.\n\n5.  **Verify Rollback Success:**\n    *   Monitor production error rates (e.g., 5xx errors in Grafana/Datadog) and confirm they have returned to baseline levels.\n    *   Check application logs for any new errors or warnings.\n    *   Perform a quick functional smoke test if applicable (e.g., try a key API endpoint).\n    *   Confirm CPU/memory usage has normalized.\n\n6.  **Post-Rollback Clean-up & Analysis:**\n    *   Once the system is stable, begin a root cause analysis of the failed deployment.\n    *   Plan a proper forward fix that addresses the original issue and potentially removes the temporarily re-added `old_column` and manages `new_column` correctly.\n    *   Remove the temporary database migration script once a permanent fix is deployed.\n\n---\n\n### Phase 2 - Critique:\n\nHere are 4 specific weaknesses in the draft:\n\n1.  **Weakness:** The database modification step lacks precision regarding how the on-call engineer should *execute* the `ALTER TABLE` command in a production context.\n    **Quote/Point:** \"Connect to the production database via `psql` (or equivalent DBM tool). Execute: `ALTER TABLE your_table ADD COLUMN old_column <data_type> NULL;`\"\n    **Fix:** Explicitly state the preferred, safest method for applying schema changes in production, rather than direct `psql`. This would typically involve creating a new, temporary migration file within the project's migration framework (e.g., Flyway, Alembic, raw `db/migrate` scripts) and then running the framework's `migrate up` command. This ensures auditability and proper versioning, even for a temporary fix.\n\n2.  **Weakness:** The instructions for re-adding `old_column` do not provide a clear path for determining its `data_type` and potential previous `default_value`. This could leave the on-call guessing under pressure.\n    **Quote/Point:** \"Execute: `ALTER TABLE your_table ADD COLUMN old_column <data_type> NULL;` (Choose the correct `data_type`...)\" and \"Consider adding a default if the previous code relied on one, e.g., `ALTER TABLE your_table ALTER COLUMN old_column SET DEFAULT <default_value>;`\"\n    **Fix:** Instruct the on-call to consult the previous successful deploy's schema definition or the `git blame` history of migration files to accurately determine the `data_type` and any necessary `default_value` for `old_column`. Emphasize the importance of matching this to avoid further issues.\n\n3.  **Weakness:** The \"Post-Rollback Clean-up & Analysis\" step mentions removing the temporary database migration script but doesn't explain *how* this would be done, or the implications if it's a \"real\" migration script. This could lead to confusion or incorrect future database states.\n    **Quote/Point:** \"Remove the temporary database migration script once a permanent fix is deployed.\"\n    **Fix:** Clarify that if a temporary migration file was created within the migration framework (as suggested in fix 1), it should *not* be physically removed from the repository. Instead, the \"permanent fix\" migration should typically incorporate the removal of this temporary column, and the temporary migration should be preserved in history for auditability. If it was a direct `psql` command, state that there's no \"script\" to remove but rather a manual change to be aware of. Given the context, the first approach is better.\n\n4.  **Weakness:** The procedure assumes a universal \"service-name pipeline\" and doesn't explicitly link the rollback to the identified \"last known good deployment\" in the application code rollback step.\n    **Quote/Point:** \"Select the `service-name` pipeline and trigger a deploy of `v1.2.2` (or your identified last good version).\"\n    **Fix:** Be more explicit about how to *identify* and *select* the specific version to deploy in the CI/CD system. This could involve navigating to a specific build, using a \"redeploy\" option, or specifying the Git tag/commit explicitly within the CI/CD UI. Reference Step 2 more directly.\n\n---\n\n### Phase 3 - Revision:\n\n## Rollback Procedure\n\nThis procedure outlines the critical steps to revert a problematic deployment, addressing both application code and database schema changes. Given a recent deployment included a forward database migration (adding a `NOT NULL` column with default, backfilling, and dropping an `old_column`), simply reverting the code will not suffice, as the previous application version expects the `old_column`.\n\n1.  **Incident Management & Communication:**\n    *   Declare a P1 incident immediately if not already done.\n    *   Communicate the decision to roll back in `#production-alerts` or the relevant incident channel. Keep stakeholders informed throughout the process.\n\n2.  **Identify Rollback Target:**\n    *   Using your CI/CD pipeline history for this service, identify the exact Git commit/tag of the *last known good deployment* that predates the problematic release. This is your target rollback version.\n    *   *Example:* If the current broken deploy is `v1.2.3`, your target is likely `v1.2.2`.\n\n3.  **Prepare Database for Code Rollback:**\n    *   **Context:** The previous application code version expects `old_column`, which was dropped by the problematic migration. The newly added `NOT NULL` column (`new_column`) will be ignored by the old code and does no harm by existing.\n    *   **Action:** You must re-introduce `old_column` to satisfy the older application code.\n        *   **Create a new, temporary migration file:** Use your service's standard database migration framework (e.g., Flyway, Alembic) to create a new, versioned migration script. This ensures proper auditability and application of schema changes.\n        *   **Migration Content:** The script should contain: `ALTER TABLE your_table ADD COLUMN old_column <data_type> NULL;`\n            *   To determine `<data_type>` and any previous `DEFAULT <default_value>`, consult the schema definition in the Git history *prior* to the problematic migration (e.g., `git blame` on the original migration file that created `old_column` or the last successful schema dump).\n            *   Always make the re-added column `NULL` initially to prevent immediate data integrity issues. If the previous code heavily relied on a `DEFAULT`, you may add `ALTER TABLE your_table ALTER COLUMN old_column SET DEFAULT <default_value>;` in a separate statement.\n        *   **Apply the migration:** Run your project's `migrate up` command (or equivalent) to apply this temporary migration to the production database.\n    *   **Rationale:** This makes the database schema temporarily compatible with the previous application code, preventing `column_not_found` errors. The `new_column` can remain until a proper forward fix is deployed.\n\n4.  **Roll Back Application Code:**\n    *   Access your CI/CD system (e.g., Jenkins, GitLab CI, GitHub Actions) for the service.\n    *   Locate the pipeline for `[Your Service Name]`.\n    *   Initiate a new deployment by explicitly selecting the Git commit/tag identified in Step 2 (e.g., `v1.2.2`). This might involve using a \"Redeploy\" option on a past successful build or manually triggering a build with the specific tag.\n    *   Monitor the deployment logs closely to ensure it completes successfully.\n\n5.  **Verify Rollback Success:**\n    *   Monitor production error rates (e.g., 5xx errors in Grafana/Datadog) and confirm they have returned to baseline levels.\n    *   Check application logs for any new errors or warnings.\n    *   Perform a quick functional smoke test (e.g., try a key API endpoint, critical user flow).\n    *   Confirm CPU/memory usage for the service has normalized.\n\n6.  **Post-Rollback Clean-up & Analysis:**\n    *   Once the system is stable and verified, initiate a comprehensive root cause analysis of the failed deployment.\n    *   **Database clean-up:** The temporary migration file created in Step 3 should *not* be deleted from the repository. Instead, a *new* forward migration should be planned that addresses the original issue, properly manages `new_column`, and eventually removes the temporarily re-added `old_column` when it's safe to do so. This maintains a complete and auditable migration history.",
+          "input_tokens": 322,
+          "output_tokens": 5574,
+          "seconds": 26.08,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1.29,
+        "max_spread": 3,
+        "contested_dims": [
+          "accuracy",
+          "consistency"
+        ],
+        "self_preference_delta": 1.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

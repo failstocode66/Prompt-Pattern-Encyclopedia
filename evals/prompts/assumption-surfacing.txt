@@ -1,0 +1,3 @@
+Before answering, list the assumptions you are making to interpret this request. Number them. For each, briefly note what your recommendation would change to if that assumption turned out to be false. Then give your recommendation.
+
+Request: Our main app runs on a single Postgres instance and we're starting to feel it. Writes are getting slow during peak hours and we're worried about where this goes in a year. Should we shard Postgres ourselves or move to a managed distributed SQL database like CockroachDB or Spanner? Give us a clear recommendation.

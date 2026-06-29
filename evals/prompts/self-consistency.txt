@@ -1,0 +1,12 @@
+I want a reliable answer to a probability question that I know trips people up, so don't just reason once. Work the problem through FIVE separate times, each as an independent attempt that does not look at or reuse the others — vary how you set it up (e.g. enumerate the sample space, use conditional-probability formulas, reason about symmetry, etc.) so the attempts are genuinely different lines of reasoning, not the same chain reworded.
+
+For each of the five attempts:
+- Show the reasoning for that attempt.
+- End that attempt with a line in the exact form: "Attempt k final answer: <value>" (as a fraction or decimal).
+
+After all five attempts:
+- Tally how many attempts produced each distinct final answer.
+- Report the answer that appears most often as the result. If two or more answers tie for the most votes, say so explicitly and apply a stated tiebreaker (e.g. re-examine the tied chains and pick the one whose reasoning survives scrutiny) rather than picking arbitrarily.
+- Give the final majority answer on its own last line in the form: "Result: <value>".
+
+The problem: A family has three children. You are told that at least two of them are girls. What is the probability that all three children are girls? (Assume each child is independently a boy or a girl with probability 1/2.)
