@@ -1,0 +1,1 @@
+Question: A family has three children. You are told that at least two of them are girls. What is the probability that all three children are girls? (Assume each child is independently a boy or a girl with probability 1/2.)

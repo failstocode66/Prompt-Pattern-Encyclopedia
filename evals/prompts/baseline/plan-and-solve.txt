@@ -1,0 +1,6 @@
+Task: A product team must ship a hotfix on a single day with three sub-teams in different time zones, each working only their local 09:00-18:00:
+- Bangalore (UTC+5:30): owns the BUILD stage — needs a 2-hour working block.
+- Berlin (UTC+2): owns the INTEGRATE stage — needs a 1-hour working block, and cannot start until it has Bangalore's build output.
+- New York (UTC-4): owns the VALIDATE-AND-SHIP stage — needs a 2-hour working block, and cannot start until it has Berlin's integrated output.
+
+The stages are strictly sequential (BUILD → INTEGRATE → VALIDATE-AND-SHIP). At each stage boundary the handing-off team and the receiving team must be online together for a 15-minute synchronous handoff. No team may work outside its local 09:00-18:00. Produce a concrete minute-by-minute schedule in UTC that ships as early as possible, and give the UTC time the hotfix ships. If anything about the arrangement is forced or impossible-to-avoid, say so explicitly.
