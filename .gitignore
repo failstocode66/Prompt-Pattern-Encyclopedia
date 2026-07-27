@@ -8,3 +8,7 @@ __pycache__/
 evals/memory/
 evals/reports/memory-eff-*
 
+.gitnexus
+
+# [V3] scratch: per-(pattern,model) opus re-judge verdicts (resumable cache; not a deliverable)
+.rejudge-cache/
