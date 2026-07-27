@@ -186,3 +186,43 @@ at $5/$25 per 1M). This is above the ~$1–3 estimate and at the top of the pre-
 cap; the driver was opus adaptive-thinking output tokens (~5.1k out/call). No credit or billing
 error occurred; the fail-fast smoke (analogical-reasoning) ran first and verified sane output
 before the batch. All spending is complete — `--combine` is pure computation.
+
+---
+
+## [V4] PROMOTE-SET DECISION — 2026-07-27 (Tyler, recorded verbatim from the vetting session)
+
+**Rulings:** (1) promote-set = "just the 4 delta-proven"; (2) V2 baseline-delta extension =
+later; (3) [V4b] authoring runs hands-off — drafts published to Tyler's screen for one batch
+review + approval before any lab→core move.
+
+### The agreed promote-set (4)
+
+| Pattern | Score /15 (V3-firmed where boundary) | Baseline delta (V2) | Missing before promotion |
+|---|---|---|---|
+| cognitive-verifier | 13.4 | **+3.7** | #3 real-use examples (≥2) |
+| plan-and-solve | 12.3 → 13.0 | **+3.2** | #3 real-use examples (≥2) |
+| self-consistency | 12.7 | **+3.2** | #3 real-use examples (≥2) |
+| least-to-most-prompting | 12.5 → 13.1 | **+1.2** (promote-with-caveat: modest delta, "when to use" must scope it) | #3 real-use examples (≥2) |
+
+All four already document failure modes (#4 met per V1). The evidence chain for each is
+complete on every criterion except #3, which [V4b] authors next.
+
+### Held in lab — with reasons (18)
+
+- **Format/control candidates** (delimiter-fencing, strict-output-format, response-priming,
+  length-budgeting): high scores; candidate exemption from the delta principle (value is output
+  control, not a quality delta) — **held for a later tranche** where that exemption is argued
+  per-pattern rather than assumed.
+- **Baseline-equivalent pair** (chain-of-thought +0.0, cognitive-decomposition +0.3): candidates
+  for reference-reclassification with "modern models do this unprompted" framing — held pending
+  that framing decision; NOT promotable as-is (the honest +0.0 is part of the encyclopedia's
+  credibility).
+- **Score-firm, delta-unmeasured** (direct-answer, self-verification, few-shot-examples,
+  cognitive-verifier is promoted above, low-latency-optimization, noise-isolation,
+  flipped-interaction, analogical-reasoning, negative-prompting, instruction-anchoring,
+  staged-refinement, devils-advocate, stepback-abstraction): clear ≥12/15 (boundary members
+  robustly per V3) but carry no baseline-delta evidence; **held pending a later V2 extension**
+  (deferred by ruling 2) or per-pattern exemption argument.
+
+**Promotion still gates on [V4b]:** no lab→core move until each promote-set pattern carries ≥2
+genuine real-use examples, Tyler-approved in the batch review.
