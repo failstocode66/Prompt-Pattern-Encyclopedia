@@ -1,8 +1,8 @@
 ## Pattern: least-to-most-prompting
 
-Version: 0.1
-Status: Lab
-Last Updated: 2026-05
+Version: 1.0
+Status: Core
+Last Updated: 2026-07
 
 ---
 
@@ -121,3 +121,4 @@ Introduced by Zhou et al. (Google, 2022). Empirically improves performance on co
 
 ### Version History
 v0.1 – initial version
+v1.0 – 2026-07-27 promoted lab → core (encyclopedia-pattern-promotion plan, [V5]). Full Lab→Core validation: score 12.5→13.1/15 (V3 4-judge firmed), measured baseline delta +1.2 (promote-with-caveat — modest, structure/auditability not accuracy; see Notes), ≥2 real-use examples, documented failure modes. Evidence: evals/PROMOTION-AUDIT.md.

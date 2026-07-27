@@ -1,7 +1,7 @@
 ## Pattern: plan-and-solve
-Version: 0.1
-Status: Lab
-Last Updated: 2026-04-23
+Version: 1.0
+Status: Core
+Last Updated: 2026-07-27
 
 ---
 
@@ -104,3 +104,4 @@ The plan step is most valuable when it names the assumptions and constraints exp
 
 Version History
 v0.1 – initial version
+v1.0 – 2026-07-27 promoted lab → core (encyclopedia-pattern-promotion plan, [V5]). Full Lab→Core validation: score 12.3→13.0/15 (V3 4-judge firmed), measured baseline delta +3.2, ≥2 real-use examples, documented failure modes. Evidence: evals/PROMOTION-AUDIT.md.

@@ -1,8 +1,8 @@
 ## Pattern: cognitive-verifier
 
-Version: 0.1
-Status: Lab
-Last Updated: 2026-05
+Version: 1.0
+Status: Core
+Last Updated: 2026-07
 
 ---
 
@@ -120,3 +120,4 @@ Originates from the prompt patterns catalog (White et al., Vanderbilt 2023). The
 
 ### Version History
 v0.1 – initial version
+v1.0 – 2026-07-27 promoted lab → core (encyclopedia-pattern-promotion plan, [V5]). Full Lab→Core validation: score 13.4/15, measured baseline delta +3.7 (the largest of the tranche), ≥2 real-use examples, documented failure modes. Evidence: evals/PROMOTION-AUDIT.md.
