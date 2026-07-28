@@ -1,0 +1,687 @@
+{
+  "tool": "PromptEval v1.1",
+  "pattern": "self-consistency-baseline",
+  "date": "2026-07-01 22:52",
+  "judge": "panel[gpt-5.4-mini, claude-sonnet-4-6, gemini-2.5-flash]",
+  "runs_per_model": 3,
+  "review_mode": "automated",
+  "context": {
+    "expected": "Correct final result must be 1/4 (0.25). A strong answer must: (1) Identify the conditioning event \"at least two girls\" and restrict the equally-likely sample space to exactly the 4 outcomes {BGG, GBG, GGB, GGG}, with GGG the single favorable case \u2192 1/4. (2) Actually produce FIVE attempts that are genuinely independent \u2014 different setups (explicit enumeration, P(A\u2229B)/P(B) formula via P(\u22652 girls)=4/8 and P(3 girls)=1/8 giving (1/8)/(4/8)=1/4, symmetry/counting, etc.) and ideally NOT all reaching the same answer. The discriminating signal is that the chains scatter realistically: the problem's anchoring trap (answering 1/2 by treating the unfixed child as a free coin flip, or 1/3 by mis-importing the classic two-child \"at least one boy\" structure, or 1/8 by ignoring the conditioning entirely) should plausibly appear in at least one chain, and the correct 1/4 chains must out-vote the trapped ones. (3) Explicitly TALLY the per-attempt answers (e.g. \"1/4: 4 votes, 1/2: 1 vote\") rather than asserting a winner. (4) State and apply a tiebreaker rule even if no tie occurs, OR correctly note no tie arose. (5) End with \"Result: 1/4\". Subtle flaws a judge should catch and penalize: chains that are identical or near-identical paraphrases (fake independence \u2014 defeats the entire mechanism); all five chains anchoring on the SAME wrong value (1/2) and majority-voting confidently wrong (shared-bias failure mode); no actual vote tally; a final result that contradicts the model's own majority of chains; or correct sample-space enumeration in the reasoning but a careless wrong \"Result\" line.",
+    "format_spec": "Five clearly delimited attempts, each ending with a line exactly matching \"Attempt k final answer: <value>\". Followed by an explicit vote tally of distinct answers, a stated tiebreaker rule (applied or noted as not needed), and a final standalone line exactly matching \"Result: <value>\".",
+    "tone": "Analytical and self-auditing, like a careful quantitative reasoner showing work; precise about probabilities and the conditioning step; no hedging filler."
+  },
+  "prompt": "Question: A family has three children. You are told that at least two of them are girls. What is the probability that all three children are girls? (Assume each child is independently a boy or a girl with probability 1/2.)\n",
+  "models": [
+    {
+      "model": "gpt-5.4-mini",
+      "overall": 3.1,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 5,
+          "justification": "All three runs solve the conditional probability correctly and stay on task. They correctly restrict to the four equally likely outcomes with at least two girls and identify only GGG as favorable, yielding 1/4.",
+          "evidence": "Run 1: \"We\u2019re told **at least two are girls**, so we keep only: - GGB - GBG - BGG - GGG ... That gives **4** equally likely outcomes, and only **1** of them is all girls. So the probability is: 1/4\"; Run 2: same reasoning and result; Run 3: same reasoning and result.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "completeness": {
+          "score": 1,
+          "justification": "Every self-consistency-specific requirement is absent: (1) no five independent attempts with distinct methodologies, (2) no 'Attempt k final answer: <value>' labels, (3) no vote tally enumerating distinct answers, (4) no stated tiebreaker rule, (5) no 'Result: <value>' closing line. Only the bare mathematical answer is present. All pattern requirements are ignored.",
+          "evidence": "Run 1 ends with 'Answer: \\(\\boxed{\\tfrac{1}{4}}\\)' \u2014 no tally, no tiebreaker, no Result line, no attempt structure. Identical structural absence in Runs 2 and 3.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 1,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.33,
+            "median": 1,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 1,
+          "justification": "The required format was five clearly delimited attempts, each with an exact attempt-final-answer line, followed by a vote tally, tiebreaker, and a standalone Result line. The outputs instead provide a single solution per run with no attempt numbering, no tally, and no final \"Result: <value>\" line.",
+          "evidence": "Run 1 contains no lines like \"Attempt 1 final answer: <value>\" and no \"Result: <value>\" line. Runs 2 and 3 are the same; Run 3 ends with \"**Answer: \\(\\boxed{\\frac{1}{4}}\\)\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 1,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1,
+            "median": 1,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 3,
+          "justification": "The tone is clear, analytical, and concise, suitable for a quantitative reasoning problem. It is not quite the careful self-auditing style requested in the evaluation context because it does not show explicit self-checking, but the register is otherwise appropriate.",
+          "evidence": "Run 3 begins \"Let the children be in birth order, and assume each child is equally likely...\" and all runs explain the conditional set before concluding. There is no hedging or casual filler.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 2
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign and free of harmful, biased, or inappropriate material.",
+          "evidence": "All runs discuss only a probability puzzle about child genders; no unsafe content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "For the simple problem asked, the outputs are reasonably concise. But relative to the evaluation context\u2019s stronger reference pattern, the response set is under-generated: only three short runs and none of the required multi-attempt self-consistency machinery. The token usage is low, but the delivered quality against the expected pattern is incomplete, making the efficiency only modest.",
+          "evidence": "Run lengths are 129, 133, and 149 tokens, yet none includes the requested five attempts, tally, or tiebreaker. The same core derivation is repeated across runs with slight wording changes.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.67,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "Across the three runs, the semantic content, structure, and quality are highly stable: each enumerates the 8 outcomes, filters to the same 4 outcomes under \"at least two girls,\" and concludes 1/4. Wording varies slightly, but there is no contradiction or meaningful structural divergence. [lexical similarity ratio: 0.53]",
+          "evidence": "Run 1: \"We\u2019re told **at least two are girls**, so we keep only: - GGB - GBG - BGG - GGG\"; Run 2: same set and same conclusion; Run 3: same set and same conclusion. All three end with 1/4.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          },
+          "lexical_similarity": 0.53
+        }
+      },
+      "judge_summary": "The model accurately solves the underlying probability problem, correctly identifying the conditional sample space and the final probability of 1/4. However, it entirely fails to implement the requested self-consistency pattern. It produces only a single derivation per run, instead of five independent attempts, and consequently omits the required vote tally, tiebreaker rule, and specific final 'Result' line. This leads to very low scores for completeness, format compliance, and efficiency (relative to the pattern's expectations). The tone is analytical for the content delivered but lacks the 'self-auditing' quality associated with the pattern. All runs are highly consistent in their structure and content, including their consistent failure to follow the pattern.",
+      "runs": [
+        {
+          "text": "There are 8 equally likely gender combinations for 3 children:\n\n- BBB\n- BBG\n- BGB\n- GBB\n- BGG\n- GBG\n- GGB\n- GGG\n\nWe\u2019re told **at least two are girls**, so we keep only:\n\n- GGB\n- GBG\n- BGG\n- GGG\n\nThat gives **4** equally likely outcomes, and only **1** of them is all girls.\n\nSo the probability is:\n\n\\[\n\\frac{1}{4}\n\\]\n\n**Answer: \\(\\boxed{\\tfrac{1}{4}}\\)**",
+          "input_tokens": 56,
+          "output_tokens": 129,
+          "seconds": 2.07,
+          "run": 1
+        },
+        {
+          "text": "Let the three children be equally likely to be any of the 8 gender combinations:\n\n- BBB\n- BBG\n- BGB\n- BGG\n- GBB\n- GBG\n- GGB\n- GGG\n\nWe are told **at least two are girls**, so we only keep:\n\n- BGG\n- GBG\n- GGB\n- GGG\n\nThat\u2019s 4 equally likely cases, and only 1 of them is **all girls**.\n\nSo the probability is:\n\n\\[\n\\frac{1}{4}\n\\]\n\n**Answer: \\(\\boxed{\\tfrac{1}{4}}\\)**",
+          "input_tokens": 56,
+          "output_tokens": 133,
+          "seconds": 1.45,
+          "run": 2
+        },
+        {
+          "text": "Let the children be in birth order, and assume each child is equally likely to be a boy (B) or girl (G), independently.\n\nAll 8 possible outcomes are:\n\n- BBB\n- BBG\n- BGB\n- BGG\n- GBB\n- GBG\n- GGB\n- GGG\n\nWe are told **at least two are girls**, so we keep only:\n\n- BGG\n- GBG\n- GGB\n- GGG\n\nThat\u2019s 4 equally likely outcomes, and only 1 of them is all girls.\n\nSo the probability is:\n\n\\[\n\\frac{1}{4}\n\\]\n\n**Answer: \\(\\boxed{\\frac{1}{4}}\\)**",
+          "input_tokens": 56,
+          "output_tokens": 149,
+          "seconds": 1.69,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "openai",
+        "mean_spread": 0.71,
+        "max_spread": 2,
+        "contested_dims": [
+          "tone_style"
+        ],
+        "self_preference_delta": 4
+      }
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "overall": 3.3,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "All three runs are mathematically correct and directly on task: they condition on \"at least two girls,\" identify the 4 relevant outcomes, and compute 1/4 correctly.",
+          "evidence": "Run 1: \"At least two girls \u2192 {BGG, GBG, GGB, GGG} \u2014 4 outcomes\" and \"= \\frac{1/8}{4/8} = \\frac{1}{4}\". Run 2: same calculation. Run 3: same calculation.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 5,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -2
+            }
+          }
+        },
+        "completeness": {
+          "score": 1,
+          "justification": "The self-consistency pattern requires five clearly delimited independent attempts, an explicit vote tally, a stated tiebreaker rule, and a final 'Result:' line. Every one of these requirements is absent across all three runs. Each run provides only a single reasoning chain. The 'discriminating signal' requirement (at least one chain landing on a wrong answer like 1/2 or 1/3) is also entirely missing.",
+          "evidence": "Run 1, 2, 3: Each contains exactly one approach section with a single boxed answer. No 'Attempt k final answer:' delimiters, no vote tally section, no tiebreaker statement, no 'Result: 1/4' line anywhere.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 1,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.33,
+            "median": 1,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 1,
+          "justification": "The outputs do not match the required format specification. They are not five attempts, lack per-attempt lines exactly matching \"Attempt k final answer: <value>\", omit the required vote tally and tiebreaker statement, and do not end with the exact standalone result line.",
+          "evidence": "No run contains \"Attempt 1 final answer:\", \"Attempt 2 final answer:\", etc. The runs instead end with boxed answers like \"\\boxed{\\dfrac{1}{4}}\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 1,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1,
+            "median": 1,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 4,
+          "justification": "The tone is mostly analytical and self-auditing, with clear probability reasoning and minimal filler, which fits the intended audience well. However, it is generic rather than explicitly self-auditing across multiple attempts, since the required ensemble-style justification is absent.",
+          "evidence": "Run 1 opens with \"I need to find P(all three are girls | at least two are girls).\" and proceeds with structured probability reasoning; similar concise analytical structure appears in Runs 2 and 3.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 4,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.33,
+            "median": 4,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -0.5
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, mathematical, and contains no harmful, biased, or inappropriate material.",
+          "evidence": "All runs discuss only probability calculation for a family-children combinatorics problem.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 3,
+          "justification": "The outputs are reasonably concise for the quality delivered, but they repeat the same full enumeration in each run and use more tokens than necessary for a simple 1/4 derivation. Still, the verbosity is moderate rather than bloated.",
+          "evidence": "Run token counts are 304, 370, and 378 tokens, while each run converges on the same short result via similar enumeration and conditional-probability steps.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 2
+            },
+            "mean": 2.67,
+            "median": 2,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All three runs are structurally and semantically near-identical: same section headers, same 8-row probability table, same conditional-probability formula, same arithmetic, same boxed answer. The model consistently applies one approach (sample-space enumeration + P(A\u2229B)/P(B)) and consistently reaches 1/4. The lexical-similarity ratio of 0.285 is explained entirely by paraphrasing, not structural divergence. Quality, structure, and conclusion are stable across runs. [lexical similarity ratio: 0.285]",
+          "evidence": "Runs 1\u20133 all open with 'I need to find P(all three are girls | at least two are girls)', enumerate the same 8-outcome table with identical entries, and close with (1/8)/(4/8) = 1/4.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.285
+        }
+      },
+      "judge_summary": "The model correctly solves the probability problem and demonstrates excellent accuracy, tone, style, and safety. However, it completely failed to implement the 'self-consistency-baseline' pattern under test, producing only a single, verbose derivation per run instead of five distinct attempts, a vote tally, and a tiebreaker. This led to severe penalties in completeness, format compliance, and efficiency. While the individual runs are highly consistent with each other, this consistency highlights a failure to produce the diverse chains expected by the self-consistency pattern itself, which was not graded under the 'consistency' rubric item (which focused on cross-run similarity).",
+      "runs": [
+        {
+          "text": "## Setting Up the Problem\n\nI need to find P(all three are girls | at least two are girls).\n\n## Finding the Sample Space\n\nAll possible combinations of three children (B = boy, G = girl):\n\n| Outcome | # of Girls |\n|---------|-----------|\n| BBB | 0 |\n| BBG | 1 |\n| BGB | 1 |\n| GBB | 1 |\n| BGG | 2 |\n| GBG | 2 |\n| GGB | 2 |\n| GGG | 3 |\n\nEach outcome has probability 1/8.\n\n## Applying the Condition\n\n**Event A:** At least two girls \u2192 {BGG, GBG, GGB, GGG} \u2014 **4 outcomes**\n\n**Event B:** All three girls \u2192 {GGG} \u2014 **1 outcome**\n\n## Calculating the Probability\n\nUsing conditional probability:\n\n$$P(\\text{all girls} \\mid \\text{at least two girls}) = \\frac{P(\\text{all three girls})}{P(\\text{at least two girls})}$$\n\n$$= \\frac{1/8}{4/8} = \\frac{1}{4}$$\n\n## Answer\n\n$$\\boxed{\\dfrac{1}{4}}$$",
+          "input_tokens": 57,
+          "output_tokens": 304,
+          "seconds": 5.42,
+          "run": 1
+        },
+        {
+          "text": "## Setting Up the Problem\n\nI need to find P(all three are girls | at least two are girls).\n\n## Listing the Sample Space\n\nWith three children, there are 2\u00b3 = 8 equally likely outcomes:\n\n| Outcome | # of Girls |\n|---------|-----------|\n| BBB | 0 |\n| BBG | 1 |\n| BGB | 1 |\n| GBB | 1 |\n| BGG | 2 |\n| GBG | 2 |\n| GGB | 2 |\n| GGG | 3 |\n\n## Applying Conditional Probability\n\n$$P(\\text{all girls} \\mid \\text{at least two girls}) = \\frac{P(\\text{all girls AND at least two girls})}{P(\\text{at least two girls})}$$\n\n**Numerator** \u2013 P(all three are girls):\n$$P(GGG) = \\frac{1}{8}$$\n\n**Denominator** \u2013 P(at least two girls):\n\nOutcomes with 2 or more girls: {BGG, GBG, GGB, GGG} \u2192 **4 outcomes**\n$$P(\\text{at least two girls}) = \\frac{4}{8} = \\frac{1}{2}$$\n\n## Final Calculation\n\n$$P(\\text{all girls} \\mid \\text{at least two girls}) = \\frac{1/8}{4/8} = \\frac{1}{4}$$\n\n## Answer\n\n$$\\boxed{\\dfrac{1}{4}}$$",
+          "input_tokens": 57,
+          "output_tokens": 370,
+          "seconds": 5.8,
+          "run": 2
+        },
+        {
+          "text": "## Setting Up the Problem\n\nI need to find P(all three are girls | at least two are girls).\n\n## Finding the Sample Space\n\nWith three children, there are 2\u00b3 = 8 equally likely outcomes:\n\n| Outcomes | Girls |\n|----------|-------|\n| BBB | 0 |\n| BBG, BGB, GBB | 1 each |\n| BGG, GBG, GGB | 2 each |\n| GGG | 3 |\n\n## Applying Conditional Probability\n\nUsing the formula:\n$$P(A|B) = \\frac{P(A \\cap B)}{P(B)}$$\n\nWhere:\n- **Event A** = all three are girls\n- **Event B** = at least two are girls\n\n**P(B) = P(at least two girls):**\nThe outcomes with 2 or more girls: {BGG, GBG, GGB, GGG} = **4 outcomes**\n$$P(B) = \\frac{4}{8} = \\frac{1}{2}$$\n\n**P(A \u2229 B) = P(all three girls AND at least two girls):**\nThis is just P(GGG) = **1 outcome**\n$$P(A \\cap B) = \\frac{1}{8}$$\n\n## Calculating the Answer\n\n$$P(\\text{all girls} \\mid \\text{at least two girls}) = \\frac{1/8}{4/8} = \\frac{1}{4}$$\n\n## Result\n\n$$\\boxed{\\dfrac{1}{4}}$$",
+          "input_tokens": 57,
+          "output_tokens": 378,
+          "seconds": 6.52,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "anthropic",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy",
+          "efficiency"
+        ],
+        "self_preference_delta": -3.5
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "overall": 3.1,
+      "verdict": "Mixed",
+      "dimensions": {
+        "accuracy": {
+          "score": 4,
+          "justification": "Each run independently and correctly calculates the conditional probability as 1/4. The identification of the sample space, conditioning event, and calculation steps are accurate. However, the core mechanism of the self-consistency pattern (multiple *independent* attempts that ideally scatter to demonstrate robustness against traps, then vote) is entirely missed. The output does not reflect the 'discriminating signal is that the chains scatter realistically' aspect, instead converging on the correct answer without showing any variability, which is a failure of the *pattern implementation* even if the final result is right.",
+          "evidence": "All runs end with 'The final answer is $\\boxed{1/4}$'. For example, Run 1 states: 'P(B | A) = (1/8) / (4/8) = 1/4'.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 4,
+            "median": 4,
+            "spread": 2,
+            "stdev": 0.82,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "completeness": {
+          "score": 2,
+          "justification": "The core math question is answered completely, but the response set does not satisfy the prompt-under-test requirements for five attempts, per-attempt final-answer lines, vote tally, or explicit tiebreaker. Typical behavior is one complete solution per run rather than the required self-consistency-baseline structure.",
+          "evidence": "Runs 1-3 each provide a single solution and end with \"The final answer is ...\" rather than five delimited attempts. No run includes five attempts, a tally, or a tiebreaker statement.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 1,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.67,
+            "median": 1,
+            "spread": 2,
+            "stdev": 0.94,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "format_compliance": {
+          "score": 1,
+          "justification": "The outputs do not follow the specified format at all. The required structure was five clearly delimited attempts, each with an exact final-answer line, followed by a vote tally, tiebreaker, and a standalone Result line. Instead, each run is a conventional explanatory solution with a boxed final answer.",
+          "evidence": "Run 1 ends with \"The final answer is $\\boxed{1/4}$.\" Run 2 ends with \"The final answer is $\\boxed{1/4}$.\" Run 3 ends with \"The final answer is $\\boxed{1/4}$.\" None contain \"Attempt k final answer: <value>\" or \"Result: <value>\".",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 1,
+              "claude-sonnet-4-6": 1,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1,
+            "median": 1,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "tone_style": {
+          "score": 3,
+          "justification": "The tone is analytical and explanatory, which is broadly appropriate, but it is not the self-auditing, multi-attempt quantitative style requested. It reads like a standard tutorial rather than a careful, structured vote-based evaluation.",
+          "evidence": "All runs use didactic exposition such as \"Let's denote...\", \"We want to find...\", and \"Alternatively, we can think...\" rather than five attempt-based self-audits or an explicit tally/tiebreaker structure.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 3,
+              "claude-sonnet-4-6": 3,
+              "gemini-2.5-flash": 4
+            },
+            "mean": 3.33,
+            "median": 3,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 1
+            }
+          }
+        },
+        "safety": {
+          "score": 5,
+          "justification": "The content is benign, non-sensitive probability reasoning with no harmful, biased, or inappropriate material.",
+          "evidence": "All runs discuss only child-gender probability enumeration and conditional probability; no unsafe content appears.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 5,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 5,
+            "median": 5,
+            "spread": 0,
+            "stdev": 0.0,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": 0
+            }
+          }
+        },
+        "efficiency": {
+          "score": 2,
+          "justification": "The runs are very verbose for a simple 1/4 conditional-probability problem, especially given the task\u2019s goal of a compact self-consistency baseline. The token counts are high (roughly 2.0k\u20132.4k each) while delivering only one straightforward solution per run, so the quality-to-token ratio is poor.",
+          "evidence": "Run 1: 2043 output tokens; Run 2: 2426 output tokens; Run 3: 2409 output tokens. Each run repeats the same core enumeration and conditional-probability derivation in full instead of providing the requested five distinct attempts and voting structure.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 2,
+              "claude-sonnet-4-6": 2,
+              "gemini-2.5-flash": 1
+            },
+            "mean": 1.67,
+            "median": 2,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": false,
+              "delta": -1
+            }
+          }
+        },
+        "consistency": {
+          "score": 5,
+          "justification": "All three runs are structurally and semantically identical: list all 8 outcomes, define event A (\u22652 girls = 4 outcomes), define event B (GGG = 1 outcome), apply conditional probability formula, confirm via reduced sample space, box 1/4. The failure mode is uniform across runs. [lexical similarity ratio: 0.187]",
+          "evidence": "Run 1, Run 2, and Run 3 all use the same two-method structure (formula then reduced-space verification), identical intermediate values (P(A)=4/8, P(A\u2229B)=1/8, P(B|A)=1/4), and the same boxed final answer. Structural divergence: none.",
+          "source": "judge",
+          "note": "",
+          "judge_score": null,
+          "panel": {
+            "judges": {
+              "gpt-5.4-mini": 4,
+              "claude-sonnet-4-6": 5,
+              "gemini-2.5-flash": 5
+            },
+            "mean": 4.67,
+            "median": 5,
+            "spread": 1,
+            "stdev": 0.47,
+            "method": "mean",
+            "self_preference": {
+              "flag": true,
+              "delta": 0.5
+            }
+          },
+          "lexical_similarity": 0.187
+        }
+      },
+      "judge_summary": "The model consistently produced the correct mathematical answer (1/4) for the probability question, demonstrating good accuracy in its calculation and a suitable analytical tone. However, it completely failed to implement the requested self-consistency pattern. Across all three runs, it provided a single, verbose explanation rather than five independent attempts. Consequently, it missed all related formatting and completeness requirements, such as producing 'Attempt k final answer' lines, an explicit vote tally, or a stated tiebreaker rule. This structural failure, despite the mathematical correctness, resulted in very low completeness, format compliance, and efficiency scores. The consistency across runs was high, but this was a consistent failure to adhere to the prompt's core pattern instructions.",
+      "runs": [
+        {
+          "text": "Let's denote the gender of each child as B for boy and G for girl. Since there are three children and each can be a boy or a girl with equal probability (1/2), there are 2^3 = 8 possible outcomes for the genders of the three children. We list these outcomes, assuming the order matters (e.g., first child, second child, third child), and each outcome is equally likely with a probability of (1/2)^3 = 1/8.\n\nThe 8 possible outcomes are:\n1.  BBB (0 girls)\n2.  BBG (1 girl)\n3.  BGB (1 girl)\n4.  GBB (1 girl)\n5.  BGG (2 girls)\n6.  GBG (2 girls)\n7.  GGB (2 girls)\n8.  GGG (3 girls)\n\nLet A be the event that \"at least two of them are girls\". This means the number of girls is 2 or 3.\nThe outcomes that satisfy event A are:\n*   BGG (2 girls)\n*   GBG (2 girls)\n*   GGB (2 girls)\n*   GGG (3 girls)\nSo, there are 4 outcomes in event A.\nThe probability of event A, P(A) = Number of outcomes in A / Total number of outcomes = 4/8 = 1/2.\n\nLet B be the event that \"all three children are girls\".\nThe only outcome that satisfies event B is:\n*   GGG (3 girls)\nSo, there is 1 outcome in event B.\nThe probability of event B, P(B) = 1/8.\n\nWe want to find the probability that all three children are girls GIVEN that at least two of them are girls. This is a conditional probability, P(B | A).\nThe formula for conditional probability is P(B | A) = P(A and B) / P(A).\n\nFirst, let's find the intersection of events A and B (A and B). This means we look for outcomes that are in both A and B.\nA = {BGG, GBG, GGB, GGG}\nB = {GGG}\nThe outcomes common to both A and B is {GGG}.\nSo, P(A and B) = P(GGG) = 1/8.\n\nNow we can calculate P(B | A):\nP(B | A) = P(A and B) / P(A)\nP(B | A) = (1/8) / (4/8)\nP(B | A) = 1/4\n\nAlternatively, we can think of this as reducing our sample space. Since we are told that at least two children are girls, our new sample space (the known condition) consists only of the outcomes where there are 2 or 3 girls:\n1.  BGG\n2.  GBG\n3.  GGB\n4.  GGG\nThere are 4 equally likely possibilities in this reduced sample space.\nWithin this reduced sample space, we want to know the probability that all three children are girls. Only one of these 4 possibilities corresponds to all three children being girls (GGG).\nTherefore, the probability is 1/4.\n\nThe final answer is $\\boxed{1/4}$.",
+          "input_tokens": 51,
+          "output_tokens": 2043,
+          "seconds": 9.01,
+          "run": 1
+        },
+        {
+          "text": "Let's denote the gender of each child as G (girl) or B (boy). Since there are three children and each child's gender is independent with P(G) = P(B) = 1/2, there are 2^3 = 8 possible outcomes for the genders of the three children. Each outcome is equally likely, with a probability of (1/2)^3 = 1/8.\n\nLet's list all possible outcomes:\n1.  GGG (3 girls)\n2.  GGB (2 girls, 1 boy)\n3.  GBG (2 girls, 1 boy)\n4.  BGG (2 girls, 1 boy)\n5.  GBB (1 girl, 2 boys)\n6.  BGB (1 girl, 2 boys)\n7.  BBG (1 girl, 2 boys)\n8.  BBB (0 girls, 3 boys)\n\nLet A be the event that \"at least two of the children are girls\".\nThe outcomes that satisfy event A are:\n*   3 girls: GGG\n*   2 girls: GGB, GBG, BGG\n\nSo, the set of outcomes for event A is {GGG, GGB, GBG, BGG}.\nThere are 4 outcomes in event A.\nThe probability of event A, P(A), is the number of outcomes in A divided by the total number of outcomes: P(A) = 4/8 = 1/2.\n\nLet B be the event that \"all three children are girls\".\nThe only outcome that satisfies event B is:\n*   3 girls: GGG\n\nSo, the set of outcomes for event B is {GGG}.\nThere is 1 outcome in event B.\nThe probability of event B, P(B), is 1/8.\n\nWe are asked for the probability that all three children are girls, *given that* at least two of them are girls. This is a conditional probability, P(B | A).\nThe formula for conditional probability is: P(B | A) = P(A and B) / P(A).\n\nFirst, let's find the intersection of events A and B (A and B). This means the outcomes that are both in A and in B.\nA = {GGG, GGB, GBG, BGG}\nB = {GGG}\nThe outcomes common to both A and B is {GGG}.\nSo, (A and B) = {GGG}.\nThe probability of (A and B), P(A and B), is 1/8.\n\nNow, we can calculate P(B | A):\nP(B | A) = P(A and B) / P(A)\nP(B | A) = (1/8) / (4/8)\nP(B | A) = 1/4\n\nAlternatively, we can think of the reduced sample space. Given that event A has occurred, our new sample space is A = {GGG, GGB, GBG, BGG}. This reduced sample space contains 4 equally likely outcomes. We are interested in the event that all three children are girls, which corresponds to the outcome GGG within this reduced sample space. Since there is 1 outcome (GGG) out of the 4 possible outcomes in the reduced sample space, the probability is 1/4.\n\nThe final answer is $\\boxed{1/4}$.",
+          "input_tokens": 51,
+          "output_tokens": 2426,
+          "seconds": 11.83,
+          "run": 2
+        },
+        {
+          "text": "Let's denote the gender of each child as G for Girl and B for Boy. Since there are three children, there are 2^3 = 8 possible combinations of genders, and each combination is equally likely with a probability of (1/2)^3 = 1/8.\n\nThe sample space (S) of all possible outcomes is:\n1. BBB (0 girls)\n2. BBG (1 girl)\n3. BGB (1 girl)\n4. GBB (1 girl)\n5. BGG (2 girls)\n6. GBG (2 girls)\n7. GGB (2 girls)\n8. GGG (3 girls)\n\nLet A be the event that \"at least two of them are girls\". This means there are either 2 girls or 3 girls.\nThe outcomes that satisfy event A are:\n- BGG\n- GBG\n- GGB\n- GGG\nSo, event A = {BGG, GBG, GGB, GGG}.\nThe number of outcomes in A is |A| = 4.\nThe probability of event A, P(A), is the sum of the probabilities of these outcomes:\nP(A) = 4 * (1/8) = 4/8 = 1/2.\n\nLet B be the event that \"all three children are girls\".\nThe outcome that satisfies event B is:\n- GGG\nSo, event B = {GGG}.\nThe number of outcomes in B is |B| = 1.\nThe probability of event B, P(B), is 1/8.\n\nWe want to find the probability that all three children are girls, given that at least two of them are girls. This is a conditional probability, denoted as P(B|A).\nThe formula for conditional probability is P(B|A) = P(A and B) / P(A).\n\nFirst, let's find the event (A and B), which means \"at least two girls AND all three girls\".\nIf all three children are girls (GGG), then it is automatically true that at least two of them are girls. Therefore, the event (A and B) is simply the event B itself.\nA and B = {GGG}.\nThe probability of (A and B), P(A and B), is P({GGG}) = 1/8.\n\nNow we can calculate P(B|A):\nP(B|A) = P(A and B) / P(A)\nP(B|A) = (1/8) / (1/2)\nP(B|A) = 1/8 * 2/1\nP(B|A) = 2/8\nP(B|A) = 1/4.\n\nAlternatively, we can think of the sample space being reduced to event A. Given that event A has occurred, we are only considering the 4 equally likely outcomes: {BGG, GBG, GGB, GGG}. Out of these 4 outcomes, only one of them (GGG) corresponds to \"all three children are girls\". So, the probability is 1 out of 4.\n\nThe final answer is $\\boxed{1/4}$.",
+          "input_tokens": 51,
+          "output_tokens": 2409,
+          "seconds": 12.45,
+          "run": 3
+        }
+      ],
+      "panel_meta": {
+        "judges": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "providers": {
+          "gpt-5.4-mini": "openai",
+          "claude-sonnet-4-6": "anthropic",
+          "gemini-2.5-flash": "gemini"
+        },
+        "method": "mean",
+        "n_judges": 3,
+        "target_provider": "gemini",
+        "mean_spread": 1,
+        "max_spread": 2,
+        "contested_dims": [
+          "accuracy",
+          "completeness"
+        ],
+        "self_preference_delta": -0.5
+      }
+    }
+  ],
+  "judges": [
+    "gpt-5.4-mini",
+    "claude-sonnet-4-6",
+    "gemini-2.5-flash"
+  ],
+  "aggregate_method": "mean"
+}

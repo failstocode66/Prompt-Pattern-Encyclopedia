@@ -373,11 +373,18 @@ def judge(judge_model, spec, model, records, similarity):
     dims = _judged_dims(len(records))
     schema = _judge_schema(dims)
     prompt = _judge_prompt(spec, model, records, similarity)
-    verdict = _with_retry(_JUDGE_CALLS[_provider(judge_model)], judge_model, schema, prompt)
-    missing = [k for k in dims + ["summary"] if k not in verdict]
-    if missing:
-        raise RuntimeError(f"Judge {judge_model} omitted keys: {missing}")
-    return verdict
+
+    def _call_and_validate():
+        # Key-omission is transient LLM flakiness, so it must live INSIDE the retried
+        # unit — validating after _with_retry made one malformed verdict fatal
+        # (2026-07-02: gemini omitted 'summary' and killed a whole batch pattern).
+        verdict = _JUDGE_CALLS[_provider(judge_model)](judge_model, schema, prompt)
+        missing = [k for k in dims + ["summary"] if k not in verdict]
+        if missing:
+            raise RuntimeError(f"Judge {judge_model} omitted keys: {missing}")
+        return verdict
+
+    return _with_retry(_call_and_validate)
 
 
 # --- hybrid review phase ----------------------------------------------------

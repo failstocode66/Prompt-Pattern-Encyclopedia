@@ -1,0 +1,2364 @@
+{
+  "fourth_judge": "claude-opus-4-8",
+  "generated": "2026-07-26 19:40",
+  "positive_control_pass": true,
+  "opus_usage": {
+    "in": 296908,
+    "out": 138025,
+    "cost_usd": 4.935
+  },
+  "candidates": [
+    {
+      "pattern": "analogical-reasoning",
+      "index_15": 12.5,
+      "before_mean": 4.17,
+      "before_15": 12.5,
+      "control_ok": true,
+      "after_mean": 4.23,
+      "after_15": 12.7,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4.3,
+          "after": 4.4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                4,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "tone_style": {
+              "base": [
+                5,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                5
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4.3,
+          "after": 4.3,
+          "dims": {
+            "accuracy": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 4,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                5
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.9,
+          "after": 4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                1,
+                3,
+                3
+              ],
+              "opus": 3,
+              "before": 2,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "accuracy": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "completeness": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "efficiency": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "consistency": [
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "tone_style": [
+          "gemini-2.5-flash"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "least-to-most-prompting",
+      "index_15": 12.5,
+      "before_mean": 4.17,
+      "before_15": 12.5,
+      "control_ok": true,
+      "after_mean": 4.37,
+      "after_15": 13.1,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4.1,
+          "after": 4.4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 4,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4.1,
+          "after": 4.3,
+          "dims": {
+            "accuracy": {
+              "base": [
+                3,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                2,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                2,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                4
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 4.3,
+          "after": 4.4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                5,
+                5,
+                4
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                5,
+                5,
+                3
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "format_compliance": {
+              "base": [
+                5,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                5,
+                4,
+                3
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                1,
+                4,
+                3
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "consistency": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "efficiency": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "accuracy": [
+          "claude-sonnet-4-6"
+        ],
+        "completeness": [
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "format_compliance": [
+          "claude-sonnet-4-6"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "negative-prompting",
+      "index_15": 12.3,
+      "before_mean": 4.1,
+      "before_15": 12.3,
+      "control_ok": true,
+      "after_mean": 4.27,
+      "after_15": 12.8,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 5,
+          "after": 5,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 3.6,
+          "after": 3.9,
+          "dims": {
+            "accuracy": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                4,
+                5,
+                2
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                2,
+                3,
+                2
+              ],
+              "opus": 3,
+              "before": 2,
+              "after": 3
+            },
+            "consistency": {
+              "base": [
+                4,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                3,
+                5,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                1
+              ],
+              "opus": 4,
+              "before": 2,
+              "after": 3
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.7,
+          "after": 3.9,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                4,
+                5,
+                3
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                3,
+                5,
+                3
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                3,
+                3,
+                3
+              ],
+              "opus": 5,
+              "before": 3,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                3,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                1,
+                3,
+                1
+              ],
+              "opus": 4,
+              "before": 2,
+              "after": 2
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "accuracy": [
+          "claude-sonnet-4-6"
+        ],
+        "completeness": [
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "tone_style": [
+          "claude-sonnet-4-6"
+        ],
+        "efficiency": [
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "format_compliance": [
+          "gemini-2.5-flash"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "plan-and-solve",
+      "index_15": 12.3,
+      "before_mean": 4.1,
+      "before_15": 12.3,
+      "control_ok": true,
+      "after_mean": 4.33,
+      "after_15": 13.0,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4,
+          "after": 4.4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                4
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                3,
+                4
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                3,
+                4
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4.6,
+          "after": 4.7,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                4
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "tone_style": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.7,
+          "after": 3.9,
+          "dims": {
+            "accuracy": {
+              "base": [
+                2,
+                3,
+                4
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 3
+            },
+            "completeness": {
+              "base": [
+                2,
+                3,
+                4
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 3
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                3,
+                3,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "tone_style": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                4
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "accuracy": [
+          "gemini-2.5-flash"
+        ],
+        "completeness": [
+          "gemini-2.5-flash"
+        ],
+        "efficiency": [
+          "gemini-2.5-flash"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "instruction-anchoring",
+      "index_15": 12.2,
+      "before_mean": 4.07,
+      "before_15": 12.2,
+      "control_ok": true,
+      "after_mean": 4.3,
+      "after_15": 12.9,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4.1,
+          "after": 4.3,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                4
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                5,
+                4
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                2,
+                4,
+                4
+              ],
+              "opus": 5,
+              "before": 3,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                4,
+                4,
+                3
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                2,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "efficiency": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4.4,
+          "after": 4.6,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                4,
+                4,
+                3
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                5,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.7,
+          "after": 4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                3,
+                3,
+                3
+              ],
+              "opus": 5,
+              "before": 3,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                5,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                5,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                3,
+                3,
+                3
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 3
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                4,
+                1
+              ],
+              "opus": 4,
+              "before": 2,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "completeness": [
+          "gpt-5.4-mini",
+          "gemini-2.5-flash"
+        ],
+        "format_compliance": [
+          "gpt-5.4-mini",
+          "gemini-2.5-flash"
+        ],
+        "safety": [
+          "gpt-5.4-mini"
+        ],
+        "efficiency": [
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "staged-refinement",
+      "index_15": 12.2,
+      "before_mean": 4.07,
+      "before_15": 12.2,
+      "control_ok": true,
+      "after_mean": 4.3,
+      "after_15": 12.9,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4.4,
+          "after": 4.6,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "format_compliance": {
+              "base": [
+                5,
+                3,
+                3
+              ],
+              "opus": 3,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                4,
+                5,
+                3
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4.1,
+          "after": 4.6,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                3,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "format_compliance": {
+              "base": [
+                2,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.7,
+          "after": 3.7,
+          "dims": {
+            "accuracy": {
+              "base": [
+                2,
+                5,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 3,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                2,
+                3,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "consistency": {
+              "base": [
+                2,
+                2,
+                3
+              ],
+              "opus": 2,
+              "before": 2,
+              "after": 2
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 4,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "format_compliance": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6"
+        ],
+        "consistency": [
+          "gpt-5.4-mini"
+        ],
+        "completeness": [
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "efficiency": [
+          "claude-sonnet-4-6"
+        ],
+        "accuracy": [
+          "gemini-2.5-flash"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "devils-advocate",
+      "index_15": 12.1,
+      "before_mean": 4.03,
+      "before_15": 12.1,
+      "control_ok": true,
+      "after_mean": 4.17,
+      "after_15": 12.5,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4.3,
+          "after": 4.4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "tone_style": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4.4,
+          "after": 4.4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                3,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.4,
+          "after": 3.7,
+          "dims": {
+            "accuracy": {
+              "base": [
+                2,
+                2,
+                3
+              ],
+              "opus": 3,
+              "before": 2,
+              "after": 3
+            },
+            "completeness": {
+              "base": [
+                3,
+                2,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                3,
+                4,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "tone_style": {
+              "base": [
+                4,
+                3,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                3
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "accuracy": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6"
+        ],
+        "completeness": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6"
+        ],
+        "efficiency": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6"
+        ],
+        "consistency": [
+          "claude-sonnet-4-6"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "length-budgeting",
+      "index_15": 12.1,
+      "before_mean": 4.03,
+      "before_15": 12.1,
+      "control_ok": true,
+      "after_mean": 4.13,
+      "after_15": 12.4,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4.1,
+          "after": 4.3,
+          "dims": {
+            "accuracy": {
+              "base": [
+                5,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                5,
+                4,
+                3
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                5,
+                5,
+                1
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                5,
+                4,
+                3
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "tone_style": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                5,
+                4,
+                1
+              ],
+              "opus": 5,
+              "before": 3,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4.3,
+          "after": 4.4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "format_compliance": {
+              "base": [
+                5,
+                2,
+                2
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "consistency": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "tone_style": {
+              "base": [
+                5,
+                4,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                2
+              ],
+              "opus": 5,
+              "before": 2,
+              "after": 3
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.7,
+          "after": 3.7,
+          "dims": {
+            "accuracy": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 4,
+              "before": 5,
+              "after": 5
+            },
+            "completeness": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 3,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                3,
+                2,
+                2
+              ],
+              "opus": 2,
+              "before": 2,
+              "after": 2
+            },
+            "consistency": {
+              "base": [
+                4,
+                3,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "tone_style": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "completeness": [
+          "gpt-5.4-mini"
+        ],
+        "format_compliance": [
+          "gpt-5.4-mini",
+          "claude-sonnet-4-6"
+        ],
+        "consistency": [
+          "gpt-5.4-mini"
+        ],
+        "efficiency": [
+          "gpt-5.4-mini"
+        ]
+      },
+      "has_opus": true
+    },
+    {
+      "pattern": "stepback-abstraction",
+      "index_15": 12.0,
+      "before_mean": 4.0,
+      "before_15": 12.0,
+      "control_ok": true,
+      "after_mean": 4.1,
+      "after_15": 12.3,
+      "clears": true,
+      "per_model": [
+        {
+          "model": "gpt-5.4-mini",
+          "before": 4.3,
+          "after": 4.3,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                4,
+                4
+              ],
+              "opus": 3,
+              "before": 4,
+              "after": 4
+            },
+            "completeness": {
+              "base": [
+                4,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                3,
+                2,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "tone_style": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 4,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            }
+          }
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "before": 4,
+          "after": 4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                4,
+                2,
+                3
+              ],
+              "opus": 3,
+              "before": 3,
+              "after": 3
+            },
+            "completeness": {
+              "base": [
+                4,
+                3,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 4,
+              "before": 5,
+              "after": 5
+            },
+            "consistency": {
+              "base": [
+                3,
+                2,
+                3
+              ],
+              "opus": 2,
+              "before": 3,
+              "after": 3
+            },
+            "tone_style": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                3,
+                3,
+                3
+              ],
+              "opus": 4,
+              "before": 3,
+              "after": 3
+            }
+          }
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "before": 3.7,
+          "after": 4,
+          "dims": {
+            "accuracy": {
+              "base": [
+                2,
+                3,
+                2
+              ],
+              "opus": 5,
+              "before": 2,
+              "after": 3
+            },
+            "completeness": {
+              "base": [
+                3,
+                3,
+                5
+              ],
+              "opus": 5,
+              "before": 4,
+              "after": 4
+            },
+            "format_compliance": {
+              "base": [
+                3,
+                4,
+                4
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "consistency": {
+              "base": [
+                4,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "tone_style": {
+              "base": [
+                4,
+                4,
+                5
+              ],
+              "opus": 4,
+              "before": 4,
+              "after": 4
+            },
+            "safety": {
+              "base": [
+                5,
+                5,
+                5
+              ],
+              "opus": 5,
+              "before": 5,
+              "after": 5
+            },
+            "efficiency": {
+              "base": [
+                2,
+                3,
+                1
+              ],
+              "opus": 4,
+              "before": 2,
+              "after": 3
+            }
+          }
+        }
+      ],
+      "contested_before": {
+        "accuracy": [
+          "claude-sonnet-4-6"
+        ],
+        "completeness": [
+          "claude-sonnet-4-6",
+          "gemini-2.5-flash"
+        ],
+        "efficiency": [
+          "gemini-2.5-flash"
+        ]
+      },
+      "has_opus": true
+    }
+  ]
+}

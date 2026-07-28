@@ -1,0 +1,10 @@
+Question: A specialty coffee roaster is reconciling one month of subscription orders. Use ONLY the figures below; do not invent data.
+
+- The roaster shipped 600 bags total this month.
+- Every bag is exactly one of two roast levels: Light or Dark. 35% of the bags shipped were Light roast.
+- Every bag is independently either Decaf or Caffeinated. 20% of all bags shipped were Decaf.
+- Of the Light-roast bags specifically, 40% were Decaf.
+- A "premium" bag is any bag that is BOTH Dark roast AND Caffeinated. Premium bags ship in a reusable tin that costs the roaster $3.50 each; all other bags ship in a paper sack costing $0.60 each.
+- Separately, the roaster ran a promotion: every Decaf bag (regardless of roast) included a free $1.20 sample, and every Light-roast bag (regardless of caffeine) included a free $0.80 sticker. A single bag can therefore carry both a sample and a sticker.
+
+Compute the roaster's total packaging-plus-promotion cost for the month (tins + sacks + samples + stickers), in dollars.

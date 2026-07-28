@@ -1,0 +1,1 @@
+Question: We're a six-person startup, eight months from running out of runway, and our product currently runs on Heroku. Our lead engineer wants us to adopt Kubernetes because "we'll need it to scale and it's what serious companies use." Should we move to Kubernetes now?
